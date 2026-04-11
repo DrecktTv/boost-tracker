@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Horde Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:    #0f0d0a;
+  --bg1:   #1a1510;
+  --bg2:   #221a10;
+  --bg3:   #2d2215;
+  --border:#3d2e1a;
+  --gold:  #d4a017;
+  --gold2: #f0c040;
+  --red:   #8b1a1a;
+  --red2:  #c0392b;
+  --bone:  #e8d5b0;
+  --muted: #9a8a6a;
+  --green: #2d6a2d;
+  --gfg:   #6fcf6f;
+  --rfg:   #e07070;
+  --bfg:   #6ab0e0;
+  --rad:   8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--bone); font-family: 'Inter', sans-serif; font-size: 14px; min-height: 100vh; }
+
+/* NAV */
+nav {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 24px; height: 56px;
+  position: sticky; top: 0; z-index: 100;
+  gap: 0;
+}
+.brand {
+  font-family: 'Cinzel', serif;
+  font-size: 16px; font-weight: 700;
+  color: var(--gold2);
+  letter-spacing: .06em;
+  padding-right: 24px;
+  border-right: 1px solid var(--border);
+  margin-right: 8px;
+  white-space: nowrap;
+}
+.brand span { color: var(--red2); }
+.tabs { display: flex; height: 100%; }
+.tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 18px; height: 100%;
+  color: var(--muted); cursor: pointer;
+  font-size: 13px; font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: all .15s; white-space: nowrap;
+}
+.tab:hover { color: var(--bone); }
+.tab.active { color: var(--gold2); border-bottom-color: var(--gold); }
+.tab-icon { font-size: 15px; }
+
+/* PAGES */
+.page { display: none; padding: 24px; max-width: 1300px; margin: 0 auto; }
+.page.active { display: block; animation: fade .18s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* STATS */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.sc {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--rad); padding: 16px 18px;
+}
+.sc-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.sc-val { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 700; color: var(--gold2); display: flex; align-items: center; gap: 6px; }
+.sc-val.red { color: var(--rfg); }
+.sc-val.green { color: var(--gfg); }
+.coin-icon { font-size: 20px; }
+
+/* TOOLBAR */
+.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+.toolbar-title { font-family: 'Cinzel', serif; font-size: 15px; font-weight: 700; color: var(--bone); letter-spacing: .04em; }
+.toolbar-right { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* TABLE */
+.table-wrap { border: 1px solid var(--border); border-radius: var(--rad); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--bg2); }
+th {
+  padding: 11px 16px; text-align: left;
+  font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  color: var(--muted); text-transform: uppercase; white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(212,160,23,.04); }
+td { padding: 12px 16px; vertical-align: middle; }
+.td-name { font-weight: 600; color: var(--bone); display: flex; align-items: center; gap: 8px; }
+.class-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* GOLD AMOUNT */
+.gold-amt { display: flex; align-items: center; gap: 5px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; }
+.gold-amt.red { color: var(--rfg); }
+.gold-icon { font-size: 16px; }
+
+/* BADGES */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.b-dps    { background: rgba(200,60,60,.2);   color: #f08080; border: 1px solid rgba(200,60,60,.3); }
+.b-tank   { background: rgba(60,100,200,.2);  color: #80a8f0; border: 1px solid rgba(60,100,200,.3); }
+.b-heal   { background: rgba(60,180,60,.2);   color: #80d880; border: 1px solid rgba(60,180,60,.3); }
+.b-client { background: rgba(200,130,30,.2);  color: #e0a850; border: 1px solid rgba(200,130,30,.3); }
+.b-oui    { background: rgba(60,180,60,.2);   color: #80d880; border: 1px solid rgba(60,180,60,.3); cursor: pointer; transition: all .15s; user-select: none; }
+.b-non    { background: rgba(200,60,60,.2);   color: #f08080; border: 1px solid rgba(200,60,60,.3); cursor: pointer; transition: all .15s; user-select: none; }
+.b-oui:hover { background: rgba(60,180,60,.35); }
+.b-non:hover { background: rgba(200,60,60,.35); }
+.b-trade  { background: rgba(212,160,23,.15); color: var(--gold2); border: 1px solid rgba(212,160,23,.25); }
+.b-key    { background: rgba(255,255,255,.06); color: var(--bone); border: 1px solid var(--border); font-family: 'Cinzel', serif; font-size: 11px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--rad);
+  border: 1px solid; cursor: pointer;
+  font-size: 13px; font-weight: 600;
+  transition: all .15s; white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+}
+.btn-gold { background: var(--gold); color: #0f0d0a; border-color: var(--gold2); }
+.btn-gold:hover { background: var(--gold2); }
+.btn-red  { background: var(--red); color: var(--bone); border-color: var(--red2); }
+.btn-red:hover { background: var(--red2); }
+.btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+.btn-ghost:hover { color: var(--bone); border-color: var(--muted); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* CLASS COLORS */
+.c-Guerrier   { background: #C69B3A; }
+.c-Paladin    { background: #F48CBA; }
+.c-Chasseur   { background: #AAD372; }
+.c-Voleur     { background: #FFF468; }
+.c-Pretre     { background: #CCCCCC; }
+.c-Chaman     { background: #0070DD; }
+.c-Mage       { background: #3FC7EB; }
+.c-Demoniste  { background: #8788EE; }
+.c-Druide     { background: #FF7C0A; }
+.c-Moine      { background: #00FF98; }
+.c-DK         { background: #C41E3A; }
+.c-DH         { background: #A330C9; }
+.c-Evocateur  { background: #33937F; }
+
+/* FORMS */
+input, select {
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--bone); padding: 9px 12px; border-radius: var(--rad);
+  font-family: 'Inter', sans-serif; font-size: 14px;
+  transition: border-color .15s; width: 100%;
+}
+input:focus, select:focus { outline: none; border-color: var(--gold); }
+select option { background: var(--bg2); }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* MODAL */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 500; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; width: 92%; max-width: 440px;
+  position: relative; animation: fadeIn .18s ease;
+}
+.modal-title { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: var(--gold2); margin-bottom: 20px; }
+.modal-body { display: flex; flex-direction: column; gap: 14px; }
+.modal-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; line-height: 1; }
+.modal-close:hover { color: var(--bone); }
+
+/* TEAMS */
+.teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.tcard { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.tcard-head { background: var(--bg2); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.tcard-head h3 { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; color: var(--gold2); }
+.slot-row { display: grid; grid-template-columns: 80px 1fr; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,.03); }
+.slot-row:last-child { border-bottom: none; }
+.slot-lbl { font-size: 12px; font-weight: 600; color: var(--muted); }
+.slot-sel { background: var(--bg); border: 1px solid var(--border); color: var(--bone); padding: 5px 8px; border-radius: 6px; font-size: 13px; width: 100%; }
+.slot-sel:focus { outline: none; border-color: var(--gold); }
+.tcard-foot { background: var(--bg2); padding: 8px 14px; display: flex; gap: 16px; border-top: 1px solid var(--border); }
+.tcard-stat { font-size: 12px; color: var(--muted); }
+.tcard-stat span { color: var(--bone); font-weight: 600; }
+
+/* CONFIG */
+.cfg-wrap { max-width: 500px; background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
+.cfg-note { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
+.conn-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.conn-ok   { background: rgba(60,180,60,.2); color: var(--gfg); border: 1px solid rgba(60,180,60,.3); }
+.conn-fail { background: rgba(200,60,60,.2); color: var(--rfg); border: 1px solid rgba(200,60,60,.3); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 20px; right: 20px; z-index: 999; background: var(--bg1); border: 1px solid var(--border); border-radius: var(--rad); padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--bone); transform: translateY(60px); opacity: 0; transition: all .25s; pointer-events: none; }
+.toast.show { transform: none; opacity: 1; }
+.toast.ok   { border-color: rgba(60,180,60,.5); color: var(--gfg); }
+.toast.err  { border-color: rgba(200,60,60,.5); color: var(--rfg); }
+
+/* EMPTY */
+.empty { text-align: center; padding: 48px 16px; color: var(--muted); }
+.empty-icon { font-size: 32px; margin-bottom: 10px; }
+.empty p { font-size: 14px; }
+
+/* RESPONSIVE */
+@media(max-width: 600px) {
+  .page { padding: 14px; }
+  .stats { grid-template-columns: repeat(2,1fr); }
+  .tab-label { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">⚔ <span>HORDE</span> TRACKER</div>
+  <div class="tabs">
+    <div class="tab active" data-p="tracker" onclick="go('tracker')">
+      <span class="tab-icon">🪙</span><span class="tab-label">Tracker</span>
+    </div>
+    <div class="tab" data-p="membres" onclick="go('membres')">
+      <span class="tab-icon">⚔</span><span class="tab-label">Membres</span>
+    </div>
+    <div class="tab" data-p="teams" onclick="go('teams')">
+      <span class="tab-icon">🐗</span><span class="tab-label">Teams</span>
+    </div>
+    <div class="tab" data-p="config" onclick="go('config')">
+      <span class="tab-icon">⚙</span><span class="tab-label">Config</span>
+    </div>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══ TRACKER ═══ -->
+<div class="page active" id="page-tracker">
+  <div class="stats">
+    <div class="sc">
+      <div class="sc-label">Total dû</div>
+      <div class="sc-val red" id="s-total"><span class="coin-icon">🪙</span><span id="s-total-num">0</span></div>
+    </div>
+    <div class="sc">
+      <div class="sc-label">Entrées</div>
+      <div class="sc-val" id="s-ent">0</div>
+    </div>
+    <div class="sc">
+      <div class="sc-label">Payés</div>
+      <div class="sc-val green" id="s-paid">0</div>
+    </div>
+    <div class="sc">
+      <div class="sc-label">Non payés</div>
+      <div class="sc-val red" id="s-unpaid">0</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-title">Paiements</div>
+    <div class="toolbar-right">
+      <button class="btn btn-red btn-sm" onclick="resetAll()">🔄 Reset 3 jours</button>
+      <button class="btn btn-gold" onclick="openAddP()">+ Ajouter</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Nom</th>
+          <th>Tarif</th>
+          <th>Clé</th>
+          <th>Payé</th>
+          <th>Classe</th>
+          <th>Trade</th>
+          <th>Dû</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="t-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ MEMBRES ═══ -->
+<div class="page" id="page-membres">
+  <div class="toolbar">
+    <div class="toolbar-title">Membres</div>
+    <button class="btn btn-gold" onclick="openAddM()">+ Ajouter</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Classe</th>
+          <th>Spé</th>
+          <th>ilvl</th>
+          <th>Rio</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="m-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ TEAMS ═══ -->
+<div class="page" id="page-teams">
+  <div class="toolbar">
+    <div class="toolbar-title">Teams</div>
+    <button class="btn btn-gold" onclick="addTeam()">+ Nouvelle team</button>
+  </div>
+  <div class="teams-grid" id="tgrid"></div>
+</div>
+
+<!-- ═══ CONFIG ═══ -->
+<div class="page" id="page-config">
+  <div class="toolbar" style="margin-bottom:16px"><div class="toolbar-title">Configuration</div></div>
+  <div class="cfg-wrap">
+    <p class="cfg-note">Colle tes clés Supabase ci-dessous. Elles sont sauvegardées localement dans ton navigateur.</p>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="fg"><label>PROJECT URL</label><input id="cu" placeholder="https://xxxx.supabase.co"/></div>
+      <div class="fg"><label>ANON KEY</label><input id="ck" placeholder="eyJhbGci... ou sb_publishable_..."/></div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-gold" onclick="saveConfig()">Connecter</button>
+        <span id="cst"></span>
+      </div>
+      <div style="margin-top:8px;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);line-height:1.8">
+        <strong style="color:var(--bone)">Où trouver les clés ?</strong><br>
+        Supabase → projet → bouton <em>Connect</em> → onglet <em>.env.local</em><br>
+        <code style="color:var(--gold2)">NEXT_PUBLIC_SUPABASE_URL</code> = Project URL<br>
+        <code style="color:var(--gold2)">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code> = Anon Key
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MEMBRE -->
+<div class="overlay" id="ov-m">
+  <div class="modal">
+    <button class="modal-close" onclick="cov('ov-m')">✕</button>
+    <div class="modal-title">Ajouter un membre</div>
+    <div class="modal-body">
+      <div class="fg"><label>NOM</label><input id="mn" placeholder="Tixaa"/></div>
+      <div class="form-grid">
+        <div class="fg"><label>CLASSE</label>
+          <select id="mc">
+            <option value="">— Classe —</option>
+            <option>Guerrier</option><option>Paladin</option><option>Chasseur</option>
+            <option>Voleur</option><option>Prêtre</option><option>Chaman</option>
+            <option>Mage</option><option>Démoniste</option><option>Druide</option>
+            <option>Moine</option><option>DK</option><option>DH</option><option>Évocateur</option>
+          </select>
+        </div>
+        <div class="fg"><label>SPÉ</label>
+          <select id="ms">
+            <option value="">— Spé —</option>
+            <option value="DPS">DPS</option>
+            <option value="TANK">TANK</option>
+            <option value="Heal">Heal</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="fg"><label>ILVL</label><input id="mi" type="number" placeholder="620"/></div>
+        <div class="fg"><label>RIO</label><input id="mr" type="number" placeholder="2500"/></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="cov('ov-m')">Annuler</button>
+      <button class="btn btn-gold" onclick="saveM()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAIEMENT -->
+<div class="overlay" id="ov-p">
+  <div class="modal">
+    <button class="modal-close" onclick="cov('ov-p')">✕</button>
+    <div class="modal-title">Ajouter un paiement</div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg"><label>DATE</label><input id="pd" type="date"/></div>
+        <div class="fg"><label>NOM</label>
+          <select id="pn"><option value="">— Membre —</option></select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="fg"><label>PIÈCES D'OR 🪙</label><input id="pt" type="number" placeholder="25"/></div>
+        <div class="fg"><label>CLÉ</label>
+          <select id="pk">
+            <option value="">— Clé —</option>
+            <option>MT</option><option>MC</option><option>Nexus</option><option>WS</option>
+            <option>AA</option><option>Pit</option><option>Seat</option><option>Sky</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="fg"><label>CLASSE</label>
+          <select id="pcl">
+            <option value="">— Classe —</option>
+            <option>Guerrier</option><option>Paladin</option><option>Chasseur</option>
+            <option>Voleur</option><option>Prêtre</option><option>Chaman</option>
+            <option>Mage</option><option>Démoniste</option><option>Druide</option>
+            <option>Moine</option><option>DK</option><option>DH</option><option>Évocateur</option>
+          </select>
+        </div>
+        <div class="fg"><label>TRADE</label>
+          <select id="ptr"><option value="false">Non</option><option value="true">Oui</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="cov('ov-p')">Annuler</button>
+      <button class="btn btn-gold" onclick="saveP()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── SUPABASE ───────────────────────────────────────────
+let sb = null;
+let MC = [];
+
+function initSb(u, k) {
+  try { sb = supabase.createClient(u, k); return true; }
+  catch(e) { return false; }
+}
+function need() {
+  if (!sb) { toast('Configure Supabase dans Config ⚙', 'err'); go('config'); return false; }
+  return true;
+}
+
+// ─── NAV ────────────────────────────────────────────────
+function go(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  document.querySelector(`[data-p="${p}"]`).classList.add('active');
+  ({ tracker: loadT, membres: loadM, teams: loadTm }[p] || (() => {}))();
+}
+
+// ─── TOAST ──────────────────────────────────────────────
+let _tt;
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.className = 'toast', 2800);
+}
+
+// ─── MODAL ──────────────────────────────────────────────
+function oov(id) { document.getElementById(id).classList.add('open'); }
+function cov(id) { document.getElementById(id).classList.remove('open'); }
+
+// ─── HELPERS ────────────────────────────────────────────
+const CLASS_COLORS = {
+  'Guerrier':'#C69B3A','Paladin':'#F48CBA','Chasseur':'#AAD372','Voleur':'#FFF468',
+  'Prêtre':'#CCCCCC','Chaman':'#0070DD','Mage':'#3FC7EB','Démoniste':'#8788EE',
+  'Druide':'#FF7C0A','Moine':'#00FF98','DK':'#C41E3A','DH':'#A330C9','Évocateur':'#33937F'
+};
+const SPE_CLS = { DPS: 'b-dps', TANK: 'b-tank', Heal: 'b-heal' };
+
+function classDot(cls) {
+  const c = CLASS_COLORS[cls];
+  if (!c) return '';
+  return `<span class="class-dot" style="background:${c}" title="${cls}"></span>`;
+}
+
+function goldCell(n, red = false) {
+  if (!n && n !== 0) return '—';
+  return `<span class="gold-amt${red ? ' red' : ''}"><span class="gold-icon">🪙</span>${Number(n).toLocaleString('fr-FR')}</span>`;
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('fr-FR');
+}
+
+// ─── TRACKER ────────────────────────────────────────────
+async function loadT() {
+  if (!need()) return;
+  const { data, error } = await sb.from('paiements').select('*').order('date', { ascending: false });
+  if (error) { toast('Erreur chargement', 'err'); return; }
+  const rows = data || [];
+
+  const total = rows.filter(r => !r.paye).reduce((s, r) => s + (r.tarif || 0), 0);
+  document.getElementById('s-total-num').textContent = Math.round(total).toLocaleString('fr-FR');
+  document.getElementById('s-ent').textContent    = rows.length;
+  document.getElementById('s-paid').textContent   = rows.filter(r => r.paye).length;
+  document.getElementById('s-unpaid').textContent = rows.filter(r => !r.paye).length;
+
+  const tbody = document.getElementById('t-body');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="empty-icon">🪙</div><p>Aucun paiement pour l'instant</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const du = r.paye ? 0 : (r.tarif || 0);
+    const payeBtn = `<span class="badge ${r.paye ? 'b-oui' : 'b-non'}" onclick="toggleP('${r.id}',${r.paye})">
+      ${r.paye ? '✅ Payé' : '❌ Non payé'}
+    </span>`;
+    const tradeCell = r.trade
+      ? `<span class="badge b-trade">✔ Oui</span>`
+      : `<span style="color:var(--muted)">—</span>`;
+    const duCell = du > 0
+      ? goldCell(du, true)
+      : `<span style="color:var(--gfg);font-size:13px">✓ OK</span>`;
+
+    return `<tr>
+      <td style="color:var(--muted);font-size:13px">${fmtDate(r.date)}</td>
+      <td><div class="td-name">${classDot(r.classe)}<strong>${r.nom || '—'}</strong></div></td>
+      <td>${goldCell(r.tarif)}</td>
+      <td>${r.cle ? `<span class="badge b-key">${r.cle}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${payeBtn}</td>
+      <td><div class="td-name">${classDot(r.classe)}<span style="color:var(--muted);font-size:13px">${r.classe || '—'}</span></div></td>
+      <td>${tradeCell}</td>
+      <td>${duCell}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="delP('${r.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleP(id, cur) {
+  if (!need()) return;
+  await sb.from('paiements').update({ paye: !cur }).eq('id', id);
+  toast(cur ? '❌ Marqué non payé' : '✅ Marqué payé');
+  loadT();
+}
+
+async function delP(id) {
+  if (!need()) return;
+  if (!confirm('Supprimer ce paiement ?')) return;
+  await sb.from('paiements').delete().eq('id', id);
+  toast('Supprimé'); loadT();
+}
+
+async function resetAll() {
+  if (!need()) return;
+  if (!confirm('Marquer TOUS les impayés comme payés ?')) return;
+  await sb.from('paiements').update({ paye: true }).eq('paye', false);
+  toast('🔄 Reset effectué !'); loadT();
+}
+
+async function openAddP() {
+  if (!need()) return;
+  document.getElementById('pd').value = new Date().toISOString().slice(0, 10);
+  await fillSel('pn');
+  oov('ov-p');
+}
+
+async function saveP() {
+  if (!need()) return;
+  const sel = document.getElementById('pn');
+  const nom = sel.options[sel.selectedIndex]?.text || '';
+  const row = {
+    date:   document.getElementById('pd').value,
+    nom:    nom === '— Membre —' ? '' : nom,
+    tarif:  parseFloat(document.getElementById('pt').value) || 0,
+    cle:    document.getElementById('pk').value || null,
+    classe: document.getElementById('pcl').value || null,
+    trade:  document.getElementById('ptr').value === 'true',
+    paye:   false,
+  };
+  const { error } = await sb.from('paiements').insert([row]);
+  if (error) { toast('Erreur : ' + error.message, 'err'); return; }
+  cov('ov-p'); toast('🪙 Paiement ajouté !'); loadT();
+}
+
+// ─── MEMBRES ────────────────────────────────────────────
+async function loadM() {
+  if (!need()) return;
+  const { data } = await sb.from('membres').select('*').order('nom');
+  MC = data || [];
+  const tbody = document.getElementById('m-body');
+  if (!MC.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">⚔</div><p>Aucun membre</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = MC.map(m => `<tr>
+    <td><div class="td-name">${classDot(m.classe)}<strong>${m.nom}</strong></div></td>
+    <td><div class="td-name">${classDot(m.classe)}<span style="color:var(--muted);font-size:13px">${m.classe || '—'}</span></div></td>
+    <td>${m.spe ? `<span class="badge ${SPE_CLS[m.spe] || ''}">${m.spe}</span>` : '—'}</td>
+    <td><strong style="color:var(--bfg)">${m.ilvl || '—'}</strong></td>
+    <td><strong style="color:var(--gold2)">${m.rio || '—'}</strong></td>
+    <td><button class="btn btn-ghost btn-sm" onclick="delM('${m.id}')">✕</button></td>
+  </tr>`).join('');
+}
+
+function openAddM() {
+  if (!need()) return;
+  ['mn','mi','mr'].forEach(id => document.getElementById(id).value = '');
+  ['mc','ms'].forEach(id => document.getElementById(id).selectedIndex = 0);
+  oov('ov-m');
+}
+
+async function saveM() {
+  if (!need()) return;
+  const nom = document.getElementById('mn').value.trim();
+  if (!nom) { toast('Le nom est requis', 'err'); return; }
+  const { error } = await sb.from('membres').insert([{
+    nom,
+    classe: document.getElementById('mc').value || null,
+    spe:    document.getElementById('ms').value || null,
+    ilvl:   parseInt(document.getElementById('mi').value) || null,
+    rio:    parseInt(document.getElementById('mr').value) || null,
+  }]);
+  if (error) { toast('Erreur : ' + error.message, 'err'); return; }
+  cov('ov-m'); toast('⚔ ' + nom + ' ajouté !'); loadM();
+}
+
+async function delM(id) {
+  if (!need()) return;
+  if (!confirm('Supprimer ce membre ?')) return;
+  await sb.from('membres').delete().eq('id', id);
+  toast('Membre supprimé'); loadM();
+}
+
+async function fillSel(selId) {
+  if (!sb) return;
+  const { data } = await sb.from('membres').select('id,nom').order('nom');
+  const sel = document.getElementById(selId);
+  sel.innerHTML = '<option value="">— Membre —</option>';
+  (data || []).forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id; o.textContent = m.nom; sel.appendChild(o);
+  });
+}
+
+// ─── TEAMS ──────────────────────────────────────────────
+const SLOT_DEFS = [
+  { role: 'DPS',    label: 'DPS 1',   cls: 'b-dps' },
+  { role: 'DPS',    label: 'DPS 2',   cls: 'b-dps' },
+  { role: 'Client', label: 'Client',  cls: 'b-client' },
+  { role: 'TANK',   label: 'Tank',    cls: 'b-tank' },
+  { role: 'Heal',   label: 'Heal',    cls: 'b-heal' },
+];
+
+async function loadTm() {
+  if (!need()) return;
+  const [{ data: teams }, { data: slots }] = await Promise.all([
+    sb.from('teams').select('*').order('created_at'),
+    sb.from('team_slots').select('*'),
+  ]);
+  if (!MC.length) {
+    const { data } = await sb.from('membres').select('*').order('nom');
+    MC = data || [];
+  }
+  const grid = document.getElementById('tgrid');
+  if (!teams?.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🐗</div><p>Aucune team</p></div>`;
+    return;
+  }
+  grid.innerHTML = teams.map(team => {
+    const ts = (slots || []).filter(s => s.team_id === team.id);
+    const slotsHTML = SLOT_DEFS.map((def, i) => {
+      const ex = ts.find(s => s.slot_index === i);
+      const mb = ex ? MC.find(m => m.id === ex.membre_id) : null;
+      const isClient = def.role === 'Client';
+      const inp = isClient
+        ? `<input class="slot-sel" type="text" placeholder="Nom du client" value="${mb?.nom || ''}" onchange="savCS('${team.id}',${i},this.value)"/>`
+        : `<select class="slot-sel" onchange="savS('${team.id}',${i},this.value,'${def.role}')">
+             <option value="">— Choisir —</option>
+             ${MC.map(m => `<option value="${m.id}" ${mb?.id === m.id ? 'selected' : ''}>${m.nom}</option>`).join('')}
+           </select>`;
+      return `<div class="slot-row">
+        <span class="badge ${def.cls}" style="font-size:11px">${def.label}</span>
+        ${inp}
+      </div>`;
+    }).join('');
+
+    const assignes = ts.filter(s => s.membre_id).length;
+    const ilvls = ts.map(s => MC.find(m => m.id === s.membre_id)?.ilvl).filter(Boolean);
+    const rios  = ts.map(s => MC.find(m => m.id === s.membre_id)?.rio).filter(Boolean);
+    const avgI  = ilvls.length ? Math.round(ilvls.reduce((a,b)=>a+b,0)/ilvls.length) : null;
+    const avgR  = rios.length  ? Math.round(rios.reduce((a,b)=>a+b,0)/rios.length)   : null;
+
+    return `<div class="tcard">
+      <div class="tcard-head">
+        <h3>🐗 ${team.nom}</h3>
+        <button class="btn btn-ghost btn-sm" onclick="delT('${team.id}')">✕</button>
+      </div>
+      ${slotsHTML}
+      <div class="tcard-foot">
+        <div class="tcard-stat">Membres <span>${assignes}/5</span></div>
+        <div class="tcard-stat">Moy. ilvl <span style="color:var(--bfg)">${avgI ?? '—'}</span></div>
+        <div class="tcard-stat">Moy. Rio <span style="color:var(--gold2)">${avgR ?? '—'}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function savS(tId, si, mId, role) {
+  if (!need()) return;
+  await sb.from('team_slots').delete().match({ team_id: tId, slot_index: si });
+  if (mId) await sb.from('team_slots').insert([{ team_id: tId, membre_id: mId, role, slot_index: si }]);
+  toast('Slot mis à jour'); loadTm();
+}
+
+async function savCS(tId, si, nom) {
+  if (!need()) return;
+  await sb.from('team_slots').delete().match({ team_id: tId, slot_index: si });
+  if (nom.trim()) await sb.from('team_slots').insert([{ team_id: tId, membre_id: null, role: 'Client', slot_index: si }]);
+}
+
+async function addTeam() {
+  if (!need()) return;
+  const { data } = await sb.from('teams').select('nom');
+  await sb.from('teams').insert([{ nom: `Team ${(data?.length || 0) + 1}` }]);
+  toast('🐗 Team créée !'); loadTm();
+}
+
+async function delT(id) {
+  if (!need()) return;
+  if (!confirm('Supprimer cette team ?')) return;
+  await sb.from('team_slots').delete().eq('team_id', id);
+  await sb.from('teams').delete().eq('id', id);
+  toast('Team supprimée'); loadTm();
+}
+
+// ─── CONFIG ─────────────────────────────────────────────
+function loadConfig() {
+  const u = localStorage.getItem('sb_url');
+  const k = localStorage.getItem('sb_key');
+  if (u && k) {
+    document.getElementById('cu').value = u;
+    document.getElementById('ck').value = k;
+    if (initSb(u, k)) {
+      document.getElementById('cst').innerHTML = '<span class="conn-badge conn-ok">✓ Connecté</span>';
+      loadT();
+    }
+  }
+}
+
+async function saveConfig() {
+  const u = document.getElementById('cu').value.trim();
+  const k = document.getElementById('ck').value.trim();
+  if (!u || !k) { toast('Remplis les deux champs', 'err'); return; }
+  localStorage.setItem('sb_url', u);
+  localStorage.setItem('sb_key', k);
+  const ok = initSb(u, k);
+  document.getElementById('cst').innerHTML = ok
+    ? '<span class="conn-badge conn-ok">✓ Connecté</span>'
+    : '<span class="conn-badge conn-fail">✗ Erreur — vérifie tes clés</span>';
+  if (ok) { toast('✓ Connecté à Supabase !'); go('tracker'); }
+  else toast('Erreur de connexion', 'err');
+}
+
+document.addEventListener('DOMContentLoaded', loadConfig);
+</script>
+</body>
+</html>
