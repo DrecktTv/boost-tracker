@@ -337,13 +337,19 @@ async function handleSession(session) {
     await sbAuth.from('user_roles').insert([{id: currentUser.id, role: 'viewer'}]);
     currentRole = 'viewer';
   }
-  // Sauvegarder le nom Discord dans le cache local
+  // Sauvegarder nom + avatar dans user_roles (visible par tous)
   try {
     const d = session.user.user_metadata;
-    const names = JSON.parse(localStorage.getItem('discord_names')||'{}');
     const uid = session.user.id;
-    if(d && (d.full_name || d.name)) names[uid] = d.full_name || d.name;
-    if(d && d.avatar_url) names['avatar_'+uid] = d.avatar_url;
+    const discordName = (d && (d.full_name || d.name || d.user_name)) || '';
+    const discordAvatar = (d && d.avatar_url) || '';
+    if(discordName) {
+      await sbAuth.from('user_roles').update({discord_name: discordName, discord_avatar: discordAvatar}).eq('id', uid);
+    }
+    // Aussi en cache local
+    const names = JSON.parse(localStorage.getItem('discord_names')||'{}');
+    if(discordName) names[uid] = discordName;
+    if(discordAvatar) names['avatar_'+uid] = discordAvatar;
     localStorage.setItem('discord_names', JSON.stringify(names));
   } catch(e) {}
   hideLogin();
@@ -975,9 +981,16 @@ async function renderSmizzLadder(){
     total = catches.length;
     // Compter par joueur
     const discordNames = JSON.parse(localStorage.getItem('discord_names')||'{}');
+    // Charger les noms depuis user_roles
+    const { data: usersData } = await window.sbAuth.from('user_roles').select('id,discord_name,discord_avatar');
+    const usersMap = {};
+    (usersData||[]).forEach(function(u){ usersMap[u.id] = u; });
+
     catches.forEach(function(c) {
       if(!c.caught_by) return;
-      if(!byPlayer[c.caught_by]) byPlayer[c.caught_by] = {nom: discordNames[c.caught_by]||'Inconnu', count:0};
+      const u = usersMap[c.caught_by];
+      const nom = (u && u.discord_name) || discordNames[c.caught_by] || 'Inconnu';
+      if(!byPlayer[c.caught_by]) byPlayer[c.caught_by] = {nom: nom, count:0};
       byPlayer[c.caught_by].count++;
     });
   } else {
@@ -1008,7 +1021,11 @@ async function renderSmizzLadder(){
       + '</div>';
   }).join('') : '<div style="padding:16px 18px;color:var(--text3);font-size:13px">Aucun catch enregistré</div>';
 
+  const resetBtn = (currentRole === 'admin')
+    ? '<div style="display:flex;justify-content:flex-end;margin-bottom:4px"><button class="btn btn-danger btn-sm" onclick="resetSmizzLadder()">&#128465; Reset Smizz</button></div>'
+    : '';
   cont.innerHTML = '<div style="display:flex;flex-direction:column;gap:16px">'
+    + resetBtn
 
     // Hero card
     + '<div style="background:var(--bg1);border:1px solid rgba(212,160,23,.3);border-radius:var(--rad2);padding:28px;text-align:center">'
@@ -1033,6 +1050,15 @@ async function renderSmizzLadder(){
 
     + (total===0 ? '<div class="empty"><div class="empty-icon">&#128299;</div><p>Attrape le Smizz pour commencer !</p></div>' : '')
     + '</div>';
+}
+
+async function resetSmizzLadder(){
+  if(currentRole !== 'admin'){ toast('Acces refuse','err'); return; }
+  if(!confirm('Effacer tout le compteur Smizz ?')) return;
+  if(!window.sbAuth) return;
+  await window.sbAuth.from('smizz_catches').delete().neq('id','00000000-0000-0000-0000-000000000000');
+  toast('Ladder Smizz reinitialise');
+  renderSmizzLadder();
 }
 
 // ═══ HISTORIQUE ═══
@@ -1237,8 +1263,8 @@ async function loadUsers(){
 
   tbody.innerHTML = roles.map(function(u) {
     // Chercher le nom Discord : d'abord le cache, sinon l'UUID court
-    const discordName = discordNames[u.id] || (u.id === currentUser?.id ? (document.getElementById('user-name')?.textContent||u.id.slice(0,8)) : u.id.slice(0,8)+'...');
-    const avatar = discordNames['avatar_'+u.id] || '';
+    const discordName = u.discord_name || discordNames[u.id] || (u.id === currentUser?.id ? (document.getElementById('user-name')?.textContent||'') : u.id.slice(0,8)+'...');
+    const avatar = u.discord_avatar || discordNames['avatar_'+u.id] || '';
     const isSelf = u.id === currentUser?.id;
     const roleSelect = '<select data-uid="'+u.id+'" onchange="changeRole(this.dataset.uid,this.value)" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px">'
       + ['admin','member','viewer'].map(function(r){
