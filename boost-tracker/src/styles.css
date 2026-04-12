@@ -297,3 +297,9 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);
   animation:sk-shimmer 1.4s ease-in-out infinite;
 }
+
+@keyframes smizz-cheh {
+  0%   { opacity:1; transform:translateY(0) scale(1); }
+  60%  { opacity:1; transform:translateY(-18px) scale(1.2); }
+  100% { opacity:0; transform:translateY(-32px) scale(.9); }
+}

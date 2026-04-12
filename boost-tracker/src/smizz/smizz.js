@@ -51,7 +51,14 @@ export function initSmizz() {
   async function catchSmizz() {
     if (!visible) return;
     running = false;
-    caught  = true;
+
+    // 10% de chance que le Smizz se barre en disant "Cheh"
+    if (Math.random() < 0.10) {
+      cheh();
+      return;
+    }
+
+    caught = true;
     wrap.style.display = 'none';
 
     // Incrémenter dans Supabase
@@ -72,6 +79,28 @@ export function initSmizz() {
 
     // Réapparaitre après 3 min
     setTimeout(() => { caught = false; scheduleAppear(); }, 180000);
+  }
+
+  function cheh() {
+    // Afficher "Cheh !" au-dessus du Smizz puis s'enfuir en accélérant
+    const chehEl = document.createElement('div');
+    chehEl.textContent = 'Cheh !';
+    chehEl.style.cssText = `
+      position:fixed;
+      top:${wrap.getBoundingClientRect().top - 36}px;
+      left:${wrap.getBoundingClientRect().left}px;
+      font-family:Cinzel,serif;font-size:22px;font-weight:900;
+      color:#e8d44d;text-shadow:0 0 8px #e8d44d88;
+      pointer-events:none;z-index:9999;
+      animation:smizz-cheh .8s ease-out forwards;
+    `;
+    document.body.appendChild(chehEl);
+    setTimeout(() => chehEl.remove(), 900);
+
+    // Le Smizz accélère et se barre
+    vx = vx > 0 ? 9 : -9;
+    running = true;
+    run();
   }
 
   // Premier test rapide : 10-20s
