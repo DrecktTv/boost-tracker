@@ -40,47 +40,39 @@ export async function renderTeams() {
     return;
   }
 
-  cont.innerHTML = teams.map((team, ti) => {
+  cont.innerHTML = `<div class="teams-grid">${teams.map((team, ti) => {
     const ts = (slots || []).filter(s => s.team_id === team.id);
 
     const slotsHTML = SLOT_DEFS.map((def, i) => {
       const slot = ts.find(s => s.slot_index === i);
       const mb   = slot?.membre_id ? (membres || []).find(m => m.id === slot.membre_id) : null;
-      const badgeCls = def.role === 'DPS' ? 'b-dps' : def.role === 'TANK' ? 'b-tank' : 'b-heal';
 
-      const inp = `<select class="slot-inp" data-team="${escHtml(team.id)}" data-slot="${i}" data-role="${def.role}">
-        <option value="">— Choisir —</option>
-        ${membresForRole(def.role).map(m =>
-          `<option value="${escHtml(m.id)}" ${mb?.id === m.id ? 'selected' : ''}>${escHtml(m.nom)}${m.classe ? ' (' + escHtml(m.classe.split(' ')[0]) + ')' : ''}</option>`
-        ).join('')}
-      </select>`;
-
-      return `<div class="slot-row">
-        <span class="badge ${badgeCls}" style="font-size:11px;justify-content:center;display:inline-flex;align-items:center;gap:4px">
-          ${roleImg(def.role, 13)}${escHtml(def.lbl)}
-        </span>
-        ${inp}
+      return `<div class="team-slot">
+        ${roleImg(def.role, 14)}
+        <select class="slot-inp" data-team="${escHtml(team.id)}" data-slot="${i}" data-role="${def.role}">
+          <option value="">—</option>
+          ${membresForRole(def.role).map(m =>
+            `<option value="${escHtml(m.id)}"${mb?.id === m.id ? ' selected' : ''}>${escHtml(m.nom)}${m.classe ? ' (' + escHtml(m.classe.split(' ')[0]) + ')' : ''}</option>`
+          ).join('')}
+        </select>
       </div>`;
     }).join('');
 
-    return `<div class="team-cfg" data-team-id="${escHtml(team.id)}">
-      <div class="team-cfg-head">
-        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--blue3);border:1px solid var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${ti + 1}</div>
-          <span
-            class="team-name-edit"
-            data-id="${escHtml(team.id)}"
-            contenteditable="true"
-            spellcheck="false"
-            style="font-size:14px;font-weight:600;color:var(--text);outline:none;border-bottom:1px solid transparent;padding:2px 4px;border-radius:4px;cursor:text;min-width:60px;transition:all .15s"
-          >${escHtml(team.nom)}</span>
-          <span style="font-size:11px;color:var(--text3);opacity:.5">✏</span>
-        </div>
-        <button class="btn btn-ghost btn-sm" data-action="del-team" data-id="${escHtml(team.id)}">Supprimer</button>
+    return `<div class="team-card" data-team-id="${escHtml(team.id)}">
+      <div class="team-card-head">
+        <div style="width:20px;height:20px;border-radius:50%;background:var(--blue3);border:1px solid var(--blue);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${ti + 1}</div>
+        <span
+          class="team-name-edit"
+          data-id="${escHtml(team.id)}"
+          contenteditable="true"
+          spellcheck="false"
+          style="flex:1;font-size:13px;font-weight:600;color:var(--text);outline:none;border-bottom:1px solid transparent;padding:2px 4px;border-radius:4px;cursor:text;min-width:0;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+        >${escHtml(team.nom)}</span>
+        <button class="btn btn-ghost btn-sm" data-action="del-team" data-id="${escHtml(team.id)}" style="padding:3px 7px;font-size:13px;flex-shrink:0">✕</button>
       </div>
-      ${slotsHTML}
+      <div class="team-card-slots">${slotsHTML}</div>
     </div>`;
-  }).join('');
+  }).join('')}</div>`;
 
   // Event delegation — delete team
   cont.onclick = async e => {

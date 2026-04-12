@@ -155,6 +155,15 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .team-cfg-head { background:var(--bg2); padding:11px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border) }
 .slot-row { display:grid; grid-template-columns:90px 1fr; align-items:center; gap:10px; padding:12px 18px; border-bottom:1px solid rgba(255,255,255,.04) }
 .slot-row:last-child { border-bottom:none }
+/* ── Teams grid (nouveau layout compact) ── */
+.teams-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px }
+.team-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--rad2); overflow:hidden }
+.team-card-head { background:var(--bg2); padding:8px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border) }
+.team-card-slots { display:grid; grid-template-columns:1fr 1fr }
+.team-slot { display:flex; align-items:center; gap:6px; padding:8px 10px; border-bottom:1px solid var(--border); border-right:1px solid var(--border) }
+.team-slot:nth-child(2n) { border-right:none }
+.team-slot:nth-last-child(-n+2) { border-bottom:none }
+.team-slot select { flex:1; min-width:0; font-size:12px; background:var(--bg2); border:1px solid var(--border); color:var(--text); padding:4px 5px; border-radius:4px; cursor:pointer }
 .slot-inp { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:5px; font-size:14px; width:100%; font-family:'Inter',sans-serif }
 .slot-inp:focus { outline:none; border-color:var(--blue) }
 
