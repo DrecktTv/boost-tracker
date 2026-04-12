@@ -1173,7 +1173,8 @@ function filterBL(query){
 
   const cont = g('bl-list');
   if(!filtered.length){
-    cont.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><p>${q ? \`Aucun r&eacute;sultat pour &laquo;${q}&raquo;\` : 'Aucun joueur blacklist&eacute;'}</p></div>`;
+    const msg = q ? ("Aucun résultat pour «" + q + "»") : "Aucun joueur blacklisté";
+    cont.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><p>${msg}</p></div>`;
     return;
   }
   cont.innerHTML=filtered.map((entry,i)=>{
