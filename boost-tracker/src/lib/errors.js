@@ -18,5 +18,6 @@ export async function safeQuery(label, builder) {
     toast(msg, 'err');
     return null;
   }
-  return data;
+  // INSERT/UPDATE/DELETE sans .select() retournent data:null en succès — on renvoie true
+  return data ?? true;
 }
