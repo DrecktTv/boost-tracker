@@ -344,7 +344,14 @@ async function handleSession(session) {
 }
 async function initAuth() {
   showLogin();
-  if(!sbAuth) { showLoginError('Erreur init Supabase'); return; }
+  // Init sbAuth si pas encore fait
+  if(!sbAuth && window.supabase) {
+    sbAuth = window.supabase.createClient(
+      'https://ugntykuulfkqhwtmvson.supabase.co',
+      'sb_publishable_uto1aEv3Kagy5R3_psg9iQ_NgcEMlUp'
+    );
+  }
+  if(!sbAuth) { showLoginError('Erreur init Supabase - rechargez la page'); return; }
   sbAuth.auth.onAuthStateChange(function(event, session) {
     if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
       handleSession(session);
