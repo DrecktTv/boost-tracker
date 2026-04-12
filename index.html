@@ -1239,10 +1239,9 @@ async function handleSession(session) {
   currentRole = data?.role || null;
 
   if (!currentRole) {
-    // Pas de rôle assigné = accès refusé
-    await sbAuth.auth.signOut();
-    showLoginError("Accès non autorisé. Contacte un admin.");
-    return;
+    // Pas de rôle → assigner viewer automatiquement
+    await sbAuth.from('user_roles').insert([{ id: currentUser.id, role: 'viewer' }]);
+    currentRole = 'viewer';
   }
 
   hideLogin();
