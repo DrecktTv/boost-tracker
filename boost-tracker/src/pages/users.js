@@ -33,7 +33,7 @@ export async function loadUsers() {
   ).join('');
 
   tbody.innerHTML = roles.map(u => {
-    const discordName = u.discord_name || u.id.slice(0, 8) + '...';
+    const discordName = u.discord_name || null;
     const avatar      = u.discord_avatar || '';
     const isSelf      = u.id === currentUser?.id;
 
@@ -62,7 +62,9 @@ export async function loadUsers() {
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:8px">
         ${avatarEl}
-        <strong style="color:var(--text)">${escHtml(discordName)}</strong>
+        ${discordName
+          ? `<strong style="color:var(--text)">${escHtml(discordName)}</strong>`
+          : `<span style="color:var(--text3);font-style:italic;font-size:13px">Inconnu <span style="font-size:10px">(se reconnectera)</span></span>`}
         ${isSelf ? '<span style="font-size:10px;color:var(--blue2);background:rgba(74,144,226,.15);padding:1px 6px;border-radius:8px">Toi</span>' : ''}
       </div></td>
       <td>${roleSelect}</td>

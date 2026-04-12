@@ -63,15 +63,15 @@ async function handleSession(session) {
   setState('currentRole', roleRow.role);
   setState('currentMainMembreId', roleRow.main_membre_id || null);
 
-  // Sync metadata Discord (non bloquant)
+  // Sync metadata Discord — toujours mise à jour pour corriger les noms manquants
   const d = session.user.user_metadata;
-  const discordName   = d?.full_name || d?.name || d?.user_name || '';
+  const discordName   = d?.full_name || d?.name || d?.user_name || d?.global_name || '';
   const discordAvatar = d?.avatar_url || '';
   if (discordName) {
     supabase.from('user_roles')
       .update({ discord_name: discordName, discord_avatar: discordAvatar })
       .eq('id', session.user.id)
-      .then(() => {});
+      .then(({ error }) => { if (error) console.warn('[sync discord]', error.message); });
   }
 
   hideLogin();
