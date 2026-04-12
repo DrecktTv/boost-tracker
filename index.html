@@ -1310,7 +1310,8 @@ function applyRoleRestrictions() {
     document.querySelectorAll('.btn-danger').forEach(btn => btn.style.display = 'none');
   }
 
-  // Viewer : lecture seule, aucune action
+  // Viewer : lecture seule — peut voir Tracker, Ladder, Historique
+  // Cache Teams, Membres, Blacklist + tous les boutons d'action
   if (currentRole === 'viewer') {
     const teamsTab = document.querySelector('[data-p="teams"]');
     const membresTab = document.querySelector('[data-p="membres"]');
@@ -1318,8 +1319,11 @@ function applyRoleRestrictions() {
     if (teamsTab)     teamsTab.style.display = 'none';
     if (membresTab)   membresTab.style.display = 'none';
     if (blacklistTab) blacklistTab.style.display = 'none';
+    // Cacher tous les boutons d'action sauf ceux de navigation
     document.querySelectorAll('.btn-primary, .btn-danger, .btn-gold').forEach(btn => {
-      if (!btn.id?.includes('discord')) btn.style.display = 'none';
+      if (!btn.id?.includes('discord') && !btn.onclick?.toString().includes('switchLadder')) {
+        btn.style.display = 'none';
+      }
     });
   }
 }
