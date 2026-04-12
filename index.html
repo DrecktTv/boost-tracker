@@ -224,6 +224,33 @@ td{padding:14px 20px;font-size:15px;vertical-align:middle}
 </style>
 </head>
 <body>
+
+<!-- ═══ PAGE LOGIN ═══ -->
+<div id="login-screen" style="display:flex;position:fixed;inset:0;background:#0e1015;z-index:9000;align-items:center;justify-content:center">
+  <div style="text-align:center;max-width:380px;width:90%;padding:40px;background:#13161d;border:1px solid #2a2f3d;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+    <div style="font-size:48px;margin-bottom:16px">⚔️</div>
+    <div style="font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#eabc3a;margin-bottom:6px;letter-spacing:.04em">Boost Tracker</div>
+    <div style="font-size:13px;color:#555f7a;margin-bottom:32px">Connexion requise pour accéder au tracker</div>
+    <button id="btn-discord-login" onclick="loginWithDiscord()" style="width:100%;padding:14px 20px;background:#5865F2;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s" onmouseover="this.style.background='#4752C4'" onmouseout="this.style.background='#5865F2'">
+      <svg width="22" height="22" viewBox="0 0 127.14 96.36" fill="white"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+      Se connecter avec Discord
+    </button>
+    <div id="login-error" style="margin-top:14px;font-size:12px;color:#e05555;display:none"></div>
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid #2a2f3d;font-size:11px;color:#555f7a;line-height:1.7">
+      Accès réservé aux membres de la Horde.<br>Contacte un admin si tu n'as pas accès.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BARRE UTILISATEUR ═══ -->
+<div id="user-bar" style="display:none;position:fixed;top:8px;right:16px;z-index:300;align-items:center;gap:8px">
+  <img id="user-avatar" src="" width="30" height="30" style="border-radius:50%;border:2px solid #2a2f3d;display:none"/>
+  <span id="user-name" style="font-size:12px;color:#8890aa;font-weight:500"></span>
+  <span id="user-role-badge" style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;font-family:'Cinzel',serif"></span>
+  <button onclick="logout()" style="background:transparent;border:1px solid #2a2f3d;color:#555f7a;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Inter',sans-serif" onmouseover="this.style.borderColor='#e05555';this.style.color='#e05555'" onmouseout="this.style.borderColor='#2a2f3d';this.style.color='#555f7a'">Déco</button>
+</div>
+
+<div id="app" style="display:none">
 <div class="layout">
   <aside class="sidebar">
     <div class="sidebar-brand"><div class="brand-dot"></div>Boost Tracker</div>
@@ -1540,5 +1567,6 @@ initAuth();
 })();
 </script>
 
+</div><!-- #app -->
 </body>
 </html>
