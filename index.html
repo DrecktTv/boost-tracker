@@ -1235,7 +1235,7 @@ async function handleSession(session) {
   currentUser = session.user;
 
   // Récupérer le rôle depuis Supabase
-  const { data } = await sbAuth.from('user_roles').select('role').eq('id', currentUser.id).single();
+  const { data } = await sbAuth.from('user_roles').select('role').eq('id', currentUser.id).maybeSingle();
   currentRole = data?.role || null;
 
   if (!currentRole) {
