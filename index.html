@@ -481,10 +481,8 @@ const ICON_GOLD = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAAB
 
 // ═══ SUPABASE AUTH CLIENT ═══
 // La clé Anon est nécessaire pour l'auth uniquement - les données sont protégées par RLS
-// Clés Supabase - la clé Anon est publique par design, le RLS protège les données
-const SB_URL = 'https://ugntykuulfkqhwtmvson.supabase.co';
-const SB_KEY = 'sb_publishable_uto1aEv3Kagy5R3_psg9iQ_NgcEMlUp';
-let sbAuth = supabase.createClient(SB_URL, SB_KEY);
+// Clés dans le script global du head
+// sbAuth déclaré dans le script global du head
 
 // ═══ DB ═══
 const KEY = 'bt_v2';
