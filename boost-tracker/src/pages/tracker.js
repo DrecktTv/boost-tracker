@@ -90,8 +90,8 @@ export async function renderTracker() {
   rl.onclick = async e => {
     const paidBtn = e.target.closest('[data-run-id]');
     const delBtn  = e.target.closest('[data-del-run]');
-    if (paidBtn) await toggleRunPaid(paidBtn.dataset.runId, paidBtn.classList.contains('ok'), paidBtn.dataset.prix);
-    if (delBtn)  await delRun(delBtn.dataset.delRun);
+    if (paidBtn && !paidBtn.disabled) await toggleRunPaid(paidBtn.dataset.runId, paidBtn.classList.contains('ok'), paidBtn.dataset.prix);
+    if (delBtn  && !delBtn.disabled)  await delRun(delBtn.dataset.delRun, delBtn);
   };
 
   } finally {
@@ -145,10 +145,11 @@ async function toggleRunPaid(id, currentlyPaid, prix) {
   await refreshStats();
 }
 
-async function delRun(id) {
+async function delRun(id, btn) {
   if (!confirm('Supprimer ce run ?')) return;
+  if (btn) btn.disabled = true;
   const data = await safeQuery('delRun', supabase.from('runs').delete().eq('id', id));
-  if (data === null) return;
+  if (data === null) { if (btn) btn.disabled = false; return; }
   toast('Run supprimé');
   await renderTracker();
 }

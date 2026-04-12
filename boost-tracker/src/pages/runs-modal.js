@@ -85,6 +85,8 @@ export async function updateRunPreview() {
 // ── Sauvegarder le run ─────────────────────────────────────────────────────────
 
 export async function saveRun() {
+  const btn = g('btn-save-run');
+  if (btn?.disabled) return;
   if (!isMember()) { toast('Accès refusé', 'err'); return; }
 
   const teamId = g('run-team').value;
@@ -94,33 +96,37 @@ export async function saveRun() {
   const cles = Array.from(clesSels).map(s => s.value).filter(Boolean);
   if (!cles.length) { toast('Ajoute au moins une clé', 'err'); return; }
 
-  const prix = parseFloat(g('run-prix').value) || 0;
+  if (btn) btn.disabled = true;
+  try {
+    const prix  = parseFloat(g('run-prix').value) || 0;
+    const slots = await safeQuery('saveRun:slots',
+      supabase.from('team_slots').select('*').eq('team_id', teamId)
+    );
+    if (slots === null) return;
 
-  const slots = await safeQuery('saveRun:slots',
-    supabase.from('team_slots').select('*').eq('team_id', teamId)
-  );
-  if (slots === null) return;
+    const membres = SLOT_DEFS.map((def, i) => {
+      const slot = (slots || []).find(s => s.slot_index === i);
+      return { slot_index: i, role: def.role, membre_id: slot?.membre_id || null, tarif: prix };
+    });
 
-  const membres = SLOT_DEFS.map((def, i) => {
-    const slot = (slots || []).find(s => s.slot_index === i);
-    return { slot_index: i, role: def.role, membre_id: slot?.membre_id || null, tarif: prix };
-  });
+    const run = {
+      team_id: teamId,
+      cle:     cles.join(', '),
+      cles,
+      note:    g('run-note').value.trim(),
+      prix,
+      membres,
+      paye:    false,
+      date:    new Date().toISOString(),
+    };
 
-  const run = {
-    team_id: teamId,
-    cle:     cles.join(', '),
-    cles,
-    note:    g('run-note').value.trim(),
-    prix,
-    membres,
-    paye:    false,
-    date:    new Date().toISOString(),
-  };
+    const data = await safeQuery('saveRun:insert', supabase.from('runs').insert([run]));
+    if (data === null) return;
 
-  const data = await safeQuery('saveRun:insert', supabase.from('runs').insert([run]));
-  if (data === null) return;
-
-  cov('ov-run');
-  toast('🎯 Run créé !');
-  await renderTracker();
+    cov('ov-run');
+    toast('🎯 Run créé !');
+    await renderTracker();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }

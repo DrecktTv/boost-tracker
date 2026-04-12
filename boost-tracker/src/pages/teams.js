@@ -85,8 +85,8 @@ export async function renderTeams() {
   // Event delegation — delete team
   cont.onclick = async e => {
     const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    if (btn.dataset.action === 'del-team') await delTeam(btn.dataset.id);
+    if (!btn || btn.disabled) return;
+    if (btn.dataset.action === 'del-team') await delTeam(btn.dataset.id, btn);
   };
 
   // Event delegation — slots
@@ -151,9 +151,10 @@ export async function addTeam() {
   await renderTeams();
 }
 
-async function delTeam(id) {
+async function delTeam(id, btn) {
   if (!isMember()) { toast('Accès refusé', 'err'); return; }
   if (!confirm('Supprimer cette team ?')) return;
+  if (btn) btn.disabled = true;
   await safeQuery('delTeam:slots', supabase.from('team_slots').delete().eq('team_id', id));
   await safeQuery('delTeam:team',  supabase.from('teams').delete().eq('id', id));
   toast('Team supprimée');

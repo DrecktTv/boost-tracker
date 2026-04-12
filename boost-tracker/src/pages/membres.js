@@ -50,10 +50,10 @@ export async function renderMembres() {
   // Event delegation sur le tbody — plus d'onclick inline
   tbody.onclick = async e => {
     const btn = e.target.closest('[data-action]');
-    if (!btn) return;
+    if (!btn || btn.disabled) return;
     const id = btn.dataset.id;
     if (btn.dataset.action === 'edit') await editM(id);
-    if (btn.dataset.action === 'del')  await delM(id);
+    if (btn.dataset.action === 'del')  await delM(id, btn);
   };
 }
 
@@ -92,45 +92,58 @@ async function editM(id) {
 }
 
 export async function saveM() {
+  const btn = g('btn-save-membre');
+  if (btn?.disabled) return;
+
   const nom = g('mn').value.trim();
   if (!nom) { toast('Nom requis', 'err'); return; }
   const editId = g('m-id').value;
 
-  const payload = {
-    nom,
-    spe:    g('ms').value || null,
-    classe: g('mc').value || null,
-    ilvl:   parseInt(g('mi').value) || null,
-    rio:    parseInt(g('mr').value) || null,
-    owner_id: getUser()?.id,
-  };
+  if (btn) btn.disabled = true;
+  try {
+    const payload = {
+      nom,
+      spe:    g('ms').value || null,
+      classe: g('mc').value || null,
+      ilvl:   parseInt(g('mi').value) || null,
+      rio:    parseInt(g('mr').value) || null,
+      owner_id: getUser()?.id,
+    };
 
-  if (editId) {
-    const data = await safeQuery('saveM:update', supabase.from('membres').update(payload).eq('id', editId));
-    if (data === null) return;
-  } else {
-    const data = await safeQuery('saveM:insert', supabase.from('membres').insert([payload]));
-    if (data === null) return;
+    if (editId) {
+      const data = await safeQuery('saveM:update', supabase.from('membres').update(payload).eq('id', editId));
+      if (data === null) return;
+    } else {
+      const data = await safeQuery('saveM:insert', supabase.from('membres').insert([payload]));
+      if (data === null) return;
+    }
+
+    cov('ov-m');
+    toast(editId ? '✓ Modifié' : `⚔ ${escHtml(nom)} ajouté`);
+    await renderMembres();
+  } finally {
+    if (btn) btn.disabled = false;
   }
-
-  cov('ov-m');
-  toast(editId ? '✓ Modifié' : `⚔ ${escHtml(nom)} ajouté`);
-  await renderMembres(); // invalide et re-fetch le cache
 }
 
-async function delM(id) {
+async function delM(id, btn) {
   if (!confirm('Supprimer ce membre ?')) return;
+  if (btn) btn.disabled = true;
 
-  if (!isAdmin()) {
-    const { data: existing } = await supabase.from('membres').select('owner_id').eq('id', id).single();
-    if (existing?.owner_id !== getUser()?.id) {
-      toast('Permission refusée', 'err');
-      return;
+  try {
+    if (!isAdmin()) {
+      const { data: existing } = await supabase.from('membres').select('owner_id').eq('id', id).single();
+      if (existing?.owner_id !== getUser()?.id) {
+        toast('Permission refusée', 'err');
+        return;
+      }
     }
-  }
 
-  const data = await safeQuery('delM', supabase.from('membres').delete().eq('id', id));
-  if (data === null) return;
-  toast('Supprimé');
-  await renderMembres();
+    const data = await safeQuery('delM', supabase.from('membres').delete().eq('id', id));
+    if (data === null) return;
+    toast('Supprimé');
+    await renderMembres();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
