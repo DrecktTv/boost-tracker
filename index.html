@@ -652,66 +652,65 @@ function toast(m,t='ok'){const e=document.getElementById('toast');e.textContent=
 function g(id){return document.getElementById(id);}
 
 // ═══ TRACKER ═══
-function renderTracker(){
+async function renderTracker(){
+  if(!need()) return;
+  const {data:runs, error} = await window.sbAuth.from('runs').select('*').order('date',{ascending:false});
+  if(error){ toast('Erreur chargement runs','err'); return; }
+  const runsList = runs||[];
+
+  const {data:teams} = await window.sbAuth.from('teams').select('*');
+  const {data:membres} = await window.sbAuth.from('membres').select('*');
+
   const rl = g('runs-list');
-  const runs = DB.runs||[];
-  g('runs-pill').textContent = runs.length+' run'+(runs.length>1?'s':'');
+  g('runs-pill').textContent = runsList.length+' run'+(runsList.length>1?'s':'');
 
   let total=0,paid=0,unpaid=0;
-  runs.forEach(r=>{
+  runsList.forEach(function(r){
     if(r.paye){ paid++; }else{ unpaid++; total+=(r.prix||0); }
   });
   g('s-total').textContent=gold(total);
-  g('s-runs').textContent=runs.length;
+  g('s-runs').textContent=runsList.length;
   g('s-paid').textContent=paid;
   g('s-unpaid').textContent=unpaid;
 
-  if(!runs.length){
-    rl.innerHTML=`<div class="empty"><div class="empty-icon">🎯</div><p>Aucun run — clique sur <strong>+ Nouveau run</strong></p></div>`;
+  if(!runsList.length){
+    rl.innerHTML='<div class="empty"><div class="empty-icon">&#127919;</div><p>Aucun run — clique sur <strong>+ Nouveau run</strong></p></div>';
     return;
   }
 
-  rl.innerHTML = runs.map((run,ri)=>{
-    const team = DB.teams.find(t=>t.id===run.team_id);
-    const runTotal = (run.membres||[]).reduce((s,m)=>s+(m.tarif||0),0);
-    // Sort: DPS first, then Tank, then Heal
-    const roleOrder = {DPS:0,TANK:1,Heal:2};
-    const members = [...(run.membres||[])].sort((a,b)=>(roleOrder[a.role]??9)-(roleOrder[b.role]??9));
+  const roleOrder={DPS:0,TANK:1,Heal:2};
+  rl.innerHTML = runsList.map(function(run,ri){
+    const team = (teams||[]).find(function(t){return t.id===run.team_id;});
+    const runMembers = (run.membres||[]).filter(function(m){return m.role!=='Client';})
+      .sort(function(a,b){return (roleOrder[a.role]??9)-(roleOrder[b.role]??9);});
 
-    const membersHTML = members.map(m=>{
-      const membre = DB.membres.find(mb=>mb.id===m.membre_id);
-      const nom = membre?.nom||'—';
-      const spe = membre?.spe||'';
-      const classe = membre?.classe||'';
-      const color = speColor(classe);
-      return `<div class="run-member">
-        ${roleImg(m.role,18)}
-        <span class="class-dot" style="background:${color}"></span>
-        <div>
-          <div class="run-member-name">${nom}</div>
-          ${classe?`<div class="run-member-spe">${classe.split(' ')[0]}</div>`:''}
-        </div>
-
-      </div>`;
+    const membersHTML = runMembers.map(function(m){
+      const mb = (membres||[]).find(function(mb2){return mb2.id===m.membre_id;});
+      const color = speColor(mb?.classe||'');
+      return '<div class="run-member">'
+        + roleImg(m.role,18)
+        + '<span class="class-dot" style="background:'+color+'"></span>'
+        + '<div><div class="run-member-name">'+(mb?.nom||'—')+'</div>'
+        + (mb?.classe?'<div class="run-member-spe">'+mb.classe.split(' ')[0]+'</div>':'')
+        + '</div></div>';
     }).join('');
 
     const payeClass = run.paye?'ok':'no';
-    const payeTxt = run.paye?'✓ Payé':'Non payé';
+    const cles = Array.isArray(run.cles) ? run.cles.join(', ') : (run.cle||'—');
 
-    return `<div class="run-card">
-      <div class="run-head">
-        <div class="run-num">${ri+1}</div>
-        <span class="badge b-key">${run.cle||'—'}</span>
-        ${team?`<span style="font-size:12px;color:var(--text2)">${team.nom}</span>`:''}
-        ${run.note?`<span style="font-size:11px;color:var(--text3);font-style:italic">${run.note}</span>`:''}
-        <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
-          <div class="run-gold"><img src="${ICON_GOLD}" style="width:18px;height:18px;object-fit:contain"/>${gold(run.prix||0)} <span style="font-size:12px;color:var(--text3);font-weight:400">/p</span></div>
-          <span class="run-paid ${payeClass}" onclick="toggleRunPaid('${run.id}')">${payeTxt}</span>
-          <button class="btn btn-ghost btn-sm" onclick="delRun('${run.id}')">✕</button>
-        </div>
-      </div>
-      <div class="run-members">${membersHTML}</div>
-    </div>`;
+    return '<div class="run-card">'
+      + '<div class="run-head">'
+      + '<div class="run-num">'+(ri+1)+'</div>'
+      + '<span class="badge b-key">'+cles+'</span>'
+      + (team?'<span style="font-size:12px;color:var(--text2)">'+team.nom+'</span>':'')
+      + (run.note?'<span style="font-size:11px;color:var(--text3);font-style:italic">'+run.note+'</span>':'')
+      + '<div style="margin-left:auto;display:flex;align-items:center;gap:10px">'
+      + '<div class="run-gold"><img src="'+ICON_GOLD+'" style="width:18px;height:18px;object-fit:contain"/>'+gold(run.prix||0)+'<span style="color:var(--text3);font-size:11px;font-weight:400">/p</span></div>'
+      + '<span class="run-paid '+payeClass+'" data-rid="'+run.id+'" onclick="toggleRunPaid(this.dataset.rid)">'+( run.paye?'&#10003; Pay&eacute;':'Non pay&eacute;')+'</span>'
+      + '<button class="btn btn-ghost btn-sm" data-rid="'+run.id+'" onclick="delRun(this.dataset.rid)">&#x2715;</button>'
+      + '</div></div>'
+      + '<div class="run-members">'+membersHTML+'</div>'
+      + '</div>';
   }).join('');
 }
 
@@ -721,23 +720,25 @@ function toggleRunPaid(id){
   r.paye = !r.paye;
   save(); toast(r.paye?'✓ Payé':'Non payé'); renderTracker();
 }
-function delRun(id){
-  if(!confirm('Supprimer ce run ?')) return;
-  DB.runs = DB.runs.filter(r=>r.id!==id);
-  save(); toast('Run supprimé'); renderTracker();
+async function delRun(id){
+  if(!confirm('Supprimer ce run ?'))return;
+  if(!need())return;
+  await window.sbAuth.from('runs').delete().eq('id',id);
+  toast('Run supprimé'); renderTracker();
 }
 
 // ═══ MODAL RUN ═══
-function openAddRun(){
+async function openAddRun(){
+  if(!need())return;
+  const {data:teams} = await window.sbAuth.from('teams').select('*').order('created_at');
   const sel = g('run-team');
   sel.innerHTML = '<option value="">— Choisir une team —</option>';
-  DB.teams.forEach(t=>{
+  (teams||[]).forEach(function(t){
     const o=document.createElement('option');o.value=t.id;o.textContent=t.nom;sel.appendChild(o);
   });
   g('run-note').value='';
   g('run-prix').value='';
   g('run-preview').style.display='none';
-  // Init with one clé input
   g('run-cles-list').innerHTML='';
   addCleInput();
   sel.onchange = updateRunPreview;
@@ -757,25 +758,26 @@ function addCleInput(){
   list.appendChild(row);
 }
 
-function updateRunPreview(){
+async function updateRunPreview(){
   const teamId = g('run-team').value;
   const prix = parseFloat(g('run-prix').value)||0;
   const prev = g('run-preview');
   const body = g('run-preview-body');
   if(!teamId){ prev.style.display='none'; return; }
   prev.style.display='block';
-  const slots = DB.slots.filter(s=>s.team_id===teamId);
-  body.innerHTML = SLOT_DEFS.map((def,i)=>{
-    const slot=slots.find(s=>s.slot_index===i);
-    const mb=slot?.membre_id?DB.membres.find(m=>m.id===slot.membre_id):null;
-    const nom=mb?.nom||`${def.lbl} (vide)`;
+  const {data:slots} = await window.sbAuth.from('team_slots').select('*').eq('team_id',teamId);
+  const {data:membres} = await window.sbAuth.from('membres').select('*');
+  body.innerHTML = SLOT_DEFS.map(function(def,i){
+    const slot=(slots||[]).find(function(s){return s.slot_index===i;});
+    const mb=slot&&slot.membre_id?(membres||[]).find(function(m){return m.id===slot.membre_id;}):null;
+    const nom=mb?mb.nom:def.lbl+' (vide)';
     const color=speColor(mb?.classe||'');
-    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);border-radius:6px;border:1px solid var(--border)">
-      ${roleImg(def.role,16)}
-      <span style="width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0"></span>
-      <span style="flex:1;font-size:13px;font-weight:500;color:var(--text)">${nom}</span>
-      ${prix?`<span style="display:flex;align-items:center;gap:3px;font-size:13px;font-weight:700;color:var(--gold2)"><img src="${ICON_GOLD}" style="width:13px;height:13px;object-fit:contain"/>${gold(prix)}</span>`:''}
-    </div>`;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);border-radius:6px;border:1px solid var(--border)">'
+      +roleImg(def.role,16)
+      +'<span style="width:6px;height:6px;border-radius:50%;background:'+color+';flex-shrink:0"></span>'
+      +'<span style="flex:1;font-size:13px;font-weight:500;color:var(--text)">'+nom+'</span>'
+      +(prix?'<span style="display:flex;align-items:center;gap:3px;font-size:13px;font-weight:700;color:var(--gold2)"><img src="'+ICON_GOLD+'" style="width:13px;height:13px;object-fit:contain"/>'+gold(prix)+'</span>':'')
+      +'</div>';
   }).join('');
 }
 
@@ -804,53 +806,53 @@ function updateRunTarifs(){
   }).join('');
 }
 
-function saveRun(){
+async function saveRun(){
+  if(!need())return;
   const teamId = g('run-team').value;
   if(!teamId){ toast('Choisis une team','err'); return; }
-
-  // Collect clés
   const clesSels = document.querySelectorAll('.run-cle-sel');
-  const cles = [...clesSels].map(s=>s.value).filter(Boolean);
+  const cles = Array.from(clesSels).map(function(s){return s.value;}).filter(Boolean);
   if(!cles.length){ toast('Ajoute au moins une clé','err'); return; }
-
   const prix = parseFloat(g('run-prix').value)||0;
-  const slots = DB.slots.filter(s=>s.team_id===teamId);
-  const membres = SLOT_DEFS.map((def,i)=>{
-    const slot=slots.find(s=>s.slot_index===i);
-    return {
-      slot_index:i,
-      role:def.role,
-      membre_id:slot?.membre_id||null,
-      tarif:prix
-    };
+
+  // Charger les slots de la team depuis Supabase
+  const {data:slots} = await window.sbAuth.from('team_slots').select('*').eq('team_id',teamId);
+  const membres = SLOT_DEFS.map(function(def,i){
+    const slot=(slots||[]).find(function(s){return s.slot_index===i;});
+    return {slot_index:i, role:def.role, membre_id:slot?.membre_id||null, tarif:prix};
   });
 
   const run = {
-    id:uid(), team_id:teamId,
-    cle:cles.join(', '),
-    cles,
+    id: uid(), team_id:teamId,
+    cle:cles.join(', '), cles:cles,
     note:g('run-note').value.trim(),
-    prix,
-    membres, paye:false,
+    prix, membres, paye:false,
     date:new Date().toISOString()
   };
-  DB.runs.push(run);
-  save(); cov('ov-run'); toast('🎯 Run créé !'); renderTracker();
+  await window.sbAuth.from('runs').insert([run]);
+  cov('ov-run'); toast('🎯 Run créé !'); renderTracker();
 }
 
 // ═══ RESET ═══
 function openReset(){ g('reset-note').value=''; oov('ov-reset'); }
 
-function doReset(){
-  const note = g('reset-note').value.trim()||`Session du ${new Date().toLocaleDateString('fr-FR')}`;
-  const runs = DB.runs||[];
+async function doReset(){
+  if(!need())return;
+  const note = g('reset-note').value.trim()||('Session du '+new Date().toLocaleDateString('fr-FR'));
+  const {data:runs} = await window.sbAuth.from('runs').select('*');
+  const {data:membres} = await window.sbAuth.from('membres').select('*');
+  const runsList = runs||[];
+
+  const total = runsList.reduce(function(s,r){return s+(r.prix||0);},0);
+  const paid = runsList.filter(function(r){return r.paye;}).length;
+  const unpaid = runsList.filter(function(r){return !r.paye;}).length;
 
   // Build session summary per member
   const sessionGold = {};
-  runs.forEach(run=>{
-    (run.membres||[]).forEach(m=>{
+  runsList.forEach(function(run){
+    (run.membres||[]).forEach(function(m){
       if(!m.membre_id||m.role==='Client') return;
-      const mb = DB.membres.find(x=>x.id===m.membre_id);
+      const mb = (membres||[]).find(function(x){return x.id===m.membre_id;});
       if(!mb) return;
       if(!sessionGold[m.membre_id]) sessionGold[m.membre_id]={nom:mb.nom,spe:mb.spe,classe:mb.classe,earned:0,runs:0};
       sessionGold[m.membre_id].earned += (m.tarif||0);
@@ -858,25 +860,28 @@ function doReset(){
     });
   });
 
-  // Update alltime
-  Object.entries(sessionGold).forEach(([id,data])=>{
+  // Update alltime in localStorage (pas encore en Supabase)
+  Object.entries(sessionGold).forEach(function(entry){
+    const id=entry[0], data=entry[1];
     if(!DB.alltime[id]) DB.alltime[id]={nom:data.nom,spe:data.spe,classe:data.classe,earned:0,runs:0};
     DB.alltime[id].earned += data.earned;
     DB.alltime[id].runs += data.runs;
-    DB.alltime[id].nom = data.nom; // keep updated
+    DB.alltime[id].nom = data.nom;
   });
-
-  // Archive
-  const total = runs.reduce((s,r)=>(r.membres||[]).reduce((ss,m)=>ss+(m.tarif||0),s),0);
-  DB.historique.unshift({
-    id:uid(), date:new Date().toISOString(), note,
-    total, runs_count:runs.length,
-    session_gold:sessionGold,
-    runs: JSON.parse(JSON.stringify(runs))
-  });
-
-  DB.runs = [];
   save();
+
+  // Archive dans Supabase
+  await window.sbAuth.from('historique_resets').insert([{
+    date:new Date().toISOString(), note,
+    total, paid_count:paid, unpaid_count:unpaid,
+    snapshot:JSON.stringify({date:new Date().toISOString(),note,total,paid,unpaid,session_gold:sessionGold,runs:runsList})
+  }]);
+
+  // Supprimer tous les runs
+  if(runsList.length){
+    await window.sbAuth.from('runs').delete().neq('id','00000000-0000-0000-0000-000000000000');
+  }
+
   cov('ov-reset');
   toast('↺ Session archivée !');
   renderTracker();
@@ -903,28 +908,30 @@ function switchLadder(view){
   else if(view==='smizz') renderSmizzLadder();
 }
 
-function renderLadder(){
+async function renderLadder(){
   renderLadderSession();
   renderLadderAlltime();
 }
 
-function renderLadderSession(){
+async function renderLadderSession(){
   const cont = g('lv-session');
-  const runs = DB.runs||[];
-
+  if(!window.sbAuth){cont.innerHTML=renderLadderRows([],'Connecte-toi pour voir le ladder');return;}
+  const [{data:runs},{data:membres}] = await Promise.all([
+    window.sbAuth.from('runs').select('*'),
+    window.sbAuth.from('membres').select('*'),
+  ]);
   const data = {};
-  runs.forEach(run=>{
-    (run.membres||[]).forEach(m=>{
+  (runs||[]).forEach(function(run){
+    (run.membres||[]).forEach(function(m){
       if(!m.membre_id||m.role==='Client') return;
-      const mb = DB.membres.find(x=>x.id===m.membre_id);
+      const mb = (membres||[]).find(function(x){return x.id===m.membre_id;});
       if(!mb) return;
       if(!data[m.membre_id]) data[m.membre_id]={nom:mb.nom,spe:mb.spe,classe:mb.classe,earned:0,runs:0};
       data[m.membre_id].earned += (m.tarif||0);
       data[m.membre_id].runs++;
     });
   });
-
-  const sorted = Object.entries(data).sort((a,b)=>b[1].earned-a[1].earned);
+  const sorted = Object.entries(data).sort(function(a,b){return b[1].earned-a[1].earned;});
   cont.innerHTML = renderLadderRows(sorted, 'Aucun run dans la session en cours');
 }
 
@@ -1062,52 +1069,50 @@ async function resetSmizzLadder(){
 }
 
 // ═══ HISTORIQUE ═══
-function renderHist(){
-  const hist = DB.historique||[];
+async function renderHist(){
+  if(!need())return;
+  const {data, error} = await window.sbAuth.from('historique_resets').select('*').order('date',{ascending:false});
+  if(error){toast('Erreur historique','err');return;}
+  const hist = data||[];
   g('h-count').textContent = hist.length+' session'+(hist.length>1?'s':'');
   const body = g('hist-body');
   if(!hist.length){
-    body.innerHTML=`<div class="empty"><div class="empty-icon">🪙</div><p>Aucun historique</p></div>`;
+    body.innerHTML='<div class="empty"><div class="empty-icon">&#128329;</div><p>Aucun historique</p></div>';
     return;
   }
-  body.innerHTML = hist.map((h,hi)=>{
-    const session = Object.values(h.session_gold||{}).sort((a,b)=>b.earned-a.earned);
-    const sessionHTML = session.map(d=>{
+  body.innerHTML = hist.map(function(h,hi){
+    let snap=null;try{snap=JSON.parse(h.snapshot);}catch(e){}
+    const session = Object.values(snap?.session_gold||{}).sort(function(a,b){return b.earned-a.earned;});
+    const sessionHTML = session.map(function(d){
       const color = speColor(d.classe||'');
-      return `<div style="display:flex;align-items:center;gap:8px;padding:7px 18px;border-bottom:1px solid rgba(255,255,255,.04)">
-        ${roleImg(d.spe||'DPS',16)}
-        <span style="width:5px;height:5px;border-radius:50%;background:${color};flex-shrink:0"></span>
-        <span style="flex:1;font-size:13px;font-weight:500;color:var(--text)">${d.nom}</span>
-        <span style="font-size:11px;color:var(--text3)">${d.runs} run${d.runs>1?'s':''}</span>
-        <div style="display:flex;align-items:center;gap:4px;font-weight:700;color:var(--gold2);font-size:13px">
-          <img src="${ICON_GOLD}" style="width:14px;height:14px;object-fit:contain"/>
-          ${gold(d.earned)}
-        </div>
-      </div>`;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 18px;border-bottom:1px solid rgba(255,255,255,.04)">'
+        + roleImg(d.spe||'DPS',16)
+        + '<span style="width:5px;height:5px;border-radius:50%;background:'+color+';flex-shrink:0"></span>'
+        + '<span style="flex:1;font-size:13px;font-weight:500;color:var(--text)">'+d.nom+'</span>'
+        + '<span style="font-size:11px;color:var(--text3)">'+d.runs+' run'+(d.runs>1?'s':'')+'</span>'
+        + '<div style="display:flex;align-items:center;gap:4px;font-weight:700;color:var(--gold2);font-size:13px"><img src="'+ICON_GOLD+'" style="width:14px;height:14px;object-fit:contain"/>'+gold(d.earned)+'</div>'
+        + '</div>';
     }).join('');
 
-    return `<div class="hcard" style="margin-bottom:12px">
-      <div class="hcard-head">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--text)">${h.note}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">${new Date(h.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:16px">
-          <div style="text-align:right">
-            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Total session</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:18px;font-weight:700;color:var(--gold2)">
-              <img src="${ICON_GOLD}" style="width:18px;height:18px;object-fit:contain"/>${gold(h.total)}
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:12px;color:var(--blue2)">${h.runs_count} run${h.runs_count>1?'s':''}</div>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="if(confirm('Supprimer ?')){DB.historique.splice(${hi},1);save();renderHist()}">✕</button>
-        </div>
-      </div>
-      ${sessionHTML}
-    </div>`;
+    return '<div class="hcard" style="margin-bottom:12px">'
+      + '<div class="hcard-head">'
+      + '<div><div style="font-size:13px;font-weight:600;color:var(--text)">'+h.note+'</div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:2px">'+new Date(h.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})+'</div></div>'
+      + '<div style="display:flex;align-items:center;gap:16px">'
+      + '<div style="text-align:right"><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Total session</div>'
+      + '<div style="display:flex;align-items:center;gap:5px;font-size:18px;font-weight:700;color:var(--gold2)"><img src="'+ICON_GOLD+'" style="width:18px;height:18px;object-fit:contain"/>'+gold(h.total)+'</div></div>'
+      + '<div style="text-align:right"><div style="font-size:12px;color:var(--blue2)">'+h.runs_count+' run'+(h.runs_count>1?'s':'')+'</div></div>'
+      + (currentRole==='admin'?'<button class="btn btn-ghost btn-sm" data-hid="'+h.id+'" onclick="delHist(this.dataset.hid)">✕</button>':'')
+      + '</div></div>'
+      + sessionHTML
+      + '</div>';
   }).join('');
+}
+
+async function delHist(id){
+  if(!confirm('Supprimer cette session ?'))return;
+  await window.sbAuth.from('historique_resets').delete().eq('id',id);
+  toast('Session supprimée');renderHist();
 }
 
 // ═══ MEMBRES ═══
@@ -1158,7 +1163,14 @@ function saveM(){
   else{DB.membres.push({id:uid(),...data})}
   save();cov('ov-m');toast(editId?'✓ Modifié':'⚔ '+nom+' ajouté');renderMembres();
 }
-function delM(id){if(!confirm('Supprimer ?'))return;DB.membres=DB.membres.filter(m=>m.id!==id);save();toast('Supprimé');renderMembres();}
+async function delM(id){
+  if(!confirm('Supprimer ?'))return;
+  if(!need())return;
+  const {data:existing} = await window.sbAuth.from('membres').select('owner_id').eq('id',id).single();
+  if(currentRole!=='admin' && existing?.owner_id !== currentUser?.id){toast('Permission refusée','err');return;}
+  await window.sbAuth.from('membres').delete().eq('id',id);
+  toast('Supprimé');renderMembres();
+}
 
 // ═══ TEAMS ═══
 function renderTeams(){
@@ -1209,11 +1221,15 @@ function renderTeams(){
   }).join('');
 }
 
-function updateTeamSlot(teamId,si,membreId,role){
-  let slot=DB.slots.find(s=>s.team_id===teamId&&s.slot_index===si);
-  if(slot){slot.membre_id=membreId||null}
-  else if(membreId){DB.slots.push({id:uid(),team_id:teamId,slot_index:si,role,membre_id:membreId})}
-  save();toast('Slot mis à jour');
+async function updateTeamSlot(teamId,si,membreId,role){
+  if(!need())return;
+  const {data:existing} = await window.sbAuth.from('team_slots').select('id').eq('team_id',teamId).eq('slot_index',si).maybeSingle();
+  if(existing){
+    await window.sbAuth.from('team_slots').update({membre_id:membreId||null}).eq('id',existing.id);
+  } else if(membreId){
+    await window.sbAuth.from('team_slots').insert([{team_id:teamId,slot_index:si,role,membre_id:membreId,paye:false,tarif:0}]);
+  }
+  toast('Slot mis à jour');
 }
 function updateClientSlot(teamId,si,nom){
   let slot=DB.slots.find(s=>s.team_id===teamId&&s.slot_index===si);
@@ -1221,17 +1237,27 @@ function updateClientSlot(teamId,si,nom){
   else if(nom.trim()){DB.slots.push({id:uid(),team_id:teamId,slot_index:si,role:'Client',client_nom:nom})}
   save();
 }
-function saveTeamName(id, el){
-  const team = DB.teams.find(t=>t.id===id);
-  if(!team) return;
+async function saveTeamName(id, el){
+  if(!need())return;
   const nom = el.textContent.trim();
-  if(!nom){ el.textContent=team.nom; return; }
-  if(nom===team.nom) return;
-  team.nom = nom;
-  save(); toast('✓ Team renommée');
+  if(!nom){ renderTeams(); return; }
+  await window.sbAuth.from('teams').update({nom}).eq('id',id);
+  toast('✓ Team renommée');
 }
-function addTeam(){DB.teams.push({id:uid(),nom:`Team ${DB.teams.length+1}`});save();toast('Team créée');renderTeams();}
-function delTeam(id){if(!confirm('Supprimer ?'))return;DB.teams=DB.teams.filter(t=>t.id!==id);DB.slots=DB.slots.filter(s=>s.team_id!==id);save();toast('Supprimée');renderTeams();}
+async function addTeam(){
+  if(!need())return;
+  const {data:existing} = await window.sbAuth.from('teams').select('id');
+  const num = (existing?.length||0)+1;
+  await window.sbAuth.from('teams').insert([{nom:'Team '+num}]);
+  toast('Team créée');renderTeams();
+}
+async function delTeam(id){
+  if(!need())return;
+  if(!confirm('Supprimer cette team ?'))return;
+  await window.sbAuth.from('team_slots').delete().eq('team_id',id);
+  await window.sbAuth.from('teams').delete().eq('id',id);
+  toast('Team supprimée');renderTeams();
+}
 
 // ═══ INIT ═══
 // ═══ USERS (admin) ═══
