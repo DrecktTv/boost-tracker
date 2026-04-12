@@ -1,0 +1,21 @@
+{
+  "name": "boost-tracker",
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4"
+  },
+  "devDependencies": {
+    "@vitest/ui": "^2.1.9",
+    "jsdom": "^25.0.1",
+    "vite": "^6.3.2",
+    "vitest": "^2.1.9"
+  }
+}
