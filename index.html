@@ -3,314 +3,302 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Horde Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>Boost Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-:root {
-  --bg:    #0f0d0a;
-  --bg1:   #1a1510;
-  --bg2:   #221a10;
-  --bg3:   #2d2215;
-  --border:#3d2e1a;
-  --gold:  #d4a017;
-  --gold2: #f0c040;
-  --red:   #8b1a1a;
-  --red2:  #c0392b;
-  --bone:  #e8d5b0;
-  --muted: #9a8a6a;
-  --green: #2d6a2d;
-  --gfg:   #6fcf6f;
-  --rfg:   #e07070;
-  --bfg:   #6ab0e0;
-  --rad:   8px;
+:root{
+  --bg:#0e1015;--bg1:#13161d;--bg2:#181c25;--bg3:#1e2330;
+  --border:#2a2f3d;--bd2:#343b4f;
+  --blue:#4a90e2;--blue2:#6ba5e8;--blue3:#1e3d6e;
+  --text:#d4d8e8;--text2:#8890aa;--text3:#555f7a;
+  --gold:#d4a017;--gold2:#eabc3a;
+  --green:#4caf78;--red:#e05555;--red2:#8b2020;
+  --purple:#9b6fd4;--rad:6px;--rad2:10px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--bone); font-family: 'Inter', sans-serif; font-size: 14px; min-height: 100vh; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;font-size:16px}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
 
-/* NAV */
-nav {
-  background: var(--bg1);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center;
-  padding: 0 24px; height: 56px;
-  position: sticky; top: 0; z-index: 100;
-  gap: 0;
+.brand-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue)}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-brand{padding:24px 20px 20px;font-size:17px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);letter-spacing:-.01em}
+.sidebar-nav{display:flex;flex-direction:column;padding:12px 10px;gap:4px;flex:1}
+.stab{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:15px;font-weight:500;transition:all .15s;user-select:none;border:1px solid transparent}
+.stab:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.stab.active{color:var(--blue2);background:rgba(74,144,226,.1);border-color:rgba(74,144,226,.2)}
+.stab-icon{font-size:18px;flex-shrink:0;width:24px;text-align:center}
+.stab-label{font-size:14px;font-weight:500}
+.main-content{flex:1;min-width:0;overflow-x:hidden}
+
+.page{display:none;padding:28px 32px;max-width:1400px;margin:0 auto}
+.page.active{display:block;animation:fi .15s ease}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.page-title{font-size:18px;font-weight:600;color:var(--text)}
+.pill{font-size:13px;font-weight:600;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:3px 11px;border-radius:12px}
+.toolbar-right{display:flex;gap:8px;flex-wrap:wrap}
+
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
+.sc{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);padding:20px 24px}
+.sc-label{font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+.sc-val{font-size:32px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.sc-val.gold{color:var(--gold2)}.sc-val.green{color:var(--green)}.sc-val.red{color:var(--red)}.sc-val.blue{color:var(--blue2)}
+
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--rad);border:1px solid;cursor:pointer;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--blue3);color:#fff;border-color:var(--blue)}.btn-primary:hover{background:var(--blue)}
+.btn-danger{background:var(--red2);color:var(--text);border-color:var(--red)}.btn-danger:hover{background:var(--red)}
+.btn-ghost{background:transparent;color:var(--text2);border-color:var(--border)}.btn-ghost:hover{color:var(--text);border-color:var(--bd2);background:var(--bg2)}
+.btn-sm{padding:6px 12px;font-size:13px}
+.btn-gold{background:rgba(212,160,23,.15);color:var(--gold2);border-color:rgba(212,160,23,.3)}.btn-gold:hover{background:rgba(212,160,23,.25)}
+
+input,select{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:var(--rad);font-family:'Inter',sans-serif;font-size:15px;transition:border-color .15s;width:100%}
+input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(74,144,226,.1)}
+select option{background:var(--bg2)}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--text3);text-transform:uppercase}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--bg1);border:1px solid var(--bd2);border-radius:var(--rad2);padding:24px;width:92%;max-width:520px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:mop .15s ease}
+@keyframes mop{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+.modal-title{font-size:17px;font-weight:600;color:var(--text);margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.modal-body{display:flex;flex-direction:column;gap:14px}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.modal-x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px;border-radius:4px}.modal-x:hover{color:var(--text);background:var(--bg3)}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:4px;font-size:13px;font-weight:600;border:1px solid;white-space:nowrap}
+.b-dps{background:rgba(224,85,85,.12);color:#e07575;border-color:rgba(224,85,85,.25)}
+.b-tank{background:rgba(74,144,226,.12);color:#6aabf0;border-color:rgba(74,144,226,.25)}
+.b-heal{background:rgba(76,175,120,.12);color:#5dcc8a;border-color:rgba(76,175,120,.25)}
+.b-client{background:rgba(212,160,23,.12);color:#e0b840;border-color:rgba(212,160,23,.25)}
+.b-key{background:rgba(155,111,212,.12);color:#b085e0;border-color:rgba(155,111,212,.25)}
+
+/* ROLE ICON */
+.ricon{width:26px;height:26px;object-fit:contain;flex-shrink:0}
+.ricon-sm{width:18px;height:18px;object-fit:contain;flex-shrink:0}
+
+/* TRACKER - RUNS */
+.runs-list{display:flex;flex-direction:column;gap:10px}
+.run-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);overflow:hidden;transition:border-color .15s}
+.run-card:hover{border-color:var(--bd2)}
+.run-head{display:flex;align-items:center;gap:14px;padding:16px 22px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.run-num{width:28px;height:28px;border-radius:50%;background:var(--blue3);border:1px solid var(--blue);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.run-key{font-size:15px;font-weight:700;color:var(--text)}
+.run-meta{display:flex;align-items:center;gap:8px;flex:1;flex-wrap:wrap}
+.run-gold{display:flex;align-items:center;gap:6px;font-family:'Inter';font-weight:700;font-size:17px;color:var(--gold2);margin-left:auto}
+.run-gold img{width:22px;height:22px;object-fit:contain}
+.run-paid{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:4px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;user-select:none}
+.run-paid.ok{background:rgba(76,175,120,.1);color:var(--green);border-color:rgba(76,175,120,.3)}
+.run-paid.no{background:rgba(224,85,85,.1);color:var(--red);border-color:rgba(224,85,85,.3)}
+.run-paid:hover{filter:brightness(1.15)}
+.run-members{display:flex;flex-wrap:wrap;padding:14px 22px;gap:8px;align-items:stretch}
+.run-member{display:flex;align-items:center;gap:9px;padding:9px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:6px}
+.run-member-name{font-size:15px;font-weight:600;color:var(--text)}
+.run-member-spe{font-size:13px;color:var(--text3)}
+.class-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.run-member-tarif{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:700;color:var(--gold2);margin-left:auto}
+.run-member-tarif img{width:13px;height:13px;object-fit:contain}
+.run-actions{display:flex;gap:6px;margin-left:auto;padding-right:4px}
+
+/* LADDER */
+.ladder-tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border)}
+.ltab{padding:10px 20px;font-size:15px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.ltab:hover{color:var(--text)}
+.ltab.active{color:var(--blue2);border-bottom-color:var(--blue)}
+.ladder-view{display:none}.ladder-view.active{display:block}
+
+.ladder-list{display:flex;flex-direction:column;gap:8px}
+.ladder-row{display:flex;align-items:center;gap:16px;padding:18px 22px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);transition:border-color .15s}
+.ladder-row:hover{border-color:var(--bd2)}
+.ladder-row.top1{border-color:rgba(212,160,23,.5);background:rgba(212,160,23,.05)}
+.ladder-row.top2{border-color:rgba(192,192,192,.3)}
+.ladder-row.top3{border-color:rgba(180,100,30,.3)}
+.lrank{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;background:var(--bg2);border:1px solid var(--border);color:var(--text2)}
+.lrank.r1{background:rgba(212,160,23,.2);border-color:rgba(212,160,23,.5);color:var(--gold2)}
+.lrank.r2{background:rgba(192,192,192,.15);border-color:rgba(192,192,192,.3);color:#ccc}
+.lrank.r3{background:rgba(180,100,30,.15);border-color:rgba(180,100,30,.3);color:#c87850}
+.lname{font-size:16px;font-weight:600;color:var(--text);flex:1}
+.lspe{font-size:14px;color:var(--text3)}
+.lruns{font-size:14px;color:var(--text2)}
+.lgold{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:700;color:var(--gold2)}
+.lgold img{width:26px;height:26px;object-fit:contain}
+
+/* MEMBRES TABLE */
+.tw{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--bg2)}
+th{padding:13px 20px;text-align:left;font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.035);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(74,144,226,.04)}
+td{padding:14px 20px;font-size:15px;vertical-align:middle}
+.cname{display:flex;align-items:center;gap:8px}
+.cname strong{font-weight:600;color:var(--text)}
+
+/* TEAMS CFG */
+.team-cfg{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);overflow:hidden;margin-bottom:12px}
+.team-cfg-head{background:var(--bg2);padding:11px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.slot-row{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.04)}
+.slot-row:last-child{border-bottom:none}
+.slot-inp{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:5px;font-size:14px;width:100%;font-family:'Inter',sans-serif}
+.slot-inp:focus{outline:none;border-color:var(--blue)}
+
+/* HIST */
+.hcard{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);overflow:hidden;margin-bottom:12px}
+.hcard-head{background:var(--bg2);padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+
+.toast{position:fixed;bottom:20px;right:20px;z-index:9999;background:var(--bg1);border:1px solid var(--bd2);border-radius:var(--rad);padding:12px 20px;font-size:15px;font-weight:500;color:var(--text);transform:translateY(60px);opacity:0;transition:all .25s;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.toast.show{transform:none;opacity:1}
+.toast.ok{border-color:rgba(76,175,120,.4)}.toast.err{border-color:rgba(224,85,85,.4);color:#e07575}
+.empty{text-align:center;padding:48px;color:var(--text3)}
+.empty-icon{font-size:28px;margin-bottom:10px;opacity:.4}
+.empty p{font-size:13px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .team-members{grid-template-columns:repeat(3,1fr)}
+  .run-members{flex-wrap:wrap}
 }
-.brand {
-  font-family: 'Cinzel', serif;
-  font-size: 16px; font-weight: 700;
-  color: var(--gold2);
-  letter-spacing: .06em;
-  padding-right: 24px;
-  border-right: 1px solid var(--border);
-  margin-right: 8px;
-  white-space: nowrap;
+@media(max-width:640px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:fixed;bottom:0;top:auto;left:0;right:0;z-index:200;border-right:none;border-top:1px solid var(--border);flex-direction:row}
+  .sidebar-brand{display:none}
+  .sidebar-nav{flex-direction:row;padding:6px 8px;gap:2px;justify-content:space-around}
+  .stab{flex-direction:column;gap:3px;padding:7px 6px;border-radius:6px;flex:1;justify-content:center;align-items:center;border:none}
+  .stab-label{font-size:10px;font-weight:500}
+  .stab-icon{font-size:20px;width:auto}
+  .stab.active{background:rgba(74,144,226,.15)}
+  .main-content{padding-bottom:72px}
+  .page{padding:14px}
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+  .sc{padding:12px 14px}
+  .sc-val{font-size:22px}
+  .sc-label{font-size:11px}
+  .toolbar{margin-bottom:12px}
+  .page-title{font-size:15px}
+  .btn{padding:8px 12px;font-size:13px}
+  .btn-sm{padding:5px 9px;font-size:12px}
+  .fg2,.fg3{grid-template-columns:1fr}
+  .runs-list{gap:10px}
+  .run-head{padding:12px 14px;gap:8px;flex-wrap:wrap}
+  .run-members{padding:10px 14px;gap:6px}
+  .run-member{padding:7px 10px;gap:7px;min-width:calc(50% - 3px)}
+  .run-member-name{font-size:13px}
+  .run-member-spe{font-size:11px}
+  .run-gold{font-size:14px}
+  .run-gold img{width:17px;height:17px}
+  .run-paid{padding:5px 10px;font-size:12px}
+  .run-num{width:22px;height:22px;font-size:11px}
+  .badge{padding:3px 8px;font-size:12px}
+  .ladder-row{padding:12px 14px;gap:10px}
+  .lname{font-size:14px}
+  .lgold{font-size:16px}
+  .lgold img{width:20px;height:20px}
+  .lrank{width:28px;height:28px;font-size:13px}
+  .ladder-tabs{overflow-x:auto}
+  .ltab{padding:8px 14px;font-size:13px;white-space:nowrap}
+  .tw{overflow-x:auto}
+  table{min-width:500px}
+  th{padding:10px 12px;font-size:12px}
+  td{padding:10px 12px;font-size:13px}
+  .modal{padding:18px;width:96%}
+  .modal-title{font-size:15px;margin-bottom:14px}
+  input,select{padding:9px 11px;font-size:14px}
+  .slot-row{padding:9px 12px;grid-template-columns:76px 1fr;gap:8px}
+  .slot-inp{padding:6px 8px;font-size:13px}
+  .hcard-head{padding:12px 14px;flex-wrap:wrap;gap:10px}
+  .team-cfg-head{padding:9px 12px}
 }
-.brand span { color: var(--red2); }
-.tabs { display: flex; height: 100%; }
-.tab {
-  display: flex; align-items: center; gap: 7px;
-  padding: 0 18px; height: 100%;
-  color: var(--muted); cursor: pointer;
-  font-size: 13px; font-weight: 500;
-  border-bottom: 2px solid transparent;
-  transition: all .15s; white-space: nowrap;
-}
-.tab:hover { color: var(--bone); }
-.tab.active { color: var(--gold2); border-bottom-color: var(--gold); }
-.tab-icon { font-size: 15px; }
-
-/* PAGES */
-.page { display: none; padding: 24px; max-width: 1300px; margin: 0 auto; }
-.page.active { display: block; animation: fade .18s ease; }
-@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-
-/* STATS */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
-.sc {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: var(--rad); padding: 16px 18px;
-}
-.sc-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
-.sc-val { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 700; color: var(--gold2); display: flex; align-items: center; gap: 6px; }
-.sc-val.red { color: var(--rfg); }
-.sc-val.green { color: var(--gfg); }
-.coin-icon { font-size: 20px; }
-
-/* TOOLBAR */
-.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-.toolbar-title { font-family: 'Cinzel', serif; font-size: 15px; font-weight: 700; color: var(--bone); letter-spacing: .04em; }
-.toolbar-right { display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* TABLE */
-.table-wrap { border: 1px solid var(--border); border-radius: var(--rad); overflow: hidden; }
-table { width: 100%; border-collapse: collapse; }
-thead { background: var(--bg2); }
-th {
-  padding: 11px 16px; text-align: left;
-  font-size: 11px; font-weight: 600; letter-spacing: .08em;
-  color: var(--muted); text-transform: uppercase; white-space: nowrap;
-  border-bottom: 1px solid var(--border);
-}
-tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); transition: background .1s; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(212,160,23,.04); }
-td { padding: 12px 16px; vertical-align: middle; }
-.td-name { font-weight: 600; color: var(--bone); display: flex; align-items: center; gap: 8px; }
-.class-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-/* GOLD AMOUNT */
-.gold-amt { display: flex; align-items: center; gap: 5px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; }
-.gold-amt.red { color: var(--rfg); }
-.gold-icon { font-size: 16px; }
-
-/* BADGES */
-.badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; border-radius: 20px;
-  font-size: 12px; font-weight: 600; white-space: nowrap;
-}
-.b-dps    { background: rgba(200,60,60,.2);   color: #f08080; border: 1px solid rgba(200,60,60,.3); }
-.b-tank   { background: rgba(60,100,200,.2);  color: #80a8f0; border: 1px solid rgba(60,100,200,.3); }
-.b-heal   { background: rgba(60,180,60,.2);   color: #80d880; border: 1px solid rgba(60,180,60,.3); }
-.b-client { background: rgba(200,130,30,.2);  color: #e0a850; border: 1px solid rgba(200,130,30,.3); }
-.b-oui    { background: rgba(60,180,60,.2);   color: #80d880; border: 1px solid rgba(60,180,60,.3); cursor: pointer; transition: all .15s; user-select: none; }
-.b-non    { background: rgba(200,60,60,.2);   color: #f08080; border: 1px solid rgba(200,60,60,.3); cursor: pointer; transition: all .15s; user-select: none; }
-.b-oui:hover { background: rgba(60,180,60,.35); }
-.b-non:hover { background: rgba(200,60,60,.35); }
-.b-trade  { background: rgba(212,160,23,.15); color: var(--gold2); border: 1px solid rgba(212,160,23,.25); }
-.b-key    { background: rgba(255,255,255,.06); color: var(--bone); border: 1px solid var(--border); font-family: 'Cinzel', serif; font-size: 11px; }
-
-/* BUTTONS */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: var(--rad);
-  border: 1px solid; cursor: pointer;
-  font-size: 13px; font-weight: 600;
-  transition: all .15s; white-space: nowrap;
-  font-family: 'Inter', sans-serif;
-}
-.btn-gold { background: var(--gold); color: #0f0d0a; border-color: var(--gold2); }
-.btn-gold:hover { background: var(--gold2); }
-.btn-red  { background: var(--red); color: var(--bone); border-color: var(--red2); }
-.btn-red:hover { background: var(--red2); }
-.btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
-.btn-ghost:hover { color: var(--bone); border-color: var(--muted); }
-.btn-sm { padding: 6px 12px; font-size: 12px; }
-
-/* CLASS COLORS */
-.c-Guerrier   { background: #C69B3A; }
-.c-Paladin    { background: #F48CBA; }
-.c-Chasseur   { background: #AAD372; }
-.c-Voleur     { background: #FFF468; }
-.c-Pretre     { background: #CCCCCC; }
-.c-Chaman     { background: #0070DD; }
-.c-Mage       { background: #3FC7EB; }
-.c-Demoniste  { background: #8788EE; }
-.c-Druide     { background: #FF7C0A; }
-.c-Moine      { background: #00FF98; }
-.c-DK         { background: #C41E3A; }
-.c-DH         { background: #A330C9; }
-.c-Evocateur  { background: #33937F; }
-
-/* FORMS */
-input, select {
-  background: var(--bg2); border: 1px solid var(--border);
-  color: var(--bone); padding: 9px 12px; border-radius: var(--rad);
-  font-family: 'Inter', sans-serif; font-size: 14px;
-  transition: border-color .15s; width: 100%;
-}
-input:focus, select:focus { outline: none; border-color: var(--gold); }
-select option { background: var(--bg2); }
-.fg { display: flex; flex-direction: column; gap: 5px; }
-.fg label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-/* MODAL */
-.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 500; align-items: center; justify-content: center; }
-.overlay.open { display: flex; }
-.modal {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px; width: 92%; max-width: 440px;
-  position: relative; animation: fadeIn .18s ease;
-}
-.modal-title { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: var(--gold2); margin-bottom: 20px; }
-.modal-body { display: flex; flex-direction: column; gap: 14px; }
-.modal-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
-.modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; line-height: 1; }
-.modal-close:hover { color: var(--bone); }
-
-/* TEAMS */
-.teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-.tcard { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-.tcard-head { background: var(--bg2); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-.tcard-head h3 { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; color: var(--gold2); }
-.slot-row { display: grid; grid-template-columns: 80px 1fr; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,.03); }
-.slot-row:last-child { border-bottom: none; }
-.slot-lbl { font-size: 12px; font-weight: 600; color: var(--muted); }
-.slot-sel { background: var(--bg); border: 1px solid var(--border); color: var(--bone); padding: 5px 8px; border-radius: 6px; font-size: 13px; width: 100%; }
-.slot-sel:focus { outline: none; border-color: var(--gold); }
-.tcard-foot { background: var(--bg2); padding: 8px 14px; display: flex; gap: 16px; border-top: 1px solid var(--border); }
-.tcard-stat { font-size: 12px; color: var(--muted); }
-.tcard-stat span { color: var(--bone); font-weight: 600; }
-
-/* CONFIG */
-.cfg-wrap { max-width: 500px; background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
-.cfg-note { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
-.conn-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.conn-ok   { background: rgba(60,180,60,.2); color: var(--gfg); border: 1px solid rgba(60,180,60,.3); }
-.conn-fail { background: rgba(200,60,60,.2); color: var(--rfg); border: 1px solid rgba(200,60,60,.3); }
-
-/* TOAST */
-.toast { position: fixed; bottom: 20px; right: 20px; z-index: 999; background: var(--bg1); border: 1px solid var(--border); border-radius: var(--rad); padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--bone); transform: translateY(60px); opacity: 0; transition: all .25s; pointer-events: none; }
-.toast.show { transform: none; opacity: 1; }
-.toast.ok   { border-color: rgba(60,180,60,.5); color: var(--gfg); }
-.toast.err  { border-color: rgba(200,60,60,.5); color: var(--rfg); }
-
-/* EMPTY */
-.empty { text-align: center; padding: 48px 16px; color: var(--muted); }
-.empty-icon { font-size: 32px; margin-bottom: 10px; }
-.empty p { font-size: 14px; }
-
-/* RESPONSIVE */
-@media(max-width: 600px) {
-  .page { padding: 14px; }
-  .stats { grid-template-columns: repeat(2,1fr); }
-  .tab-label { display: none; }
-  .form-grid { grid-template-columns: 1fr; }
+@media(max-width:400px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .sc-val{font-size:20px}
+  .run-member{min-width:100%}
+  
 }
 </style>
 </head>
 <body>
-
-<nav>
-  <div class="brand">⚔ <span>HORDE</span> TRACKER</div>
-  <div class="tabs">
-    <div class="tab active" data-p="tracker" onclick="go('tracker')">
-      <span class="tab-icon">🪙</span><span class="tab-label">Tracker</span>
-    </div>
-    <div class="tab" data-p="membres" onclick="go('membres')">
-      <span class="tab-icon">⚔</span><span class="tab-label">Membres</span>
-    </div>
-    <div class="tab" data-p="teams" onclick="go('teams')">
-      <span class="tab-icon">🐗</span><span class="tab-label">Teams</span>
-    </div>
-    <div class="tab" data-p="config" onclick="go('config')">
-      <span class="tab-icon">⚙</span><span class="tab-label">Config</span>
-    </div>
-  </div>
-</nav>
-
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="brand-dot"></div>Boost Tracker</div>
+    <nav class="sidebar-nav">
+      <div class="stab active" data-p="tracker" onclick="go('tracker')"><span class="stab-icon">🎯</span><span class="stab-label">Tracker</span></div>
+      <div class="stab" data-p="membres" onclick="go('membres')"><span class="stab-icon">⚔</span><span class="stab-label">Membres</span></div>
+      <div class="stab" data-p="teams" onclick="go('teams')"><span class="stab-icon">🐗</span><span class="stab-label">Teams</span></div>
+      <div class="stab" data-p="historique" onclick="go('historique')"><span class="stab-icon">🪙</span><span class="stab-label">Historique</span></div>
+      <div class="stab" data-p="ladder" onclick="go('ladder')"><span class="stab-icon">🏆</span><span class="stab-label">Ladder</span></div>
+      <div class="stab" data-p="blacklist" onclick="go('blacklist')"><span class="stab-icon">🚫</span><span class="stab-label">Blacklist</span></div>
+      <div class="stab admin-only" data-p="users" onclick="go('users')" style="display:none"><span class="stab-icon">👥</span><span class="stab-label">Utilisateurs</span></div>
+    </nav>
+  </aside>
+  <div class="main-content">
 <div class="toast" id="toast"></div>
 
 <!-- ═══ TRACKER ═══ -->
 <div class="page active" id="page-tracker">
-  <div class="stats">
-    <div class="sc">
-      <div class="sc-label">Total dû</div>
-      <div class="sc-val red" id="s-total"><span class="coin-icon">🪙</span><span id="s-total-num">0</span></div>
-    </div>
-    <div class="sc">
-      <div class="sc-label">Entrées</div>
-      <div class="sc-val" id="s-ent">0</div>
-    </div>
-    <div class="sc">
-      <div class="sc-label">Payés</div>
-      <div class="sc-val green" id="s-paid">0</div>
-    </div>
-    <div class="sc">
-      <div class="sc-label">Non payés</div>
-      <div class="sc-val red" id="s-unpaid">0</div>
-    </div>
+  <div class="stats-row">
+    <div class="sc"><div class="sc-label">Total dû (session)</div><div class="sc-val gold"><span>🪙</span><span id="s-total">0</span></div></div>
+    <div class="sc"><div class="sc-label">Runs</div><div class="sc-val blue" id="s-runs">0</div></div>
+    <div class="sc"><div class="sc-label">Payés</div><div class="sc-val green" id="s-paid">0</div></div>
+    <div class="sc"><div class="sc-label">Non payés</div><div class="sc-val red" id="s-unpaid">0</div></div>
   </div>
-
   <div class="toolbar">
-    <div class="toolbar-title">Paiements</div>
+    <div class="toolbar-left">
+      <span class="page-title">Runs de la session</span>
+      <span class="pill" id="runs-pill">0 run</span>
+    </div>
     <div class="toolbar-right">
-      <button class="btn btn-red btn-sm" onclick="resetAll()">🔄 Reset 3 jours</button>
-      <button class="btn btn-gold" onclick="openAddP()">+ Ajouter</button>
+      <button class="btn btn-danger btn-sm" onclick="openReset()">↺ Reset & Archiver</button>
+      <button class="btn btn-primary" onclick="openAddRun()">+ Nouveau run</button>
     </div>
   </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Nom</th>
-          <th>Tarif</th>
-          <th>Clé</th>
-          <th>Payé</th>
-          <th>Classe</th>
-          <th>Trade</th>
-          <th>Dû</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="t-body"></tbody>
-    </table>
+  <div class="runs-list" id="runs-list" style="gap:14px">
+    <div class="empty"><div class="empty-icon">🎯</div><p>Aucun run — clique sur <strong>+ Nouveau run</strong></p></div>
   </div>
+</div>
+
+<!-- ═══ LADDER ═══ -->
+<div class="page" id="page-ladder">
+  <div class="toolbar">
+    <div class="toolbar-left"><span class="page-title">Ladder</span></div>
+  </div>
+  <div class="ladder-tabs">
+    <div class="ltab active" onclick="switchLadder('session')">Session en cours</div>
+    <div class="ltab" onclick="switchLadder('alltime')">All Time</div>
+    <div class="ltab" onclick="switchLadder('smizz')">🗡️ Smizz livrés</div>
+  </div>
+  <div class="ladder-view active" id="lv-session"></div>
+  <div class="ladder-view" id="lv-alltime"></div>
+  <div class="ladder-view" id="lv-smizz"></div>
+</div>
+
+<!-- ═══ HISTORIQUE ═══ -->
+<div class="page" id="page-historique">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="page-title">Historique des sessions</span>
+      <span class="pill" id="h-count">0 session</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="if(confirm('Effacer l\'historique ?')){DB.historique=[];save();renderHist();toast('Effacé')}">🗑 Effacer</button>
+  </div>
+  <div id="hist-body"></div>
 </div>
 
 <!-- ═══ MEMBRES ═══ -->
 <div class="page" id="page-membres">
   <div class="toolbar">
-    <div class="toolbar-title">Membres</div>
-    <button class="btn btn-gold" onclick="openAddM()">+ Ajouter</button>
+    <div class="toolbar-left"><span class="page-title">Membres</span><span class="pill" id="m-count">0</span></div>
+    <button class="btn btn-primary" onclick="openAddM()">+ Ajouter</button>
   </div>
-  <div class="table-wrap">
+  <div class="tw">
     <table>
-      <thead>
-        <tr>
-          <th>Nom</th>
-          <th>Classe</th>
-          <th>Spé</th>
-          <th>ilvl</th>
-          <th>Rio</th>
-          <th></th>
-        </tr>
-      </thead>
+      <thead><tr><th>Nom</th><th>Spé</th><th>Spécialisation</th><th>ilvl</th><th>Rio</th><th></th></tr></thead>
       <tbody id="m-body"></tbody>
     </table>
   </div>
@@ -319,448 +307,1233 @@ select option { background: var(--bg2); }
 <!-- ═══ TEAMS ═══ -->
 <div class="page" id="page-teams">
   <div class="toolbar">
-    <div class="toolbar-title">Teams</div>
-    <button class="btn btn-gold" onclick="addTeam()">+ Nouvelle team</button>
+    <div class="toolbar-left"><span class="page-title">Teams</span><span class="pill" id="tm-count">0</span></div>
+    <button class="btn btn-primary" onclick="addTeam()">+ Nouvelle team</button>
   </div>
-  <div class="teams-grid" id="tgrid"></div>
+  <div id="teams-cfg"></div>
 </div>
 
-<!-- ═══ CONFIG ═══ -->
-<div class="page" id="page-config">
-  <div class="toolbar" style="margin-bottom:16px"><div class="toolbar-title">Configuration</div></div>
-  <div class="cfg-wrap">
-    <p class="cfg-note">Colle tes clés Supabase ci-dessous. Elles sont sauvegardées localement dans ton navigateur.</p>
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="fg"><label>PROJECT URL</label><input id="cu" placeholder="https://xxxx.supabase.co"/></div>
-      <div class="fg"><label>ANON KEY</label><input id="ck" placeholder="eyJhbGci... ou sb_publishable_..."/></div>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <button class="btn btn-gold" onclick="saveConfig()">Connecter</button>
-        <span id="cst"></span>
+<!-- MODAL: NOUVEAU RUN -->
+<div class="overlay" id="ov-run">
+  <div class="modal">
+    <button class="modal-x" onclick="cov('ov-run')">✕</button>
+    <div class="modal-title">Nouveau run</div>
+    <div class="modal-body">
+      <div class="fg"><label>Team</label>
+        <select id="run-team"><option value="">— Choisir une team —</option></select>
       </div>
-      <div style="margin-top:8px;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);line-height:1.8">
-        <strong style="color:var(--bone)">Où trouver les clés ?</strong><br>
-        Supabase → projet → bouton <em>Connect</em> → onglet <em>.env.local</em><br>
-        <code style="color:var(--gold2)">NEXT_PUBLIC_SUPABASE_URL</code> = Project URL<br>
-        <code style="color:var(--gold2)">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code> = Anon Key
+      <div class="fg">
+        <label>Clés (plusieurs possibles)</label>
+        <div id="run-cles-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:6px;align-self:flex-start" onclick="addCleInput()">+ Ajouter une clé</button>
       </div>
+      <div class="fg2">
+        <div class="fg"><label>Note (optionnel)</label><input id="run-note" placeholder="ex: +12 timed..."/></div>
+        <div class="fg"><label>Prix par personne 🪙</label><input id="run-prix" type="number" placeholder="25" oninput="updateRunPreview()"/></div>
+      </div>
+      <div id="run-preview" style="display:none;border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Aperçu de la team</div>
+        <div id="run-preview-body" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="cov('ov-run')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveRun()">Créer le run</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL MEMBRE -->
+<!-- MODAL: MEMBRE -->
 <div class="overlay" id="ov-m">
   <div class="modal">
-    <button class="modal-close" onclick="cov('ov-m')">✕</button>
-    <div class="modal-title">Ajouter un membre</div>
+    <button class="modal-x" onclick="cov('ov-m')">✕</button>
+    <div class="modal-title" id="m-title">Ajouter un membre</div>
     <div class="modal-body">
-      <div class="fg"><label>NOM</label><input id="mn" placeholder="Tixaa"/></div>
-      <div class="form-grid">
-        <div class="fg"><label>CLASSE</label>
-          <select id="mc">
-            <option value="">— Classe —</option>
-            <option>Guerrier</option><option>Paladin</option><option>Chasseur</option>
-            <option>Voleur</option><option>Prêtre</option><option>Chaman</option>
-            <option>Mage</option><option>Démoniste</option><option>Druide</option>
-            <option>Moine</option><option>DK</option><option>DH</option><option>Évocateur</option>
-          </select>
-        </div>
-        <div class="fg"><label>SPÉ</label>
-          <select id="ms">
-            <option value="">— Spé —</option>
-            <option value="DPS">DPS</option>
-            <option value="TANK">TANK</option>
+      <input type="hidden" id="m-id"/>
+      <div class="fg"><label>Nom</label><input id="mn" placeholder=""/></div>
+      <div class="fg2">
+        <div class="fg"><label>Rôle</label>
+          <select id="ms" onchange="updateSpeList()">
+            <option value="">— Rôle —</option>
+            <option value="DPS.C">DPS Corps à corps</option>
+            <option value="DPS.D">DPS Distance</option>
+            <option value="TANK">Tank</option>
             <option value="Heal">Heal</option>
           </select>
         </div>
+        <div class="fg"><label>Spécialisation</label>
+          <select id="mc"><option value="">— Choisir un rôle —</option></select>
+        </div>
       </div>
-      <div class="form-grid">
-        <div class="fg"><label>ILVL</label><input id="mi" type="number" placeholder="620"/></div>
-        <div class="fg"><label>RIO</label><input id="mr" type="number" placeholder="2500"/></div>
+      <div class="fg2">
+        <div class="fg"><label>ilvl</label><input id="mi" type="number" placeholder=""/></div>
+        <div class="fg"><label>Rio</label><input id="mr" type="number" placeholder=""/></div>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="cov('ov-m')">Annuler</button>
-      <button class="btn btn-gold" onclick="saveM()">Ajouter</button>
+      <button class="btn btn-primary" onclick="saveM()">Enregistrer</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL PAIEMENT -->
-<div class="overlay" id="ov-p">
-  <div class="modal">
-    <button class="modal-close" onclick="cov('ov-p')">✕</button>
-    <div class="modal-title">Ajouter un paiement</div>
+<!-- MODAL: RESET -->
+<div class="overlay" id="ov-reset">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-x" onclick="cov('ov-reset')">✕</button>
+    <div class="modal-title">↺ Reset & Archiver la session</div>
     <div class="modal-body">
-      <div class="form-grid">
-        <div class="fg"><label>DATE</label><input id="pd" type="date"/></div>
-        <div class="fg"><label>NOM</label>
-          <select id="pn"><option value="">— Membre —</option></select>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="fg"><label>PIÈCES D'OR 🪙</label><input id="pt" type="number" placeholder="25"/></div>
-        <div class="fg"><label>CLÉ</label>
-          <select id="pk">
-            <option value="">— Clé —</option>
-            <option>MT</option><option>MC</option><option>Nexus</option><option>WS</option>
-            <option>AA</option><option>Pit</option><option>Seat</option><option>Sky</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="fg"><label>CLASSE</label>
-          <select id="pcl">
-            <option value="">— Classe —</option>
-            <option>Guerrier</option><option>Paladin</option><option>Chasseur</option>
-            <option>Voleur</option><option>Prêtre</option><option>Chaman</option>
-            <option>Mage</option><option>Démoniste</option><option>Druide</option>
-            <option>Moine</option><option>DK</option><option>DH</option><option>Évocateur</option>
-          </select>
-        </div>
-        <div class="fg"><label>TRADE</label>
-          <select id="ptr"><option value="false">Non</option><option value="true">Oui</option></select>
-        </div>
-      </div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7">Cette action va <strong style="color:var(--text)">archiver la session en cours</strong> dans l'historique, mettre à jour le <strong style="color:var(--gold2)">Ladder All Time</strong>, et remettre le tracker à zéro.</p>
+      <div class="fg"><label>Nom de la session</label><input id="reset-note" placeholder="ex: Semaine 3 — 11 avril"/></div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="cov('ov-p')">Annuler</button>
-      <button class="btn btn-gold" onclick="saveP()">Ajouter</button>
+      <button class="btn btn-ghost" onclick="cov('ov-reset')">Annuler</button>
+      <button class="btn btn-danger" onclick="doReset()">↺ Confirmer</button>
     </div>
   </div>
 </div>
 
 <script>
-// ─── SUPABASE ───────────────────────────────────────────
-let sb = null;
-let MC = [];
+const ICON_DPS  = 'data:image/png;base64,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';
+const ICON_TANK = 'data:image/png;base64,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';
+const ICON_HEAL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAGHElEQVR42u2X248dRxGHv+rpmXPdPbuL7d34Et8gieUYbNmYm8AQroqUKAhZQkLwwkUg3njkAQkk3ngGib8gxAQpECELeHEeDMay4hjZMonj666Xve+ePWf3zEx3FQ9rvEayQ2IbCOJ8UmukmVZV11R19a+hT58+ffr06dPn/xd5CDYcR9+BnWMYoO+mAG4bcgiG/dN7u/XNbo13UwbW1nyAnX6D3xw6ARaBKuBvjQAEv/YcguqAR2/oVPGX4q93xPVA+Pta+EH80V3osWPEpHQvuLocePaZfezfN0RXu0RXEiwSNdIte1R8woVXe/zpd1PQs5MifMz2kLKX+KAl5d9Bhtar4QzlsTPgqX5CrNxWLIboq/MMf3JGFhcXaNUEUEKEtKdsH/G8edVpXDKXRIbMgAtScMHW99F6lckd/h4oAAFMBGQ9DtuwsT5K6r5cutUjI7uLLy44z2JP7OLcrEydMmbnClotGGhCiFC1lM61OhOXSucqWHU42TOwT04tTMRX0pj9MUt0fGE+/FnWHGFmZrbu/0ECMAwx4R8b0wPDC2Hl5b2HBw49d/SjvP9Dm/jeD47b/IWOzHaFzo1Ir+0oepA4wSfG1dmSyazDimTosoofg699c9dhmR87fO7cFU7/fgZb4scW7UcYCuia57eXAblrWwRNHk9+qk371Lb3topHtlcrIuK9pcPR4kh9iLB1dESGKpuSM+deZ2E2p7OjjT6RY7niUkelZgy3PHkP5roBd6bJ8OQA9WF4354NsVKvh+mlaZ27mdeKruIbyetZ5jvj1zr+yvn5inW4vHlJvzQ+Tu+tSsrf9c8DFHZE5uQJ2ao0njLyEKmmjsG0qsurub8sk4R4lfrnq4yWjs600usZCULMjQis9kqcOEIBg3uheUAIZcnZ1fHEBXWbdw1YMmb4oIroYzGNFNdKdAJcxs42gzVor75Vt7xnCWluHYkSJv+2vHLt+FKdEscWEEMyTbCqmmESirYlNaTRhESEYOASR1mARsXMSCvCTLHMlallyg6QAxE5e3FREoQ4a0INZQDS60DPmYm1ZViM8fvcA6KSYgQpEleb9L43VeLmBL8DNFVk2UmlkeBiFAtKHoysDrGANBNKVTRAUgHUIDpSA4lgOZgaooKvJtAyyadUskwwZ4EgiyjJg3UhIaBo1mS+sT/JylMaDSV2yV3TCYkRUXMNNMkkrUul3m2XSRkjxaIiHrSAtCrYIFSqotkwvVWhiKWDAi1X1MdlTRIvrjLgXFoTVU+t0HjJzB61hsn9BiBkvMc1pR4n5dd+PH05WVYJ1zMLp8MhcmvQLrvUdEttR5aGbvx486DfUWyPrjsexVcgqiEpFA2zjY+JjMxkq5d+Xs64ZjLZnciXyFnEVSYRjQQZb+321cqwm8snbWcymH9DRTdqqe7+MxD5WezpR3p5/ODkC+VTWdNtHWiV7fo2HtmwVZIP7NlV6vJw+vzzZ4lqUKQMZMLSdICaIE3QnlGpO4nByNDGyqxrcDPsePoLh9i4rcf5GxfH2wsWum2ud6bCaPsyFku7oo43zPFi52Zn5V/JnXt2IR3XnwDYQdL6LE9i9mlZ5VuNMUmePFTh6WeGkjKvhl/8xpysiiwv53lvKWRJzSFR0I4hTcjnjWI8ISaJ+KzUYkXtw8/W3Gc+u5FfHb+59eTxNsvXdYcr7SXv5Lcx2Cmd4bWHIeaS27lYp1Zr+W9nLftubSzubmyHG+eTEAsk3SQx7LUsTEUSdYgIMVXIQAaFAfOsnFTKRWzL4WCDVdzSxYSVac4sTsh3IJy+i//4MNSo3Faea7oSoFZppV+VwfjD2JBmjNiGXdlr/nNWmXwlj5REQdbym0H2qCSjLd+Y+GV8XNuIzzT1HbnRa8fva5cXgVWO4DlxWw/pw8jAveYnCAEDWuz3Y/5Vlzno6rG0JW8WhWLIdiAl0gAxl8h1F2QUeC5IlNiJf7AF+wpdpu88/f+T94G1QI5inHJfxzMiYjWDTDJwGZAiCkbuoKdCJEqQJRT1mX+puFy8wUFSzhD+TXed/4nr7EMx4jnyNmeeAI4AJ26pzj59+vTp06dPnz59+vw3+TtSQRJ2/sGgxgAAAABJRU5ErkJggg==';
+const ICON_GOLD = 'data:image/png;base64,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';
 
-function initSb(u, k) {
-  try { sb = supabase.createClient(u, k); return true; }
-  catch(e) { return false; }
-}
-function need() {
-  if (!sb) { toast('Configure Supabase dans Config ⚙', 'err'); go('config'); return false; }
-  return true;
-}
-
-// ─── NAV ────────────────────────────────────────────────
-function go(p) {
-  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-  document.getElementById('page-' + p).classList.add('active');
-  document.querySelector(`[data-p="${p}"]`).classList.add('active');
-  ({ tracker: loadT, membres: loadM, teams: loadTm }[p] || (() => {}))();
+// ═══ SUPABASE AUTH CLIENT ═══
+// La clé Anon est nécessaire pour l'auth uniquement - les données sont protégées par RLS
+const SB_URL = localStorage.getItem('sb_url') || '';
+const SB_KEY = localStorage.getItem('sb_key') || '';
+let sbAuth = null;
+if (SB_URL && SB_KEY) {
+  sbAuth = supabase.createClient(SB_URL, SB_KEY);
+} else {
+  // Sera initialisé après la config
 }
 
-// ─── TOAST ──────────────────────────────────────────────
-let _tt;
-function toast(msg, type = 'ok') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show ' + type;
-  clearTimeout(_tt);
-  _tt = setTimeout(() => el.className = 'toast', 2800);
-}
+// ═══ DB ═══
+const KEY = 'bt_v2';
+let DB = { membres:[], teams:[], slots:[], runs:[], historique:[], alltime:{}, blacklist:[], smizz:{total:0,catches:[]} };
+function load(){ try{ const d=localStorage.getItem(KEY); if(d) DB=Object.assign({membres:[],teams:[],slots:[],runs:[],historique:[],alltime:{},blacklist:[],smizz:{total:0,catches:[]}},JSON.parse(d)); }catch(e){} }
+function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
 
-// ─── MODAL ──────────────────────────────────────────────
-function oov(id) { document.getElementById(id).classList.add('open'); }
-function cov(id) { document.getElementById(id).classList.remove('open'); }
-
-// ─── HELPERS ────────────────────────────────────────────
-const CLASS_COLORS = {
-  'Guerrier':'#C69B3A','Paladin':'#F48CBA','Chasseur':'#AAD372','Voleur':'#FFF468',
-  'Prêtre':'#CCCCCC','Chaman':'#0070DD','Mage':'#3FC7EB','Démoniste':'#8788EE',
+// ═══ CONSTANTS ═══
+const SPE_COLORS = {
+  'Guerrier':'#C69B3A','Paladin':'#F48CBA','Chasseur':'#AAD372','Voleur':'#e8d44d',
+  'Prêtre':'#CCC','Chaman':'#0070DD','Mage':'#3FC7EB','Démoniste':'#8788EE',
   'Druide':'#FF7C0A','Moine':'#00FF98','DK':'#C41E3A','DH':'#A330C9','Évocateur':'#33937F'
 };
-const SPE_CLS = { DPS: 'b-dps', TANK: 'b-tank', Heal: 'b-heal' };
+const SPES = {
+  'DPS.C':['Guerrier Armes','Guerrier Fureur','Paladin Vindicte','DK Impie','DK Givre','DH Ravage','Druide Féral','Moine Vent du Vent','Voleur Assassinat','Voleur Hors-la-loi','Voleur Subtilité','Chaman Amélioration'],
+  'DPS.D':['Chasseur Maîtrise des Bêtes','Chasseur Tir','Chasseur Survie','Mage Arcane','Mage Feu','Mage Givre','Démoniste Affliction','Démoniste Démonologie','Démoniste Destruction','Prêtre Ombre','Chaman Élémentaire','Druide Balance','Évocateur Dévastation'],
+  'TANK':['Guerrier Protection','Paladin Protection','DK Sang','DH Vengeance','Druide Gardien','Moine Brasseur'],
+  'Heal':['Prêtre Discipline','Prêtre Sacré','Paladin Sacré','Druide Restauration','Chaman Restauration','Moine Tissevent','Évocateur Préservation']
+};
+const SLOT_DEFS = [
+  {role:'DPS',lbl:'DPS 1'},{role:'DPS',lbl:'DPS 2'},
+  {role:'TANK',lbl:'Tank'},{role:'Heal',lbl:'Heal'}
+];
 
-function classDot(cls) {
-  const c = CLASS_COLORS[cls];
-  if (!c) return '';
-  return `<span class="class-dot" style="background:${c}" title="${cls}"></span>`;
-}
-
-function goldCell(n, red = false) {
-  if (!n && n !== 0) return '—';
-  return `<span class="gold-amt${red ? ' red' : ''}"><span class="gold-icon">🪙</span>${Number(n).toLocaleString('fr-FR')}</span>`;
-}
-
-function fmtDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('fr-FR');
-}
-
-// ─── TRACKER ────────────────────────────────────────────
-async function loadT() {
-  if (!need()) return;
-  const { data, error } = await sb.from('paiements').select('*').order('date', { ascending: false });
-  if (error) { toast('Erreur chargement', 'err'); return; }
-  const rows = data || [];
-
-  const total = rows.filter(r => !r.paye).reduce((s, r) => s + (r.tarif || 0), 0);
-  document.getElementById('s-total-num').textContent = Math.round(total).toLocaleString('fr-FR');
-  document.getElementById('s-ent').textContent    = rows.length;
-  document.getElementById('s-paid').textContent   = rows.filter(r => r.paye).length;
-  document.getElementById('s-unpaid').textContent = rows.filter(r => !r.paye).length;
-
-  const tbody = document.getElementById('t-body');
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="empty-icon">🪙</div><p>Aucun paiement pour l'instant</p></div></td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = rows.map(r => {
-    const du = r.paye ? 0 : (r.tarif || 0);
-    const payeBtn = `<span class="badge ${r.paye ? 'b-oui' : 'b-non'}" onclick="toggleP('${r.id}',${r.paye})">
-      ${r.paye ? '✅ Payé' : '❌ Non payé'}
-    </span>`;
-    const tradeCell = r.trade
-      ? `<span class="badge b-trade">✔ Oui</span>`
-      : `<span style="color:var(--muted)">—</span>`;
-    const duCell = du > 0
-      ? goldCell(du, true)
-      : `<span style="color:var(--gfg);font-size:13px">✓ OK</span>`;
-
-    return `<tr>
-      <td style="color:var(--muted);font-size:13px">${fmtDate(r.date)}</td>
-      <td><div class="td-name">${classDot(r.classe)}<strong>${r.nom || '—'}</strong></div></td>
-      <td>${goldCell(r.tarif)}</td>
-      <td>${r.cle ? `<span class="badge b-key">${r.cle}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
-      <td>${payeBtn}</td>
-      <td><div class="td-name">${classDot(r.classe)}<span style="color:var(--muted);font-size:13px">${r.classe || '—'}</span></div></td>
-      <td>${tradeCell}</td>
-      <td>${duCell}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="delP('${r.id}')">✕</button></td>
-    </tr>`;
-  }).join('');
-}
-
-async function toggleP(id, cur) {
-  if (!need()) return;
-  await sb.from('paiements').update({ paye: !cur }).eq('id', id);
-  toast(cur ? '❌ Marqué non payé' : '✅ Marqué payé');
-  loadT();
-}
-
-async function delP(id) {
-  if (!need()) return;
-  if (!confirm('Supprimer ce paiement ?')) return;
-  await sb.from('paiements').delete().eq('id', id);
-  toast('Supprimé'); loadT();
-}
-
-async function resetAll() {
-  if (!need()) return;
-  if (!confirm('Marquer TOUS les impayés comme payés ?')) return;
-  await sb.from('paiements').update({ paye: true }).eq('paye', false);
-  toast('🔄 Reset effectué !'); loadT();
-}
-
-async function openAddP() {
-  if (!need()) return;
-  document.getElementById('pd').value = new Date().toISOString().slice(0, 10);
-  await fillSel('pn');
-  oov('ov-p');
-}
-
-async function saveP() {
-  if (!need()) return;
-  const sel = document.getElementById('pn');
-  const nom = sel.options[sel.selectedIndex]?.text || '';
-  const row = {
-    date:   document.getElementById('pd').value,
-    nom:    nom === '— Membre —' ? '' : nom,
-    tarif:  parseFloat(document.getElementById('pt').value) || 0,
-    cle:    document.getElementById('pk').value || null,
-    classe: document.getElementById('pcl').value || null,
-    trade:  document.getElementById('ptr').value === 'true',
-    paye:   false,
-  };
-  const { error } = await sb.from('paiements').insert([row]);
-  if (error) { toast('Erreur : ' + error.message, 'err'); return; }
-  cov('ov-p'); toast('🪙 Paiement ajouté !'); loadT();
-}
-
-// ─── MEMBRES ────────────────────────────────────────────
-async function loadM() {
-  if (!need()) return;
-  const { data } = await sb.from('membres').select('*').order('nom');
-  MC = data || [];
-  const tbody = document.getElementById('m-body');
-  if (!MC.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">⚔</div><p>Aucun membre</p></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = MC.map(m => `<tr>
-    <td><div class="td-name">${classDot(m.classe)}<strong>${m.nom}</strong></div></td>
-    <td><div class="td-name">${classDot(m.classe)}<span style="color:var(--muted);font-size:13px">${m.classe || '—'}</span></div></td>
-    <td>${m.spe ? `<span class="badge ${SPE_CLS[m.spe] || ''}">${m.spe}</span>` : '—'}</td>
-    <td><strong style="color:var(--bfg)">${m.ilvl || '—'}</strong></td>
-    <td><strong style="color:var(--gold2)">${m.rio || '—'}</strong></td>
-    <td><button class="btn btn-ghost btn-sm" onclick="delM('${m.id}')">✕</button></td>
-  </tr>`).join('');
-}
-
-function openAddM() {
-  if (!need()) return;
-  ['mn','mi','mr'].forEach(id => document.getElementById(id).value = '');
-  ['mc','ms'].forEach(id => document.getElementById(id).selectedIndex = 0);
-  oov('ov-m');
-}
-
-async function saveM() {
-  if (!need()) return;
-  const nom = document.getElementById('mn').value.trim();
-  if (!nom) { toast('Le nom est requis', 'err'); return; }
-  const { error } = await sb.from('membres').insert([{
-    nom,
-    classe: document.getElementById('mc').value || null,
-    spe:    document.getElementById('ms').value || null,
-    ilvl:   parseInt(document.getElementById('mi').value) || null,
-    rio:    parseInt(document.getElementById('mr').value) || null,
-  }]);
-  if (error) { toast('Erreur : ' + error.message, 'err'); return; }
-  cov('ov-m'); toast('⚔ ' + nom + ' ajouté !'); loadM();
-}
-
-async function delM(id) {
-  if (!need()) return;
-  if (!confirm('Supprimer ce membre ?')) return;
-  await sb.from('membres').delete().eq('id', id);
-  toast('Membre supprimé'); loadM();
-}
-
-async function fillSel(selId) {
-  if (!sb) return;
-  const { data } = await sb.from('membres').select('id,nom').order('nom');
-  const sel = document.getElementById(selId);
-  sel.innerHTML = '<option value="">— Membre —</option>';
-  (data || []).forEach(m => {
-    const o = document.createElement('option');
-    o.value = m.id; o.textContent = m.nom; sel.appendChild(o);
+function membresForRole(role) {
+  return DB.membres.filter(m => {
+    if(!m.spe) return false;
+    if(role==='DPS')  return m.spe==='DPS.C' || m.spe==='DPS.D';
+    if(role==='TANK') return m.spe==='TANK';
+    if(role==='Heal') return m.spe==='Heal';
+    return false;
   });
 }
 
-// ─── TEAMS ──────────────────────────────────────────────
-const SLOT_DEFS = [
-  { role: 'DPS',    label: 'DPS 1',   cls: 'b-dps' },
-  { role: 'DPS',    label: 'DPS 2',   cls: 'b-dps' },
-  { role: 'Client', label: 'Client',  cls: 'b-client' },
-  { role: 'TANK',   label: 'Tank',    cls: 'b-tank' },
-  { role: 'Heal',   label: 'Heal',    cls: 'b-heal' },
-];
+function roleImg(role, size=22){
+  const r = role?.startsWith('DPS') ? 'DPS' : (role||'DPS');
+  if(r==='TANK') return `<span style="display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;flex-shrink:0;font-size:${Math.round(size*.85)}px" title="Tank">🛡</span>`;
+  if(r==='Heal') return `<span style="display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;flex-shrink:0;font-size:${Math.round(size*.85)}px" title="Heal">🍃</span>`;
+  return `<span style="display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;flex-shrink:0;font-size:${Math.round(size*.85)}px" title="DPS">⚔️</span>`;
+}
+function speColor(spe){
+  if(!spe) return '#555';
+  for(const [k,c] of Object.entries(SPE_COLORS)) if(spe.startsWith(k)) return c;
+  return '#555';
+}
+function gold(n){ return n?Number(n).toLocaleString('fr-FR'):'0'; }
 
-async function loadTm() {
-  if (!need()) return;
-  const [{ data: teams }, { data: slots }] = await Promise.all([
-    sb.from('teams').select('*').order('created_at'),
-    sb.from('team_slots').select('*'),
-  ]);
-  if (!MC.length) {
-    const { data } = await sb.from('membres').select('*').order('nom');
-    MC = data || [];
-  }
-  const grid = document.getElementById('tgrid');
-  if (!teams?.length) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🐗</div><p>Aucune team</p></div>`;
+// ═══ NAV ═══
+function go(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.stab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelector(`[data-p="${p}"]`).classList.add('active');
+  ({tracker:renderTracker,ladder:renderLadder,historique:renderHist,membres:renderMembres,teams:renderTeams,blacklist:renderBlacklist,users:loadUsers}[p]||function(){})();
+}
+function oov(id){document.getElementById(id).classList.add('open')}
+function cov(id){document.getElementById(id).classList.remove('open')}
+let _tt;
+function toast(m,t='ok'){const e=document.getElementById('toast');e.textContent=m;e.className='toast show '+t;clearTimeout(_tt);_tt=setTimeout(()=>e.className='toast',2600);}
+function g(id){return document.getElementById(id);}
+
+// ═══ TRACKER ═══
+function renderTracker(){
+  const rl = g('runs-list');
+  const runs = DB.runs||[];
+  g('runs-pill').textContent = runs.length+' run'+(runs.length>1?'s':'');
+
+  let total=0,paid=0,unpaid=0;
+  runs.forEach(r=>{
+    if(r.paye){ paid++; }else{ unpaid++; total+=(r.prix||0); }
+  });
+  g('s-total').textContent=gold(total);
+  g('s-runs').textContent=runs.length;
+  g('s-paid').textContent=paid;
+  g('s-unpaid').textContent=unpaid;
+
+  if(!runs.length){
+    rl.innerHTML=`<div class="empty"><div class="empty-icon">🎯</div><p>Aucun run — clique sur <strong>+ Nouveau run</strong></p></div>`;
     return;
   }
-  grid.innerHTML = teams.map(team => {
-    const ts = (slots || []).filter(s => s.team_id === team.id);
-    const slotsHTML = SLOT_DEFS.map((def, i) => {
-      const ex = ts.find(s => s.slot_index === i);
-      const mb = ex ? MC.find(m => m.id === ex.membre_id) : null;
-      const isClient = def.role === 'Client';
-      const inp = isClient
-        ? `<input class="slot-sel" type="text" placeholder="Nom du client" value="${mb?.nom || ''}" onchange="savCS('${team.id}',${i},this.value)"/>`
-        : `<select class="slot-sel" onchange="savS('${team.id}',${i},this.value,'${def.role}')">
-             <option value="">— Choisir —</option>
-             ${MC.map(m => `<option value="${m.id}" ${mb?.id === m.id ? 'selected' : ''}>${m.nom}</option>`).join('')}
-           </select>`;
-      return `<div class="slot-row">
-        <span class="badge ${def.cls}" style="font-size:11px">${def.label}</span>
-        ${inp}
+
+  rl.innerHTML = runs.map((run,ri)=>{
+    const team = DB.teams.find(t=>t.id===run.team_id);
+    const runTotal = (run.membres||[]).reduce((s,m)=>s+(m.tarif||0),0);
+    // Sort: DPS first, then Tank, then Heal
+    const roleOrder = {DPS:0,TANK:1,Heal:2};
+    const members = [...(run.membres||[])].sort((a,b)=>(roleOrder[a.role]??9)-(roleOrder[b.role]??9));
+
+    const membersHTML = members.map(m=>{
+      const membre = DB.membres.find(mb=>mb.id===m.membre_id);
+      const nom = membre?.nom||'—';
+      const spe = membre?.spe||'';
+      const classe = membre?.classe||'';
+      const color = speColor(classe);
+      return `<div class="run-member">
+        ${roleImg(m.role,18)}
+        <span class="class-dot" style="background:${color}"></span>
+        <div>
+          <div class="run-member-name">${nom}</div>
+          ${classe?`<div class="run-member-spe">${classe.split(' ')[0]}</div>`:''}
+        </div>
+
       </div>`;
     }).join('');
 
-    const assignes = ts.filter(s => s.membre_id).length;
-    const ilvls = ts.map(s => MC.find(m => m.id === s.membre_id)?.ilvl).filter(Boolean);
-    const rios  = ts.map(s => MC.find(m => m.id === s.membre_id)?.rio).filter(Boolean);
-    const avgI  = ilvls.length ? Math.round(ilvls.reduce((a,b)=>a+b,0)/ilvls.length) : null;
-    const avgR  = rios.length  ? Math.round(rios.reduce((a,b)=>a+b,0)/rios.length)   : null;
+    const payeClass = run.paye?'ok':'no';
+    const payeTxt = run.paye?'✓ Payé':'Non payé';
 
-    return `<div class="tcard">
-      <div class="tcard-head">
-        <h3>🐗 ${team.nom}</h3>
-        <button class="btn btn-ghost btn-sm" onclick="delT('${team.id}')">✕</button>
+    return `<div class="run-card">
+      <div class="run-head">
+        <div class="run-num">${ri+1}</div>
+        <span class="badge b-key">${run.cle||'—'}</span>
+        ${team?`<span style="font-size:12px;color:var(--text2)">${team.nom}</span>`:''}
+        ${run.note?`<span style="font-size:11px;color:var(--text3);font-style:italic">${run.note}</span>`:''}
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+          <div class="run-gold"><img src="${ICON_GOLD}" style="width:18px;height:18px;object-fit:contain"/>${gold(run.prix||0)} <span style="font-size:12px;color:var(--text3);font-weight:400">/p</span></div>
+          <span class="run-paid ${payeClass}" onclick="toggleRunPaid('${run.id}')">${payeTxt}</span>
+          <button class="btn btn-ghost btn-sm" onclick="delRun('${run.id}')">✕</button>
+        </div>
       </div>
-      ${slotsHTML}
-      <div class="tcard-foot">
-        <div class="tcard-stat">Membres <span>${assignes}/5</span></div>
-        <div class="tcard-stat">Moy. ilvl <span style="color:var(--bfg)">${avgI ?? '—'}</span></div>
-        <div class="tcard-stat">Moy. Rio <span style="color:var(--gold2)">${avgR ?? '—'}</span></div>
+      <div class="run-members">${membersHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleRunPaid(id){
+  const r = DB.runs.find(x=>x.id===id);
+  if(!r) return;
+  r.paye = !r.paye;
+  save(); toast(r.paye?'✓ Payé':'Non payé'); renderTracker();
+}
+function delRun(id){
+  if(!confirm('Supprimer ce run ?')) return;
+  DB.runs = DB.runs.filter(r=>r.id!==id);
+  save(); toast('Run supprimé'); renderTracker();
+}
+
+// ═══ MODAL RUN ═══
+function openAddRun(){
+  const sel = g('run-team');
+  sel.innerHTML = '<option value="">— Choisir une team —</option>';
+  DB.teams.forEach(t=>{
+    const o=document.createElement('option');o.value=t.id;o.textContent=t.nom;sel.appendChild(o);
+  });
+  g('run-note').value='';
+  g('run-prix').value='';
+  g('run-preview').style.display='none';
+  // Init with one clé input
+  g('run-cles-list').innerHTML='';
+  addCleInput();
+  sel.onchange = updateRunPreview;
+  oov('ov-run');
+}
+
+function addCleInput(){
+  const list = g('run-cles-list');
+  const idx = list.children.length;
+  const row = document.createElement('div');
+  row.style.cssText='display:flex;gap:6px;align-items:center';
+  row.innerHTML=`<select class="run-cle-sel" style="flex:1">
+    <option value="">— Clé —</option>
+    <option>MT</option><option>MC</option><option>Nexus</option><option>WS</option>
+    <option>AA</option><option>Pit</option><option>Seat</option><option>Sky</option>
+  </select>${idx>0?`<button class="btn btn-ghost btn-sm" style="padding:5px 8px;flex-shrink:0" onclick="this.parentElement.remove()">✕</button>`:''}`;
+  list.appendChild(row);
+}
+
+function updateRunPreview(){
+  const teamId = g('run-team').value;
+  const prix = parseFloat(g('run-prix').value)||0;
+  const prev = g('run-preview');
+  const body = g('run-preview-body');
+  if(!teamId){ prev.style.display='none'; return; }
+  prev.style.display='block';
+  const slots = DB.slots.filter(s=>s.team_id===teamId);
+  body.innerHTML = SLOT_DEFS.map((def,i)=>{
+    const slot=slots.find(s=>s.slot_index===i);
+    const mb=slot?.membre_id?DB.membres.find(m=>m.id===slot.membre_id):null;
+    const nom=mb?.nom||`${def.lbl} (vide)`;
+    const color=speColor(mb?.classe||'');
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);border-radius:6px;border:1px solid var(--border)">
+      ${roleImg(def.role,16)}
+      <span style="width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0"></span>
+      <span style="flex:1;font-size:13px;font-weight:500;color:var(--text)">${nom}</span>
+      ${prix?`<span style="display:flex;align-items:center;gap:3px;font-size:13px;font-weight:700;color:var(--gold2)"><img src="${ICON_GOLD}" style="width:13px;height:13px;object-fit:contain"/>${gold(prix)}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+function updateRunTarifs(){
+  const teamId = g('run-team').value;
+  const cont = g('run-tarifs');
+  if(!teamId){ cont.innerHTML='<p style="font-size:12px;color:var(--text3)">Choisis une team</p>'; return; }
+  const slots = DB.slots.filter(s=>s.team_id===teamId);
+  cont.innerHTML = SLOT_DEFS.map((def,i)=>{
+    const slot = slots.find(s=>s.slot_index===i);
+    const membre = slot?.membre_id ? DB.membres.find(m=>m.id===slot.membre_id) : null;
+    const isClient = def.role==='Client';
+    if(isClient) return ''; // skip client
+    const nom = membre?.nom||`Slot ${def.lbl} (vide)`;
+    const color = speColor(membre?.classe||'');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      ${roleImg(def.role,16)}
+      <span class="class-dot" style="background:${color}"></span>
+      <span style="flex:1;font-size:13px;font-weight:500;color:var(--text)">${nom}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <img src="${ICON_GOLD}" style="width:14px;height:14px;object-fit:contain"/>
+        <input type="number" id="tarif-${i}" placeholder="0" style="width:80px;padding:5px 8px;font-size:13px"
+          data-slot="${i}" data-membre="${slot?.membre_id||''}" data-role="${def.role}"/>
       </div>
     </div>`;
   }).join('');
 }
 
-async function savS(tId, si, mId, role) {
-  if (!need()) return;
-  await sb.from('team_slots').delete().match({ team_id: tId, slot_index: si });
-  if (mId) await sb.from('team_slots').insert([{ team_id: tId, membre_id: mId, role, slot_index: si }]);
-  toast('Slot mis à jour'); loadTm();
+function saveRun(){
+  const teamId = g('run-team').value;
+  if(!teamId){ toast('Choisis une team','err'); return; }
+
+  // Collect clés
+  const clesSels = document.querySelectorAll('.run-cle-sel');
+  const cles = [...clesSels].map(s=>s.value).filter(Boolean);
+  if(!cles.length){ toast('Ajoute au moins une clé','err'); return; }
+
+  const prix = parseFloat(g('run-prix').value)||0;
+  const slots = DB.slots.filter(s=>s.team_id===teamId);
+  const membres = SLOT_DEFS.map((def,i)=>{
+    const slot=slots.find(s=>s.slot_index===i);
+    return {
+      slot_index:i,
+      role:def.role,
+      membre_id:slot?.membre_id||null,
+      tarif:prix
+    };
+  });
+
+  const run = {
+    id:uid(), team_id:teamId,
+    cle:cles.join(', '),
+    cles,
+    note:g('run-note').value.trim(),
+    prix,
+    membres, paye:false,
+    date:new Date().toISOString()
+  };
+  DB.runs.push(run);
+  save(); cov('ov-run'); toast('🎯 Run créé !'); renderTracker();
 }
 
-async function savCS(tId, si, nom) {
-  if (!need()) return;
-  await sb.from('team_slots').delete().match({ team_id: tId, slot_index: si });
-  if (nom.trim()) await sb.from('team_slots').insert([{ team_id: tId, membre_id: null, role: 'Client', slot_index: si }]);
+// ═══ RESET ═══
+function openReset(){ g('reset-note').value=''; oov('ov-reset'); }
+
+function doReset(){
+  const note = g('reset-note').value.trim()||`Session du ${new Date().toLocaleDateString('fr-FR')}`;
+  const runs = DB.runs||[];
+
+  // Build session summary per member
+  const sessionGold = {};
+  runs.forEach(run=>{
+    (run.membres||[]).forEach(m=>{
+      if(!m.membre_id||m.role==='Client') return;
+      const mb = DB.membres.find(x=>x.id===m.membre_id);
+      if(!mb) return;
+      if(!sessionGold[m.membre_id]) sessionGold[m.membre_id]={nom:mb.nom,spe:mb.spe,classe:mb.classe,earned:0,runs:0};
+      sessionGold[m.membre_id].earned += (m.tarif||0);
+      sessionGold[m.membre_id].runs++;
+    });
+  });
+
+  // Update alltime
+  Object.entries(sessionGold).forEach(([id,data])=>{
+    if(!DB.alltime[id]) DB.alltime[id]={nom:data.nom,spe:data.spe,classe:data.classe,earned:0,runs:0};
+    DB.alltime[id].earned += data.earned;
+    DB.alltime[id].runs += data.runs;
+    DB.alltime[id].nom = data.nom; // keep updated
+  });
+
+  // Archive
+  const total = runs.reduce((s,r)=>(r.membres||[]).reduce((ss,m)=>ss+(m.tarif||0),s),0);
+  DB.historique.unshift({
+    id:uid(), date:new Date().toISOString(), note,
+    total, runs_count:runs.length,
+    session_gold:sessionGold,
+    runs: JSON.parse(JSON.stringify(runs))
+  });
+
+  DB.runs = [];
+  save();
+  cov('ov-reset');
+  toast('↺ Session archivée !');
+  renderTracker();
 }
 
-async function addTeam() {
-  if (!need()) return;
-  const { data } = await sb.from('teams').select('nom');
-  await sb.from('teams').insert([{ nom: `Team ${(data?.length || 0) + 1}` }]);
-  toast('🐗 Team créée !'); loadTm();
+// ═══ LADDER ═══
+function switchLadder(view){
+  document.querySelectorAll('.ltab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ladder-view').forEach(v=>v.classList.remove('active'));
+  event.target.classList.add('active');
+  g('lv-'+view).classList.add('active');
+  if(view==='smizz') renderSmizzLadder();
 }
 
-async function delT(id) {
-  if (!need()) return;
-  if (!confirm('Supprimer cette team ?')) return;
-  await sb.from('team_slots').delete().eq('team_id', id);
-  await sb.from('teams').delete().eq('id', id);
-  toast('Team supprimée'); loadTm();
+function renderLadder(){
+  renderLadderSession();
+  renderLadderAlltime();
 }
 
-// ─── CONFIG ─────────────────────────────────────────────
-function loadConfig() {
-  const u = localStorage.getItem('sb_url');
-  const k = localStorage.getItem('sb_key');
-  if (u && k) {
-    document.getElementById('cu').value = u;
-    document.getElementById('ck').value = k;
-    if (initSb(u, k)) {
-      document.getElementById('cst').innerHTML = '<span class="conn-badge conn-ok">✓ Connecté</span>';
-      loadT();
+function renderLadderSession(){
+  const cont = g('lv-session');
+  const runs = DB.runs||[];
+
+  const data = {};
+  runs.forEach(run=>{
+    (run.membres||[]).forEach(m=>{
+      if(!m.membre_id||m.role==='Client') return;
+      const mb = DB.membres.find(x=>x.id===m.membre_id);
+      if(!mb) return;
+      if(!data[m.membre_id]) data[m.membre_id]={nom:mb.nom,spe:mb.spe,classe:mb.classe,earned:0,runs:0};
+      data[m.membre_id].earned += (m.tarif||0);
+      data[m.membre_id].runs++;
+    });
+  });
+
+  const sorted = Object.entries(data).sort((a,b)=>b[1].earned-a[1].earned);
+  cont.innerHTML = renderLadderRows(sorted, 'Aucun run dans la session en cours');
+}
+
+function renderLadderAlltime(){
+  const cont = g('lv-alltime');
+  const sorted = Object.entries(DB.alltime||{}).sort((a,b)=>b[1].earned-a[1].earned);
+  const resetBtn = currentRole === 'admin'
+    ? `<div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-danger btn-sm" onclick="resetAllTime()">🗑 Reset All Time</button>
+      </div>` : '';
+  cont.innerHTML = resetBtn + renderLadderRows(sorted, 'Aucune donnée all time — faites des runs !');
+}
+
+function resetAllTime(){
+  if(currentRole !== 'admin'){ toast('Accès refusé','err'); return; }
+  if(!confirm('⚠️ Effacer tout le All Time Ladder ? Cette action est irréversible.')) return;
+  DB.alltime = {};
+  save();
+  toast('All Time Ladder réinitialisé');
+  renderLadderAlltime();
+}
+
+function renderLadderRows(sorted, emptyMsg){
+  if(!sorted.length) return `<div class="empty"><div class="empty-icon">🏆</div><p>${emptyMsg}</p></div>`;
+  const medals = ['r1','r2','r3'];
+  return `<div class="ladder-list">${sorted.map(([id,d],i)=>{
+    const rankCls = medals[i]||'';
+    const topCls = i===0?'top1':i===1?'top2':i===2?'top3':'';
+    const color = speColor(d.classe||'');
+    const roleKey = d.spe?.startsWith('DPS')?'DPS':d.spe||'DPS';
+    return `<div class="ladder-row ${topCls}">
+      <div class="lrank ${rankCls}">${i+1}</div>
+      ${roleImg(roleKey,20)}
+      <span class="class-dot" style="background:${color};width:7px;height:7px;border-radius:50%"></span>
+      <div style="flex:1;min-width:0">
+        <div class="lname">${d.nom}</div>
+        <div style="display:flex;gap:10px;margin-top:2px">
+          ${d.classe?`<span class="lspe">${d.classe.split(' ')[0]}</span>`:''}
+          <span class="lruns">${d.runs} run${d.runs>1?'s':''}</span>
+        </div>
+      </div>
+      <div class="lgold"><img src="${ICON_GOLD}" style="width:20px;height:20px;object-fit:contain"/>${gold(d.earned)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderSmizzLadder(){
+  const cont = g('lv-smizz');
+  const smizz = DB.smizz || {total:0, catches:[]};
+  const total = smizz.total || 0;
+  const catches = smizz.catches || [];
+
+  // Stats par jour
+  const byDay = {};
+  catches.forEach(c => {
+    const d = new Date(c.date).toLocaleDateString('fr-FR');
+    byDay[d] = (byDay[d]||0) + 1;
+  });
+  const days = Object.entries(byDay).sort((a,b) => new Date(b[0].split('/').reverse().join('-')) - new Date(a[0].split('/').reverse().join('-')));
+
+  const lastCatch = catches.length ? new Date(catches[catches.length-1].date).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : null;
+
+  cont.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <!-- Hero card -->
+      <div style="background:var(--bg1);border:1px solid rgba(232,212,77,.3);border-radius:var(--rad2);padding:28px;text-align:center;background:linear-gradient(135deg,var(--bg1) 0%,rgba(232,212,77,.05) 100%)">
+        <div style="font-size:56px;margin-bottom:8px">🗡️</div>
+        <div style="font-family:'Cinzel',serif;font-size:48px;font-weight:900;color:#e8d44d;line-height:1">${total}</div>
+        <div style="font-size:15px;color:var(--text2);margin-top:8px;font-weight:500">Smizz livrés avec succès</div>
+        ${lastCatch ? `<div style="font-size:12px;color:var(--text3);margin-top:6px">Dernier : ${lastCatch}</div>` : ''}
+      </div>
+
+      <!-- Stats rapides -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
+        <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);padding:16px;text-align:center">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Aujourd'hui</div>
+          <div style="font-size:28px;font-weight:700;color:var(--gold2)">${byDay[new Date().toLocaleDateString('fr-FR')]||0}</div>
+        </div>
+        <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);padding:16px;text-align:center">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Record/jour</div>
+          <div style="font-size:28px;font-weight:700;color:var(--gold2)">${days.length ? Math.max(...days.map(d=>d[1])) : 0}</div>
+        </div>
+        <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);padding:16px;text-align:center">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Jours actifs</div>
+          <div style="font-size:28px;font-weight:700;color:var(--gold2)">${days.length}</div>
+        </div>
+      </div>
+
+      <!-- Historique par jour -->
+      ${days.length ? `
+      <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);overflow:hidden">
+        <div style="background:var(--bg2);padding:12px 18px;font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)">
+          Historique
+        </div>
+        ${days.map(([day,count]) => `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.04)">
+            <span style="font-size:13px;color:var(--text2);flex:1">${day}</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              ${'🗡️'.repeat(Math.min(count,10))}${count>10?` +${count-10}`:''}
+            </div>
+            <span style="font-size:14px;font-weight:700;color:var(--gold2);min-width:24px;text-align:right">${count}</span>
+          </div>
+        `).join('')}
+      </div>` : ''}
+
+      ${total===0 ? `<div class="empty"><div class="empty-icon">🗡️</div><p>Attrape le Smizz pour commencer le compteur !</p></div>` : ''}
+    </div>
+  `;
+}
+
+// ═══ HISTORIQUE ═══
+function renderHist(){
+  const hist = DB.historique||[];
+  g('h-count').textContent = hist.length+' session'+(hist.length>1?'s':'');
+  const body = g('hist-body');
+  if(!hist.length){
+    body.innerHTML=`<div class="empty"><div class="empty-icon">🪙</div><p>Aucun historique</p></div>`;
+    return;
+  }
+  body.innerHTML = hist.map((h,hi)=>{
+    const session = Object.values(h.session_gold||{}).sort((a,b)=>b.earned-a.earned);
+    const sessionHTML = session.map(d=>{
+      const color = speColor(d.classe||'');
+      return `<div style="display:flex;align-items:center;gap:8px;padding:7px 18px;border-bottom:1px solid rgba(255,255,255,.04)">
+        ${roleImg(d.spe||'DPS',16)}
+        <span style="width:5px;height:5px;border-radius:50%;background:${color};flex-shrink:0"></span>
+        <span style="flex:1;font-size:13px;font-weight:500;color:var(--text)">${d.nom}</span>
+        <span style="font-size:11px;color:var(--text3)">${d.runs} run${d.runs>1?'s':''}</span>
+        <div style="display:flex;align-items:center;gap:4px;font-weight:700;color:var(--gold2);font-size:13px">
+          <img src="${ICON_GOLD}" style="width:14px;height:14px;object-fit:contain"/>
+          ${gold(d.earned)}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="hcard" style="margin-bottom:12px">
+      <div class="hcard-head">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${h.note}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${new Date(h.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Total session</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:18px;font-weight:700;color:var(--gold2)">
+              <img src="${ICON_GOLD}" style="width:18px;height:18px;object-fit:contain"/>${gold(h.total)}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:var(--blue2)">${h.runs_count} run${h.runs_count>1?'s':''}</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="if(confirm('Supprimer ?')){DB.historique.splice(${hi},1);save();renderHist()}">✕</button>
+        </div>
+      </div>
+      ${sessionHTML}
+    </div>`;
+  }).join('');
+}
+
+// ═══ MEMBRES ═══
+function updateSpeList(){
+  const role=g('ms').value,sel=g('mc');
+  sel.innerHTML='<option value="">— Spécialisation —</option>';
+  (SPES[role]||[]).forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o)});
+  if(!role) sel.innerHTML='<option value="">— Choisir un rôle —</option>';
+}
+
+function renderMembres(){
+  g('m-count').textContent=DB.membres.length+' membre'+(DB.membres.length>1?'s':'');
+  const tbody=g('m-body');
+  if(!DB.membres.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="empty-icon">⚔</div><p>Aucun membre</p></div></td></tr>`;return;}
+  const SPE_LBL={'DPS.C':'DPS C·C','DPS.D':'DPS Dist.','TANK':'Tank','Heal':'Heal'};
+  const SPE_CLS={'DPS.C':'b-dps','DPS.D':'b-dps','TANK':'b-tank','Heal':'b-heal'};
+  tbody.innerHTML=DB.membres.map(m=>`<tr>
+    <td><div class="cname"><span style="width:5px;height:24px;border-radius:3px;background:${speColor(m.classe)};flex-shrink:0"></span><strong>${m.nom}</strong></div></td>
+    <td>${m.spe?`<span class="badge ${SPE_CLS[m.spe]||''}">${SPE_LBL[m.spe]||m.spe}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
+    <td style="color:var(--text2)">${m.classe||'—'}</td>
+    <td style="color:var(--blue2);font-weight:600">${m.ilvl||'—'}</td>
+    <td style="color:var(--gold2);font-weight:600">${m.rio||'—'}</td>
+    <td><div style="display:flex;gap:5px">
+      <button class="btn btn-ghost btn-sm" onclick="editM('${m.id}')">✏</button>
+      <button class="btn btn-ghost btn-sm" onclick="delM('${m.id}')">✕</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function openAddM(){
+  g('m-id').value='';g('m-title').textContent='Ajouter un membre';
+  ['mn','mi','mr'].forEach(id=>g(id).value='');
+  g('ms').selectedIndex=0;g('mc').innerHTML='<option value="">— Choisir un rôle —</option>';
+  oov('ov-m');
+}
+function editM(id){
+  const m=DB.membres.find(x=>x.id===id);if(!m)return;
+  g('m-id').value=id;g('m-title').textContent='Modifier '+m.nom;
+  g('mn').value=m.nom||'';g('ms').value=m.spe||'';updateSpeList();g('mc').value=m.classe||'';
+  g('mi').value=m.ilvl||'';g('mr').value=m.rio||'';
+  oov('ov-m');
+}
+function saveM(){
+  const nom=g('mn').value.trim();if(!nom){toast('Nom requis','err');return;}
+  const editId=g('m-id').value;
+  const data={nom,spe:g('ms').value||null,classe:g('mc').value||null,ilvl:parseInt(g('mi').value)||null,rio:parseInt(g('mr').value)||null};
+  if(editId){Object.assign(DB.membres.find(m=>m.id===editId),data)}
+  else{DB.membres.push({id:uid(),...data})}
+  save();cov('ov-m');toast(editId?'✓ Modifié':'⚔ '+nom+' ajouté');renderMembres();
+}
+function delM(id){if(!confirm('Supprimer ?'))return;DB.membres=DB.membres.filter(m=>m.id!==id);save();toast('Supprimé');renderMembres();}
+
+// ═══ TEAMS ═══
+function renderTeams(){
+  g('tm-count').textContent=DB.teams.length+' team'+(DB.teams.length>1?'s':'');
+  const cont=g('teams-cfg');
+  if(!DB.teams.length){cont.innerHTML=`<div class="empty"><div class="empty-icon">🐗</div><p>Aucune team</p></div>`;return;}
+  cont.innerHTML=DB.teams.map((team,ti)=>{
+    const ts=DB.slots.filter(s=>s.team_id===team.id);
+    const slotsHTML=SLOT_DEFS.map((def,i)=>{
+      const slot=ts.find(s=>s.slot_index===i);
+      const mb=slot?DB.membres.find(m=>m.id===slot.membre_id):null;
+      const isC=def.role==='Client';
+      const inp=isC
+        ?`<input class="slot-inp" type="text" placeholder="Nom du client" value="${slot?.client_nom||''}" onchange="updateClientSlot('${team.id}',${i},this.value)"/>`
+        :`<select class="slot-inp" onchange="updateTeamSlot('${team.id}',${i},this.value,'${def.role}')">
+          <option value="">— Choisir —</option>
+          ${membresForRole(def.role).map(m=>`<option value="${m.id}" ${mb?.id===m.id?'selected':''}>${m.nom}${m.classe?' ('+m.classe.split(' ')[0]+')':''}</option>`).join('')}
+        </select>`;
+      const rKey=def.role==='Client'?'Client':def.role;
+      const badgeCls=def.role==='DPS'?'b-dps':def.role==='TANK'?'b-tank':'b-heal';
+      return `<div class="slot-row">
+        <span class="badge ${badgeCls}" style="font-size:11px;justify-content:center;display:inline-flex;align-items:center;gap:4px">
+          ${def.role!=='Client'?roleImg(def.role,13):''}${def.lbl}
+        </span>
+        ${inp}
+      </div>`;
+    }).join('');
+    return `<div class="team-cfg">
+      <div class="team-cfg-head">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--blue3);border:1px solid var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${ti+1}</div>
+          <span
+            id="team-name-${team.id}"
+            contenteditable="true"
+            spellcheck="false"
+            onblur="saveTeamName('${team.id}',this)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}if(event.key==='Escape'){this.textContent=DB.teams.find(t=>t.id==='${team.id}')?.nom||'';this.blur();}"
+            style="font-size:14px;font-weight:600;color:var(--text);outline:none;border-bottom:1px solid transparent;padding:2px 4px;border-radius:4px;cursor:text;min-width:60px;transition:all .15s;"
+            onfocus="this.style.borderBottomColor='var(--blue)';this.style.background='rgba(74,144,226,.08)'"
+            onfocusout="this.style.borderBottomColor='transparent';this.style.background='transparent'"
+          >${team.nom}</span>
+          <span style="font-size:11px;color:var(--text3);opacity:.5">✏</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="delTeam('${team.id}')">Supprimer</button>
+      </div>
+      ${slotsHTML}
+    </div>`;
+  }).join('');
+}
+
+function updateTeamSlot(teamId,si,membreId,role){
+  let slot=DB.slots.find(s=>s.team_id===teamId&&s.slot_index===si);
+  if(slot){slot.membre_id=membreId||null}
+  else if(membreId){DB.slots.push({id:uid(),team_id:teamId,slot_index:si,role,membre_id:membreId})}
+  save();toast('Slot mis à jour');
+}
+function updateClientSlot(teamId,si,nom){
+  let slot=DB.slots.find(s=>s.team_id===teamId&&s.slot_index===si);
+  if(slot){slot.client_nom=nom}
+  else if(nom.trim()){DB.slots.push({id:uid(),team_id:teamId,slot_index:si,role:'Client',client_nom:nom})}
+  save();
+}
+function saveTeamName(id, el){
+  const team = DB.teams.find(t=>t.id===id);
+  if(!team) return;
+  const nom = el.textContent.trim();
+  if(!nom){ el.textContent=team.nom; return; }
+  if(nom===team.nom) return;
+  team.nom = nom;
+  save(); toast('✓ Team renommée');
+}
+function addTeam(){DB.teams.push({id:uid(),nom:`Team ${DB.teams.length+1}`});save();toast('Team créée');renderTeams();}
+function delTeam(id){if(!confirm('Supprimer ?'))return;DB.teams=DB.teams.filter(t=>t.id!==id);DB.slots=DB.slots.filter(s=>s.team_id!==id);save();toast('Supprimée');renderTeams();}
+
+// ═══ INIT ═══
+// ═══ USERS (admin) ═══
+async function loadUsers(){
+  if(currentRole !== 'admin'){ toast('Accès refusé','err'); return; }
+  if(!sbAuth) return;
+
+  // Récupérer les rôles + infos depuis user_roles
+  const { data: roles, error } = await sbAuth.from('user_roles').select('*').order('created_at');
+  if(error){ toast('Erreur chargement users','err'); return; }
+
+  g('users-count').textContent = (roles||[]).length + ' utilisateur' + ((roles||[]).length>1?'s':'');
+  const tbody = g('users-body');
+
+  if(!roles?.length){
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-icon">👥</div><p>Aucun utilisateur</p></div></td></tr>`;
+    return;
+  }
+
+  const ROLE_STYLES = {
+    admin:  'background:rgba(212,160,23,.2);color:#e8d44d;border:1px solid rgba(212,160,23,.3)',
+    member: 'background:rgba(74,144,226,.2);color:#6ba5e8;border:1px solid rgba(74,144,226,.3)',
+    viewer: 'background:rgba(100,100,100,.2);color:#8890aa;border:1px solid rgba(100,100,100,.3)',
+  };
+  const ROLE_LBL = { admin:'👑 Admin', member:'⚔ Membre', viewer:'👁 Lecteur' };
+
+  tbody.innerHTML = roles.map(u => `<tr>
+    <td><strong style="color:var(--text)">${u.id.slice(0,8)}...</strong></td>
+    <td><span style="font-size:12px;color:var(--text2)">Discord OAuth</span></td>
+    <td>
+      <select onchange="changeRole('${u.id}',this.value)" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px">
+        ${['admin','member','viewer'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_LBL[r]}</option>`).join('')}
+      </select>
+    </td>
+    <td style="color:var(--text3);font-size:12px">${new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
+    <td>
+      ${u.id !== currentUser?.id
+        ? `<button class="btn btn-ghost btn-sm" onclick="removeUser('${u.id}')" style="color:var(--red);border-color:var(--red2)">Retirer</button>`
+        : `<span style="font-size:11px;color:var(--text3)">Toi</span>`}
+    </td>
+  </tr>`).join('');
+}
+
+async function changeRole(userId, newRole){
+  if(currentRole !== 'admin'){ toast('Accès refusé','err'); return; }
+  const { error } = await sbAuth.from('user_roles').update({role:newRole}).eq('id',userId);
+  if(error){ toast('Erreur','err'); return; }
+  toast('✓ Rôle mis à jour');
+}
+
+async function removeUser(userId){
+  if(currentRole !== 'admin'){ toast('Accès refusé','err'); return; }
+  if(!confirm('Retirer l\'accès à cet utilisateur ?')) return;
+  const { error } = await sbAuth.from('user_roles').delete().eq('id',userId);
+  if(error){ toast('Erreur','err'); return; }
+  toast('Accès retiré'); loadUsers();
+}
+
+// ═══ BLACKLIST ═══
+function renderBlacklist(){
+  if(!DB.blacklist) DB.blacklist=[];
+  g('bl-count').textContent=DB.blacklist.length;
+  const cont=g('bl-list');
+  if(!DB.blacklist.length){
+    cont.innerHTML=`<div class="empty"><div class="empty-icon">🚫</div><p>Aucun joueur blacklisté</p></div>`;
+    return;
+  }
+  cont.innerHTML=DB.blacklist.map((entry,i)=>`
+    <div style="background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--rad2);padding:14px 18px;display:flex;align-items:center;gap:14px">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--redbg,rgba(224,85,85,.15));border:1px solid rgba(224,85,85,.3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🚫</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px">${entry.nom}</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          ${entry.raison?`<span style="font-size:12px;color:var(--red);font-weight:500">${entry.raison}</span>`:''}
+          ${entry.rio?`<a href="${entry.rio}" target="_blank" rel="noopener"
+            style="font-size:11px;color:var(--text3);text-decoration:none;border-bottom:1px dotted var(--border);transition:color .15s"
+            onmouseover="this.style.color='var(--blue2)'" onmouseout="this.style.color='var(--text3)'">
+            raider.io ↗
+          </a>`:''}
+          <span style="font-size:11px;color:var(--text3)">${new Date(entry.date).toLocaleDateString('fr-FR')}</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="delBL(${i})" style="flex-shrink:0">✕</button>
+    </div>
+  `).join('');
+}
+
+function openAddBL(){
+  ['bl-nom','bl-rio','bl-raison'].forEach(id=>g(id).value='');
+  oov('ov-bl');
+}
+function saveBL(){
+  const nom=g('bl-nom').value.trim();
+  if(!nom){toast('Nom requis','err');return;}
+  if(!DB.blacklist) DB.blacklist=[];
+  DB.blacklist.push({nom,rio:g('bl-rio').value.trim()||null,raison:g('bl-raison').value.trim()||null,date:new Date().toISOString()});
+  save();cov('ov-bl');toast('🚫 Ajouté à la blacklist');renderBlacklist();
+}
+function delBL(i){
+  if(!confirm('Retirer de la blacklist ?'))return;
+  DB.blacklist.splice(i,1);
+  save();toast('Retiré');renderBlacklist();
+}
+
+// ═══ AUTH SUPABASE + DISCORD ═══
+let currentUser = null;
+let currentRole = null;
+
+async function initAuth() {
+  // Récupérer la session existante
+  const { data: { session } } = await sbAuth.auth.getSession();
+  if (session) {
+    await handleSession(session);
+  } else {
+    showLogin();
+  }
+
+  // Écouter les changements d'auth
+  sbAuth.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      await handleSession(session);
+    } else if (event === 'SIGNED_OUT') {
+      showLogin();
     }
+  });
+}
+
+async function handleSession(session) {
+  currentUser = session.user;
+
+  // Récupérer le rôle depuis Supabase
+  const { data } = await sbAuth.from('user_roles').select('role').eq('id', currentUser.id).single();
+  currentRole = data?.role || null;
+
+  if (!currentRole) {
+    // Pas de rôle assigné = accès refusé
+    await sbAuth.auth.signOut();
+    showLoginError("Accès non autorisé. Contacte un admin.");
+    return;
+  }
+
+  hideLogin();
+  showUserBar(session);
+  applyRoleRestrictions();
+  load();
+  renderTracker();
+}
+
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('user-bar').style.display = 'none';
+}
+
+function hideLogin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+function showLoginError(msg) {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  const err = document.getElementById('login-error');
+  err.textContent = msg;
+  err.style.display = 'block';
+}
+
+function showUserBar(session) {
+  const bar = document.getElementById('user-bar');
+  const avatar = document.getElementById('user-avatar');
+  const name = document.getElementById('user-name');
+  const badge = document.getElementById('user-role-badge');
+
+  bar.style.display = 'flex';
+
+  // Avatar Discord
+  const discordData = session.user.user_metadata;
+  if (discordData?.avatar_url) {
+    avatar.src = discordData.avatar_url;
+    avatar.style.display = 'block';
+  }
+  name.textContent = discordData?.full_name || discordData?.name || session.user.email || '';
+
+  // Badge rôle
+  const roleStyles = {
+    admin:  { bg:'rgba(212,160,23,.2)',  color:'#e8d44d', text:'ADMIN' },
+    member: { bg:'rgba(74,144,226,.2)',  color:'#6ba5e8', text:'MEMBRE' },
+    viewer: { bg:'rgba(100,100,100,.2)', color:'#8890aa', text:'LECTEUR' },
+  };
+  const s = roleStyles[currentRole] || roleStyles.viewer;
+  badge.textContent = s.text;
+  badge.style.background = s.bg;
+  badge.style.color = s.color;
+  badge.style.border = `1px solid ${s.color}33`;
+}
+
+function applyRoleRestrictions() {
+  // Admin : afficher onglet Users
+  if (currentRole === 'admin') {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
+  }
+
+  // Member : peut tout faire SAUF reset session et gestion users
+  if (currentRole === 'member') {
+    document.querySelectorAll('.btn-danger').forEach(btn => btn.style.display = 'none');
+  }
+
+  // Viewer : lecture seule, aucune action
+  if (currentRole === 'viewer') {
+    const teamsTab = document.querySelector('[data-p="teams"]');
+    const membresTab = document.querySelector('[data-p="membres"]');
+    const blacklistTab = document.querySelector('[data-p="blacklist"]');
+    if (teamsTab)     teamsTab.style.display = 'none';
+    if (membresTab)   membresTab.style.display = 'none';
+    if (blacklistTab) blacklistTab.style.display = 'none';
+    document.querySelectorAll('.btn-primary, .btn-danger, .btn-gold').forEach(btn => {
+      if (!btn.id?.includes('discord')) btn.style.display = 'none';
+    });
   }
 }
 
-async function saveConfig() {
-  const u = document.getElementById('cu').value.trim();
-  const k = document.getElementById('ck').value.trim();
-  if (!u || !k) { toast('Remplis les deux champs', 'err'); return; }
-  localStorage.setItem('sb_url', u);
-  localStorage.setItem('sb_key', k);
-  const ok = initSb(u, k);
-  document.getElementById('cst').innerHTML = ok
-    ? '<span class="conn-badge conn-ok">✓ Connecté</span>'
-    : '<span class="conn-badge conn-fail">✗ Erreur — vérifie tes clés</span>';
-  if (ok) { toast('✓ Connecté à Supabase !'); go('tracker'); }
-  else toast('Erreur de connexion', 'err');
+async function loginWithDiscord() {
+  const btn = document.getElementById('btn-discord-login');
+  btn.textContent = 'Connexion...';
+  btn.disabled = true;
+  const { error } = await sbAuth.auth.signInWithOAuth({
+    provider: 'discord',
+    options: { redirectTo: window.location.href }
+  });
+  if (error) {
+    showLoginError('Erreur : ' + error.message);
+    btn.disabled = false;
+    btn.textContent = 'Se connecter avec Discord';
+  }
 }
 
-document.addEventListener('DOMContentLoaded', loadConfig);
+async function logout() {
+  await sbAuth.auth.signOut();
+  currentUser = null;
+  currentRole = null;
+  showLogin();
+}
+
+// ═══ INIT ═══
+load();
+initAuth();
 </script>
+<!-- ═══ USERS (admin only) ═══ -->
+<div class="page" id="page-users">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="page-title">👥 Gestion des accès</span>
+      <span class="pill" id="users-count">0</span>
+    </div>
+    <button class="btn btn-primary" onclick="loadUsers()">↺ Rafraîchir</button>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th>Utilisateur</th><th>Discord</th><th>Rôle</th><th>Depuis</th><th></th>
+      </tr></thead>
+      <tbody id="users-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ BLACKLIST ═══ -->
+<div class="page" id="page-blacklist">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="page-title">Blacklist</span>
+      <span class="pill" id="bl-count">0</span>
+    </div>
+    <button class="btn btn-primary" onclick="openAddBL()">+ Ajouter</button>
+  </div>
+  <div id="bl-list" style="display:flex;flex-direction:column;gap:8px"></div>
+</div>
+
+  </div><!-- main-content -->
+</div><!-- layout -->
+<!-- MODAL BLACKLIST -->
+<div class="overlay" id="ov-bl">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-x" onclick="cov('ov-bl')">✕</button>
+    <div class="modal-title">🚫 Ajouter à la Blacklist</div>
+    <div class="modal-body">
+      <div class="fg"><label>Nom du joueur</label><input id="bl-nom" placeholder=""/></div>
+      <div class="fg"><label>Lien Raider.io</label><input id="bl-rio" placeholder="https://raider.io/characters/..."/></div>
+      <div class="fg"><label>Raison (optionnel)</label><input id="bl-raison" placeholder="ex: Scam, no show..."/></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="cov('ov-bl')">Annuler</button>
+      <button class="btn btn-danger" onclick="saveBL()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EASTER EGG : LE SMIZZ ═══ -->
+<style>
+#smizz-wrap {
+  position: fixed;
+  bottom: 20px;
+  left: -90px;
+  z-index: 9998;
+  cursor: pointer;
+  user-select: none;
+  width: 80px;
+  height: 80px;
+}
+#smizz-wrap:hover { filter: brightness(1.3); }
+
+/* Stickman SVG animé */
+.smizz-svg {
+  width: 80px;
+  height: 80px;
+}
+
+/* Animation des jambes */
+@keyframes leg-front {
+  0%,100% { transform: rotate(-30deg); }
+  50%      { transform: rotate(30deg); }
+}
+@keyframes leg-back {
+  0%,100% { transform: rotate(30deg); }
+  50%      { transform: rotate(-30deg); }
+}
+@keyframes arm-front {
+  0%,100% { transform: rotate(20deg); }
+  50%      { transform: rotate(-20deg); }
+}
+@keyframes arm-back {
+  0%,100% { transform: rotate(-20deg); }
+  50%      { transform: rotate(20deg); }
+}
+@keyframes body-bob {
+  0%,100% { transform: translateY(0px); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes bag-swing {
+  0%,100% { transform: rotate(-8deg); }
+  50%      { transform: rotate(8deg); }
+}
+
+#smizz-body { animation: body-bob 0.35s infinite ease-in-out; transform-origin: center; }
+#smizz-leg1 { animation: leg-front 0.35s infinite ease-in-out; transform-origin: 40px 46px; }
+#smizz-leg2 { animation: leg-back  0.35s infinite ease-in-out; transform-origin: 40px 46px; }
+#smizz-arm1 { animation: arm-front 0.35s infinite ease-in-out; transform-origin: 40px 32px; }
+#smizz-arm2 { animation: arm-back  0.35s infinite ease-in-out; transform-origin: 40px 32px; }
+#smizz-bag  { animation: bag-swing 0.35s infinite ease-in-out; transform-origin: 55px 32px; }
+</style>
+
+<div id="smizz-wrap" onclick="catchSmizz()" title="...">
+  <svg class="smizz-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <!-- Ombre -->
+    <ellipse cx="40" cy="77" rx="18" ry="4" fill="rgba(0,0,0,0.25)"/>
+
+    <g id="smizz-body">
+      <!-- Tête -->
+      <circle cx="40" cy="14" r="10" fill="#e8c87a" stroke="#c8a050" stroke-width="1"/>
+      <!-- Capuche / masque -->
+      <path d="M30 12 Q40 2 50 12 L50 18 Q40 14 30 18 Z" fill="#1a1a2e"/>
+      <rect x="30" y="14" width="6" height="10" fill="#1a1a2e"/>
+      <rect x="44" y="14" width="6" height="10" fill="#1a1a2e"/>
+      <!-- Masque sur les yeux -->
+      <rect x="32" y="15" width="16" height="5" rx="2" fill="#111" opacity="0.85"/>
+      <!-- Yeux blancs -->
+      <ellipse cx="36" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
+      <ellipse cx="44" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
+      <!-- Sourire discret -->
+      <path d="M36 21 Q40 24 44 21" stroke="#c8a050" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+      <!-- Corps -->
+      <line x1="40" y1="24" x2="40" y2="46" stroke="#1a1a2e" stroke-width="5" stroke-linecap="round"/>
+      <!-- Cape -->
+      <path d="M36 26 Q28 36 30 46 L36 42 Z" fill="#2a2a4e" opacity="0.8"/>
+
+      <!-- Bras gauche (en avant) -->
+      <g id="smizz-arm1">
+        <line x1="40" y1="32" x2="22" y2="42" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="21" cy="43" r="3.5" fill="#e8c87a"/>
+      </g>
+
+      <!-- Bras droit + sac -->
+      <g id="smizz-arm2">
+        <line x1="40" y1="32" x2="56" y2="28" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <!-- Sac d'or accroché -->
+        <g id="smizz-bag">
+          <line x1="57" y1="28" x2="62" y2="35" stroke="#c07800" stroke-width="2"/>
+          <circle cx="64" cy="40" r="9" fill="#d49000"/>
+          <circle cx="64" cy="40" r="7" fill="#f0b800"/>
+          <circle cx="62" cy="38" r="3" fill="#ffe060" opacity="0.6"/>
+          <!-- $ -->
+          <text x="64" y="44" font-size="9" font-family="Arial Black" font-weight="900" fill="#7a4400" text-anchor="middle">$</text>
+          <!-- Nœud sac -->
+          <ellipse cx="64" cy="31" rx="4" ry="2.5" fill="#c07800"/>
+        </g>
+      </g>
+
+      <!-- Jambe gauche (avant) -->
+      <g id="smizz-leg1">
+        <line x1="40" y1="46" x2="28" y2="64" stroke="#1a1a2e" stroke-width="4.5" stroke-linecap="round"/>
+        <ellipse cx="25" cy="67" rx="6" ry="3" fill="#111"/>
+      </g>
+
+      <!-- Jambe droite (arrière) -->
+      <g id="smizz-leg2">
+        <line x1="40" y1="46" x2="52" y2="62" stroke="#2a2a4e" stroke-width="4.5" stroke-linecap="round"/>
+        <ellipse cx="55" cy="65" rx="5" ry="2.5" fill="#222"/>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<!-- Modal catch -->
+<div id="smizz-modal" style="
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.88); z-index:9999;
+  align-items:center; justify-content:center;
+  backdrop-filter:blur(6px);
+" onclick="this.style.display='none'">
+  <div style="
+    background:#13161d; border:2px solid #e8d44d;
+    border-radius:18px; padding:40px 44px;
+    text-align:center; max-width:380px; width:90%;
+    box-shadow:0 0 80px rgba(232,212,77,.3);
+    animation:smizz-pop .35s cubic-bezier(.34,1.56,.64,1);
+  ">
+    <div style="margin-bottom:16px">
+      <svg viewBox="0 0 80 80" width="80" height="80" xmlns="http://www.w3.org/2000/svg" style="margin:0 auto;display:block">
+        <circle cx="40" cy="14" r="10" fill="#e8c87a" stroke="#c8a050" stroke-width="1"/>
+        <path d="M30 12 Q40 2 50 12 L50 18 Q40 14 30 18 Z" fill="#1a1a2e"/>
+        <rect x="30" y="14" width="6" height="10" fill="#1a1a2e"/>
+        <rect x="44" y="14" width="6" height="10" fill="#1a1a2e"/>
+        <rect x="32" y="15" width="16" height="5" rx="2" fill="#111" opacity="0.85"/>
+        <ellipse cx="36" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
+        <ellipse cx="44" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
+        <line x1="40" y1="24" x2="40" y2="46" stroke="#1a1a2e" stroke-width="5" stroke-linecap="round"/>
+        <line x1="40" y1="32" x2="22" y2="42" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="21" cy="43" r="3.5" fill="#e8c87a"/>
+        <line x1="40" y1="32" x2="58" y2="30" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="64" cy="38" r="9" fill="#f0b800"/>
+        <text x="64" y="43" font-size="9" font-family="Arial Black" font-weight="900" fill="#7a4400" text-anchor="middle">$</text>
+        <line x1="40" y1="46" x2="28" y2="66" stroke="#1a1a2e" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="40" y1="46" x2="52" y2="64" stroke="#2a2a4e" stroke-width="4.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div style="font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#e8d44d;margin-bottom:10px;letter-spacing:.04em">
+      Félicitations !
+    </div>
+    <div style="font-size:15px;color:#d4d8e8;line-height:1.7;margin-bottom:6px">
+      Tu as attrapé le <strong style="color:#e8d44d">Smizz</strong> 🎉
+    </div>
+    <div style="font-size:13px;color:#8890aa;font-style:italic;margin-top:10px">
+      La cliente attend la livraison...
+    </div>
+    <div style="margin-top:18px;font-size:11px;color:#555f7a">Clique pour fermer</div>
+  </div>
+</div>
+
+<style>
+@keyframes smizz-pop {
+  from { transform: scale(.4) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1)  rotate(0deg);   opacity: 1; }
+}
+</style>
+
+<script>
+(function(){
+  const wrap = document.getElementById('smizz-wrap');
+  let x = -90, vx = 2.8, visible = false, running = false, caught = false;
+
+  function scheduleAppear(){
+    const delay = (20 + Math.random() * 40) * 1000;
+    setTimeout(appear, delay);
+  }
+
+  function appear(){
+    if(caught) return;
+    const fromLeft = Math.random() > 0.5;
+    x = fromLeft ? -90 : window.innerWidth + 10;
+    vx = fromLeft ? 2.8 : -2.8;
+    wrap.style.left = x + 'px';
+    wrap.style.transform = fromLeft ? 'scaleX(1)' : 'scaleX(-1)';
+    wrap.style.display = 'block';
+    visible = true; running = true;
+    run();
+  }
+
+  function run(){
+    if(!running || caught) return;
+    x += vx;
+    wrap.style.left = x + 'px';
+    if(x > window.innerWidth + 100 || x < -100){
+      hide(); scheduleAppear(); return;
+    }
+    requestAnimationFrame(run);
+  }
+
+  function hide(){
+    running = false; visible = false;
+    wrap.style.display = 'none';
+  }
+
+  window.catchSmizz = function(){
+    if(!visible) return;
+    running = false; caught = true;
+    wrap.style.display = 'none';
+    // Incrémenter compteur
+    if(!DB.smizz) DB.smizz = {total:0, catches:[]};
+    DB.smizz.total++;
+    DB.smizz.catches.push({date: new Date().toISOString()});
+    save();
+    document.getElementById('smizz-modal').style.display = 'flex';
+    setTimeout(() => { caught = false; scheduleAppear(); }, 180000);
+  };
+
+  // Premier test rapide : 10-20s
+  setTimeout(appear, (10 + Math.random() * 10) * 1000);
+})();
+</script>
+
 </body>
 </html>
