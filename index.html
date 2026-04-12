@@ -1164,184 +1164,25 @@ function renderBlacklist(){
 
 function filterBL(query){
   if(!DB.blacklist) return;
-  const q = query.toLowerCase().trim();
-  const filtered = q
-    ? DB.blacklist.filter(e => 
-        (e.nom||'').toLowerCase().includes(q) || 
-        (e.raison||'').toLowerCase().includes(q))
-    : DB.blacklist;
-
-  const cont = g('bl-list');
+  var q=(query||'').toLowerCase().trim();
+  var filtered=q?DB.blacklist.filter(function(e){return(e.nom||'').toLowerCase().indexOf(q)>=0||(e.raison||'').toLowerCase().indexOf(q)>=0;}):DB.blacklist;
+  var cont=g('bl-list');
   if(!filtered.length){
-    const msg = q ? ("Aucun résultat pour «" + q + "»") : "Aucun joueur blacklisté";
-    cont.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><p>${msg}</p></div>`;
+    cont.innerHTML='<div class="empty"><div class="empty-icon">&#128269;</div><p>'+(q?('Aucun r\u00e9sultat pour '+q):'Aucun joueur blacklist\u00e9')+'</p></div>';
     return;
   }
-  cont.innerHTML=filtered.map((entry,i)=>{
-    const realIdx = DB.blacklist.indexOf(entry);
-    return `
-    <div style="background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--rad2);padding:14px 18px;display:flex;align-items:center;gap:14px">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--redbg,rgba(224,85,85,.15));border:1px solid rgba(224,85,85,.3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🚫</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px">${entry.nom}</div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          ${entry.raison?`<span style="font-size:12px;color:var(--red);font-weight:500">${entry.raison}</span>`:''}
-          ${entry.rio?`<a href="${entry.rio}" target="_blank" rel="noopener"
-            style="font-size:11px;color:var(--text3);text-decoration:none;border-bottom:1px dotted var(--border);transition:color .15s"
-            onmouseover="this.style.color='var(--blue2)'" onmouseout="this.style.color='var(--text3)'">
-            raider.io ↗
-          </a>`:''}
-          <span style="font-size:11px;color:var(--text3)">${new Date(entry.date).toLocaleDateString('fr-FR')}</span>
-        </div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="delBL(${i})" style="flex-shrink:0">✕</button>
-    </div>
-  `).join('');
-}
-
-function openAddBL(){
-  ['bl-nom','bl-rio','bl-raison'].forEach(id=>g(id).value='');
-  oov('ov-bl');
-}
-function saveBL(){
-  const nom=g('bl-nom').value.trim();
-  if(!nom){toast('Nom requis','err');return;}
-  if(!DB.blacklist) DB.blacklist=[];
-  DB.blacklist.push({nom,rio:g('bl-rio').value.trim()||null,raison:g('bl-raison').value.trim()||null,date:new Date().toISOString()});
-  save();cov('ov-bl');toast('🚫 Ajouté à la blacklist');renderBlacklist();
-}
-function delBL(i){
-  if(!confirm('Retirer de la blacklist ?'))return;
-  DB.blacklist.splice(i,1);
-  save();toast('Retiré');renderBlacklist();
-}
-
-// ═══ AUTH SUPABASE + DISCORD ═══
-let currentUser = null;
-let currentRole = null;
-
-async function initAuth() {
-  // Toujours montrer le login d'abord
-  showLogin();
-
-  if (!sbAuth) {
-    showLoginError('Erreur init Supabase');
-    return;
-  }
-
-  // Écouter les changements d'auth EN PREMIER
-  // onAuthStateChange capte le callback Discord automatiquement
-  sbAuth.auth.onAuthStateChange(async (event, session) => {
-    console.log('Auth event:', event, session?.user?.email);
-    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
-      await handleSession(session);
-    } else if (event === 'SIGNED_OUT') {
-      showLogin();
-    }
-  });
-
-  // Vérifier si une session existe déjà (page refresh)
-  const { data: { session } } = await sbAuth.auth.getSession();
-  if (session) {
-    await handleSession(session);
-  }
-}
-
-async function handleSession(session) {
-  currentUser = session.user;
-
-  // Récupérer le rôle depuis Supabase
-  const { data } = await sbAuth.from('user_roles').select('role').eq('id', currentUser.id).maybeSingle();
-  currentRole = data?.role || null;
-
-  if (!currentRole) {
-    // Pas de rôle → assigner viewer automatiquement
-    await sbAuth.from('user_roles').insert([{ id: currentUser.id, role: 'viewer' }]);
-    currentRole = 'viewer';
-  }
-
-  hideLogin();
-  showUserBar(session);
-  applyRoleRestrictions();
-  load();
-  renderTracker();
-}
-
-function showLogin() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('user-bar').style.display = 'none';
-}
-
-function hideLogin() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-}
-
-function showLoginError(msg) {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  const err = document.getElementById('login-error');
-  err.textContent = msg;
-  err.style.display = 'block';
-}
-
-function showUserBar(session) {
-  const bar = document.getElementById('user-bar');
-  const avatar = document.getElementById('user-avatar');
-  const name = document.getElementById('user-name');
-  const badge = document.getElementById('user-role-badge');
-
-  bar.style.display = 'flex';
-
-  // Avatar Discord
-  const discordData = session.user.user_metadata;
-  if (discordData?.avatar_url) {
-    avatar.src = discordData.avatar_url;
-    avatar.style.display = 'block';
-  }
-  name.textContent = discordData?.full_name || discordData?.name || session.user.email || '';
-
-  // Badge rôle
-  const roleStyles = {
-    admin:  { bg:'rgba(212,160,23,.2)',  color:'#e8d44d', text:'ADMIN' },
-    member: { bg:'rgba(74,144,226,.2)',  color:'#6ba5e8', text:'MEMBRE' },
-    viewer: { bg:'rgba(100,100,100,.2)', color:'#8890aa', text:'LECTEUR' },
-  };
-  const s = roleStyles[currentRole] || roleStyles.viewer;
-  badge.textContent = s.text;
-  badge.style.background = s.bg;
-  badge.style.color = s.color;
-  badge.style.border = `1px solid ${s.color}33`;
-}
-
-function applyRoleRestrictions() {
-  // Admin : afficher onglet Users
-  if (currentRole === 'admin') {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
-  }
-
-  // Member : peut tout faire SAUF reset session et gestion users
-  if (currentRole === 'member') {
-    document.querySelectorAll('.btn-danger').forEach(btn => btn.style.display = 'none');
-  }
-
-  // Viewer : lecture seule — peut voir Tracker, Ladder, Historique
-  // Cache Teams, Membres, Blacklist + tous les boutons d'action
-  if (currentRole === 'viewer') {
-    const teamsTab = document.querySelector('[data-p="teams"]');
-    const membresTab = document.querySelector('[data-p="membres"]');
-    const blacklistTab = document.querySelector('[data-p="blacklist"]');
-    if (teamsTab)     teamsTab.style.display = 'none';
-    if (membresTab)   membresTab.style.display = 'none';
-    if (blacklistTab) blacklistTab.style.display = 'none';
-    // Cacher tous les boutons d'action sauf ceux de navigation
-    document.querySelectorAll('.btn-primary, .btn-danger, .btn-gold').forEach(btn => {
-      if (!btn.id?.includes('discord') && !btn.onclick?.toString().includes('switchLadder')) {
-        btn.style.display = 'none';
-      }
-    });
-  }
+  cont.innerHTML=filtered.map(function(entry){
+    var ri=DB.blacklist.indexOf(entry);
+    var rs=entry.raison?'<span style="font-size:13px;color:var(--red);font-weight:600">'+entry.raison+'</span>':'';
+    var rl=entry.rio?'<a href="'+entry.rio+'" target="_blank" style="font-size:11px;color:var(--text3)">raider.io</a>':'';
+    var dt=new Date(entry.date).toLocaleDateString('fr-FR');
+    return '<div style="background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--rad2);padding:14px 18px;display:flex;align-items:center;gap:14px">'
+      +'<div style="font-size:20px;flex-shrink:0">&#128683;</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">'+entry.nom+'</div>'
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">'+rs+(rs&&rl?' ':'')+rl
+      +'<span style="font-size:11px;color:var(--text3)">'+dt+'</span></div></div>'
+      +'<button class="btn btn-ghost btn-sm" onclick="delBL('+ri+')">&#x2715;</button></div>';
+  }).join('');
 }
 
 // auth functions defined globally below
