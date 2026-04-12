@@ -16,15 +16,56 @@ function niveauColor(n) {
   return 'var(--text2)';
 }
 
+function cardHTML(m) {
+  const color   = speColor(m.classe || '');
+  const roleKey = m.spe?.startsWith('DPS') ? 'DPS' : (m.spe || 'DPS');
+  const donjon  = m.cle_donjon || '';
+  const niveau  = m.cle_niveau || '';
+  const nc      = niveauColor(niveau);
+  const options = CLE_OPTIONS.map(c =>
+    `<option value="${escHtml(c)}"${donjon === c ? ' selected' : ''}>${escHtml(c)}</option>`
+  ).join('');
+
+  return `<div class="cle-card" data-id="${escHtml(m.id)}">
+    <div class="cle-card-head">
+      ${roleImg(roleKey, 20)}
+      <span style="background:${color};width:7px;height:7px;border-radius:50%;flex-shrink:0"></span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(m.nom)}</div>
+        ${m.classe ? `<div style="font-size:11px;color:var(--text3)">${escHtml(m.classe.split(' ')[0])}</div>` : ''}
+      </div>
+      <span class="cle-niveau-badge" style="font-size:18px;font-weight:700;color:${nc};flex-shrink:0;min-width:36px;text-align:right">
+        ${niveau ? '+' + niveau : '—'}
+      </span>
+    </div>
+    <div class="cle-card-inputs">
+      <select class="cle-donjon slot-inp" data-id="${escHtml(m.id)}">
+        <option value="">— Donjon —</option>
+        ${options}
+      </select>
+      <input
+        type="number"
+        class="cle-niveau-inp"
+        data-id="${escHtml(m.id)}"
+        value="${escHtml(String(niveau))}"
+        placeholder="Niv."
+        min="1" max="30"
+      />
+    </div>
+  </div>`;
+}
+
 // ── Rendu ──────────────────────────────────────────────────────────────────────
 
 export async function renderCles() {
   if (!isMember()) return;
   setLoading('cles-grid');
 
-  const membres = await safeQuery('renderCles',
-    supabase.from('membres').select('*').order('nom')
-  );
+  const [membres, teams, slots] = await Promise.all([
+    safeQuery('renderCles:membres', supabase.from('membres').select('*').order('nom')),
+    safeQuery('renderCles:teams',   supabase.from('teams').select('*').order('created_at')),
+    safeQuery('renderCles:slots',   supabase.from('team_slots').select('*')),
+  ]);
   if (membres === null) return;
 
   const grid = g('cles-grid');
@@ -35,50 +76,33 @@ export async function renderCles() {
     return;
   }
 
-  // Tri : Tank → Heal → DPS
-  const sorted = [...membres].sort((a, b) =>
-    (ROLE_ORDER[a.spe] ?? 9) - (ROLE_ORDER[b.spe] ?? 9)
-  );
+  const sortByRole = arr => [...arr].sort((a, b) => (ROLE_ORDER[a.spe] ?? 9) - (ROLE_ORDER[b.spe] ?? 9));
+  const assignedIds = new Set();
 
-  grid.innerHTML = sorted.map(m => {
-    const color   = speColor(m.classe || '');
-    const roleKey = m.spe?.startsWith('DPS') ? 'DPS' : (m.spe || 'DPS');
-    const donjon  = m.cle_donjon || '';
-    const niveau  = m.cle_niveau || '';
-    const nc      = niveauColor(niveau);
+  const sections = (teams || []).map(team => {
+    const teamSlots   = (slots || []).filter(s => s.team_id === team.id);
+    const teamMembres = teamSlots
+      .map(s => membres.find(m => m.id === s.membre_id))
+      .filter(Boolean)
+      .filter(m => { const seen = assignedIds.has(m.id); assignedIds.add(m.id); return !seen; });
 
-    const options = CLE_OPTIONS.map(c =>
-      `<option value="${escHtml(c)}"${donjon === c ? ' selected' : ''}>${escHtml(c)}</option>`
-    ).join('');
-
-    return `<div class="cle-card" data-id="${escHtml(m.id)}">
-      <div class="cle-card-head">
-        ${roleImg(roleKey, 20)}
-        <span style="background:${color};width:7px;height:7px;border-radius:50%;flex-shrink:0"></span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(m.nom)}</div>
-          ${m.classe ? `<div style="font-size:11px;color:var(--text3)">${escHtml(m.classe.split(' ')[0])}</div>` : ''}
-        </div>
-        <span class="cle-niveau-badge" style="font-size:18px;font-weight:700;color:${nc};flex-shrink:0;min-width:36px;text-align:right">
-          ${niveau ? '+' + niveau : '—'}
-        </span>
-      </div>
-      <div class="cle-card-inputs">
-        <select class="cle-donjon slot-inp" data-id="${escHtml(m.id)}">
-          <option value="">— Donjon —</option>
-          ${options}
-        </select>
-        <input
-          type="number"
-          class="cle-niveau-inp"
-          data-id="${escHtml(m.id)}"
-          value="${escHtml(String(niveau))}"
-          placeholder="Niv."
-          min="1" max="30"
-        />
-      </div>
+    if (!teamMembres.length) return '';
+    return `<div class="cles-section" style="margin-bottom:24px">
+      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:4px 2px 8px;border-bottom:1px solid var(--border);margin-bottom:10px">${escHtml(team.nom)}</div>
+      <div class="cles-team-grid">${sortByRole(teamMembres).map(cardHTML).join('')}</div>
     </div>`;
-  }).join('');
+  });
+
+  // Membres sans team
+  const unassigned = sortByRole(membres.filter(m => !assignedIds.has(m.id)));
+  if (unassigned.length) {
+    sections.push(`<div class="cles-section" style="margin-bottom:24px">
+      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:4px 2px 8px;border-bottom:1px solid var(--border);margin-bottom:10px">Sans team</div>
+      <div class="cles-team-grid">${unassigned.map(cardHTML).join('')}</div>
+    </div>`);
+  }
+
+  grid.innerHTML = sections.join('');
 
   // Sauvegarde auto — event delegation
   grid.onchange = e => {

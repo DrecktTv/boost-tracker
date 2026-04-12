@@ -251,7 +251,7 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 }
 
 /* ── CLÉS ────────────────────────────────────────────────────────────────── */
-.cles-grid {
+.cles-grid, .cles-team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
