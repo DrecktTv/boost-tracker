@@ -32,18 +32,23 @@ export async function doReset() {
   const paid   = runs.filter(r =>  r.paye).length;
   const unpaid = runs.filter(r => !r.paye).length;
 
-  // Calcul des gains par membre pour cette session
+  // Calcul des gains par membre — si alt, on agrège sur le main
+  const byId = Object.fromEntries(membres.map(x => [x.id, x]));
   const sessionGold = {};
   runs.forEach(run => {
     (run.membres || []).forEach(m => {
       if (!m.membre_id || m.role === 'Client') return;
-      const mb = membres.find(x => x.id === m.membre_id);
+      const mb = byId[m.membre_id];
       if (!mb) return;
-      if (!sessionGold[m.membre_id]) {
-        sessionGold[m.membre_id] = { nom: mb.nom, spe: mb.spe, classe: mb.classe, earned: 0, runs: 0 };
+
+      const targetId = mb.main_id && byId[mb.main_id] ? mb.main_id : m.membre_id;
+      const target   = byId[targetId] || mb;
+
+      if (!sessionGold[targetId]) {
+        sessionGold[targetId] = { nom: target.nom, spe: target.spe, classe: target.classe, earned: 0, runs: 0 };
       }
-      sessionGold[m.membre_id].earned += (m.tarif || 0);
-      sessionGold[m.membre_id].runs++;
+      sessionGold[targetId].earned += (m.tarif || 0);
+      sessionGold[targetId].runs++;
     });
   });
 
