@@ -23,17 +23,24 @@ export async function renderLadderSession() {
   ]);
   if (runs === null) { cont.innerHTML = renderLadderRows([], 'Aucun run dans la session'); return; }
 
+  const byId = Object.fromEntries((membres || []).map(x => [x.id, x]));
+
   const data = {};
   (runs || []).forEach(run => {
     (run.membres || []).forEach(m => {
       if (!m.membre_id || m.role === 'Client') return;
-      const mb = (membres || []).find(x => x.id === m.membre_id);
+      const mb = byId[m.membre_id];
       if (!mb) return;
-      if (!data[m.membre_id]) {
-        data[m.membre_id] = { nom: mb.nom, spe: mb.spe, classe: mb.classe, earned: 0, runs: 0 };
+
+      // Si alt → on attribue au main ; sinon au membre lui-même
+      const targetId = mb.main_id && byId[mb.main_id] ? mb.main_id : m.membre_id;
+      const target   = byId[targetId] || mb;
+
+      if (!data[targetId]) {
+        data[targetId] = { nom: target.nom, spe: target.spe, classe: target.classe, earned: 0, runs: 0 };
       }
-      data[m.membre_id].earned += (m.tarif || 0);
-      data[m.membre_id].runs++;
+      data[targetId].earned += (m.tarif || 0);
+      data[targetId].runs++;
     });
   });
 
