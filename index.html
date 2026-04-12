@@ -275,8 +275,90 @@ document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') resetLoginBtn();
 });
 
+// ═══ VARIABLES AUTH GLOBALES ═══
+let currentUser = null;
+let currentRole = null;
+
+function showLogin() {
+  const ls = document.getElementById('login-screen');
+  const app = document.getElementById('app');
+  const ub = document.getElementById('user-bar');
+  if(ls) ls.style.display = 'flex';
+  if(app) app.style.display = 'none';
+  if(ub) ub.style.display = 'none';
+}
+function hideLogin() {
+  const ls = document.getElementById('login-screen');
+  const app = document.getElementById('app');
+  if(ls) ls.style.display = 'none';
+  if(app) app.style.display = 'block';
+}
+function showUserBar(session) {
+  const bar = document.getElementById('user-bar');
+  const avatar = document.getElementById('user-avatar');
+  const name = document.getElementById('user-name');
+  const badge = document.getElementById('user-role-badge');
+  if(!bar) return;
+  bar.style.display = 'flex';
+  const d = session.user.user_metadata;
+  if(avatar && d && d.avatar_url){ avatar.src = d.avatar_url; avatar.style.display = 'block'; }
+  if(name) name.textContent = (d && (d.full_name || d.name)) || '';
+  const styles = {
+    admin:  {bg:'rgba(212,160,23,.2)', color:'#e8d44d', text:'ADMIN'},
+    member: {bg:'rgba(74,144,226,.2)', color:'#6ba5e8', text:'MEMBRE'},
+    viewer: {bg:'rgba(100,100,100,.2)',color:'#8890aa', text:'LECTEUR'}
+  };
+  const s = styles[currentRole] || styles.viewer;
+  if(badge){ badge.textContent=s.text; badge.style.background=s.bg; badge.style.color=s.color; }
+}
+function applyRoleRestrictions() {
+  if(currentRole === 'admin') {
+    document.querySelectorAll('.admin-only').forEach(function(el){ el.style.display='flex'; });
+  }
+  if(currentRole === 'member') {
+    document.querySelectorAll('.btn-danger').forEach(function(btn){ btn.style.display='none'; });
+  }
+  if(currentRole === 'viewer') {
+    ['teams','membres','blacklist'].forEach(function(p){
+      var t=document.querySelector('[data-p="'+p+'"]');
+      if(t) t.style.display='none';
+    });
+    document.querySelectorAll('.btn-primary,.btn-danger,.btn-gold').forEach(function(btn){
+      if(!btn.id || !btn.id.includes('discord')) btn.style.display='none';
+    });
+  }
+}
+async function handleSession(session) {
+  currentUser = session.user;
+  var res = await sbAuth.from('user_roles').select('role').eq('id', currentUser.id).maybeSingle();
+  currentRole = res.data ? res.data.role : null;
+  if(!currentRole) {
+    await sbAuth.from('user_roles').insert([{id: currentUser.id, role: 'viewer'}]);
+    currentRole = 'viewer';
+  }
+  hideLogin();
+  showUserBar(session);
+  if(typeof load === 'function') load();
+  if(typeof renderTracker === 'function') renderTracker();
+  applyRoleRestrictions();
+}
+async function initAuth() {
+  showLogin();
+  if(!sbAuth) { showLoginError('Erreur init Supabase'); return; }
+  sbAuth.auth.onAuthStateChange(function(event, session) {
+    if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+      handleSession(session);
+    } else if(event === 'SIGNED_OUT') {
+      showLogin();
+    }
+  });
+  var res = await sbAuth.auth.getSession();
+  if(res.data && res.data.session) {
+    await handleSession(res.data.session);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-  if (typeof load === 'function') load();
   initAuth();
 });
 </script>
