@@ -6,10 +6,11 @@
  */
 
 const _state = {
-  currentUser:  null,   // Supabase User object
-  currentRole:  null,   // 'admin' | 'member' | 'viewer' | null
-  membres:      [],     // Cache post-fetch (invalidé après chaque mutation)
-  teams:        [],     // Cache post-fetch
+  currentUser:         null,   // Supabase User object
+  currentRole:         null,   // 'admin' | 'member' | 'viewer' | null
+  currentMainMembreId: null,   // UUID du perso principal lié au compte
+  membres:             [],     // Cache post-fetch (invalidé après chaque mutation)
+  teams:               [],     // Cache post-fetch
 };
 
 const _listeners = {};
@@ -32,7 +33,8 @@ export function subscribe(key, fn) {
 
 // ── Helpers sémantiques (remplacent need(), currentRole, currentUser) ──
 
-export const getUser  = () => _state.currentUser;
-export const getRole  = () => _state.currentRole;
-export const isAdmin  = () => _state.currentRole === 'admin';
-export const isMember = () => ['admin', 'member'].includes(_state.currentRole);
+export const getUser          = () => _state.currentUser;
+export const getRole          = () => _state.currentRole;
+export const getMainMembreId  = () => _state.currentMainMembreId;
+export const isAdmin          = () => _state.currentRole === 'admin';
+export const isMember         = () => ['admin', 'member'].includes(_state.currentRole);

@@ -51,16 +51,17 @@ async function handleSession(session) {
   // Récupérer ou créer le rôle
   let { data: roleRow } = await supabase
     .from('user_roles')
-    .select('role')
+    .select('role, main_membre_id')
     .eq('id', session.user.id)
     .maybeSingle();
 
   if (!roleRow) {
     await supabase.from('user_roles').insert([{ id: session.user.id, role: 'viewer' }]);
-    roleRow = { role: 'viewer' };
+    roleRow = { role: 'viewer', main_membre_id: null };
   }
 
   setState('currentRole', roleRow.role);
+  setState('currentMainMembreId', roleRow.main_membre_id || null);
 
   // Sync metadata Discord (non bloquant)
   const d = session.user.user_metadata;

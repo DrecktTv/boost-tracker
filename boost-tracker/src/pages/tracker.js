@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase.js';
 import { safeQuery } from '../lib/errors.js';
 import { escHtml, gold, g, setLoading } from '../lib/utils.js';
 import { toast } from '../ui/toast.js';
-import { isMember, getUser } from '../lib/state.js';
+import { isMember, getMainMembreId } from '../lib/state.js';
 import { roleImg, speColor } from '../ui/components.js';
 import { ICON_GOLD } from '../constants.js';
 
@@ -48,9 +48,16 @@ export async function renderTracker() {
   const rl = g('runs-list');
   g('runs-pill').textContent = runs.length + ' run' + (runs.length > 1 ? 's' : '');
 
-  // Calcul des ids "mes persos" (owner_id = moi, main ou alt)
-  const userId = getUser()?.id;
-  _myMembresIds = new Set((membres || []).filter(m => m.owner_id === userId).map(m => m.id));
+  // Calcul des ids "mes persos" : main configuré dans user_roles + tous ses alts
+  const mainId = getMainMembreId();
+  if (mainId) {
+    _myMembresIds = new Set([
+      mainId,
+      ...(membres || []).filter(m => m.main_id === mainId).map(m => m.id),
+    ]);
+  } else {
+    _myMembresIds = new Set(); // pas de perso configuré → total = 0
+  }
 
   updateStats(runs);
 
