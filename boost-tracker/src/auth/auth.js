@@ -77,6 +77,7 @@ async function handleSession(session) {
   hideLogin();
   showUserBar(session, roleRow.role);
   applyRoleRestrictions(roleRow.role);
+  updateUserBarMain(roleRow.main_membre_id);
 
   // Déclenche le chargement de l'app
   document.dispatchEvent(new CustomEvent('app:ready'));
@@ -99,6 +100,20 @@ export async function initAuth() {
 
   const { data: { session } } = await supabase.auth.getSession();
   if (session) await handleSession(session);
+}
+
+// ── Badge perso principal dans la sidebar ────────────────────────────────────
+
+export async function updateUserBarMain(membreId) {
+  const el = document.getElementById('user-main-perso');
+  if (!el) return;
+  if (!membreId) { el.style.display = 'none'; el.textContent = ''; return; }
+
+  const { data: m } = await supabase.from('membres').select('nom').eq('id', membreId).single();
+  if (!m) { el.style.display = 'none'; return; }
+
+  el.textContent = '⚔ ' + m.nom;
+  el.style.display = 'inline-block';
 }
 
 export async function loginWithDiscord() {

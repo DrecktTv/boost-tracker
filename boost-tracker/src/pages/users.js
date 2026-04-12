@@ -3,6 +3,7 @@ import { safeQuery } from '../lib/errors.js';
 import { escHtml, g } from '../lib/utils.js';
 import { toast } from '../ui/toast.js';
 import { isAdmin, getUser, setState } from '../lib/state.js';
+import { updateUserBarMain } from '../auth/auth.js';
 
 const ROLE_LBL = { admin: '👑 Admin', member: '⚔ Membre', viewer: '👁 Lecteur' };
 
@@ -95,6 +96,7 @@ async function changeMain(userId, membreId) {
   // Mettre à jour le state si c'est le compte connecté
   if (userId === getUser()?.id) {
     setState('currentMainMembreId', membreId || null);
+    updateUserBarMain(membreId || null);
   }
   toast('✓ Perso principal mis à jour');
 }
