@@ -401,14 +401,10 @@ const ICON_GOLD = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAAB
 
 // ═══ SUPABASE AUTH CLIENT ═══
 // La clé Anon est nécessaire pour l'auth uniquement - les données sont protégées par RLS
-const SB_URL = localStorage.getItem('sb_url') || '';
-const SB_KEY = localStorage.getItem('sb_key') || '';
-let sbAuth = null;
-if (SB_URL && SB_KEY) {
-  sbAuth = supabase.createClient(SB_URL, SB_KEY);
-} else {
-  // Sera initialisé après la config
-}
+// Clés Supabase - la clé Anon est publique par design, le RLS protège les données
+const SB_URL = 'https://ugntykuulfkqhwtmvson.supabase.co';
+const SB_KEY = 'sb_publishable_uto1aEv3Kagy5R3_psg9iQ_NgcEMlUp';
+let sbAuth = supabase.createClient(SB_URL, SB_KEY);
 
 // ═══ DB ═══
 const KEY = 'bt_v2';
@@ -1123,6 +1119,15 @@ let currentUser = null;
 let currentRole = null;
 
 async function initAuth() {
+  // Toujours montrer le login d'abord
+  showLogin();
+
+  // Si pas de clé Supabase configurée → rester sur login
+  if (!sbAuth) {
+    showLoginError('Configure les clés Supabase dans Config avant de te connecter.');
+    return;
+  }
+
   // Récupérer la session existante
   const { data: { session } } = await sbAuth.auth.getSession();
   if (session) {
