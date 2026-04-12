@@ -28,6 +28,16 @@ export async function doReset() {
   ]);
   if (runs === null) return;
 
+  // Bloquer si des membres ne sont pas encore payés
+  const unpaidMembers = (runs || []).flatMap(r =>
+    (r.membres || []).filter(m => m.membre_id && m.role !== 'Client' && !m.paid)
+  );
+  if (unpaidMembers.length) {
+    toast(`${unpaidMembers.length} membre(s) pas encore payé(s) — règle les paiements avant d'archiver`, 'err');
+    cov('ov-reset');
+    return;
+  }
+
   const total  = runs.reduce((s, r) => s + (r.prix || 0), 0);
   const paid   = runs.filter(r =>  r.paye).length;
   const unpaid = runs.filter(r => !r.paye).length;
