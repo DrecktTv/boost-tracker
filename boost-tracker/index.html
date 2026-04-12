@@ -88,7 +88,7 @@
       </div>
       <div class="tw">
         <table>
-          <thead><tr><th>Nom</th><th>Spé</th><th>Spécialisation</th><th>ilvl</th><th>Rio</th><th></th></tr></thead>
+          <thead><tr><th>Nom</th><th>Spé</th><th>Spécialisation</th><th>ilvl</th><th>Rio</th><th>Statut</th><th></th></tr></thead>
           <tbody id="m-body"></tbody>
         </table>
       </div>
@@ -255,6 +255,11 @@
         <div class="fg"><label>ilvl</label><input id="mi" type="number" placeholder="630"/></div>
         <div class="fg"><label>Rio</label><input id="mr" type="number" placeholder="3000"/></div>
       </div>
+      <div class="fg" id="fg-alt-de">
+        <label>Alt de</label>
+        <select id="m-main-id"><option value="">— Personnage principal (laisser vide si c'est un main) —</option></select>
+      </div>
+      <div id="m-alts-wrap" style="display:none;padding:8px 0;border-top:1px solid var(--border);margin-top:4px"></div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close="ov-m">Annuler</button>
