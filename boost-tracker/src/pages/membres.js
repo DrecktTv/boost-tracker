@@ -4,11 +4,13 @@ import { escHtml, g } from '../lib/utils.js';
 import { speColor } from '../ui/components.js';
 import { toast } from '../ui/toast.js';
 import { oov, cov } from '../ui/modal.js';
-import { isMember, isAdmin, getUser, setState } from '../lib/state.js';
+import { isMember, isAdmin, getUser, setState, getMainMembreId } from '../lib/state.js';
+import { updateUserBarMain } from '../auth/auth.js';
 import { SPES } from '../constants.js';
 
 const SPE_LBL = { 'DPS.C': 'DPS C·C', 'DPS.D': 'DPS Dist.', 'TANK': 'Tank', 'Heal': 'Heal' };
 const SPE_CLS = { 'DPS.C': 'b-dps',   'DPS.D': 'b-dps',     'TANK': 'b-tank', 'Heal': 'b-heal' };
+let _openingModal = false;
 
 // ── Rendu ──────────────────────────────────────────────────────────────────────
 
@@ -93,17 +95,25 @@ function populateMainSelect(membres, excludeId = null) {
 }
 
 export async function openAddM() {
+  if (_openingModal) return;
   if (!isMember()) { toast('Accès refusé', 'err'); return; }
-  g('m-id').value = '';
-  g('m-title').textContent = 'Ajouter un membre';
-  ['mn', 'mi', 'mr'].forEach(id => { g(id).value = ''; });
-  g('ms').selectedIndex = 0;
-  g('mc').innerHTML = '<option value="">— Choisir un rôle —</option>';
+  _openingModal = true;
+  try {
+    g('m-id').value = '';
+    g('m-title').textContent = 'Ajouter un membre';
+    ['mn', 'mi', 'mr'].forEach(id => { g(id).value = ''; });
+    g('ms').selectedIndex = 0;
+    g('mc').innerHTML = '<option value="">— Choisir un rôle —</option>';
+    const altWrap = document.getElementById('m-alts-wrap');
+    if (altWrap) { altWrap.style.display = 'none'; altWrap.innerHTML = ''; }
 
-  const membres = await safeQuery('openAddM:membres', supabase.from('membres').select('id,nom,main_id').order('nom'));
-  populateMainSelect(membres || []);
+    const membres = await safeQuery('openAddM:membres', supabase.from('membres').select('id,nom,main_id').order('nom'));
+    populateMainSelect(membres || []);
 
-  oov('ov-m');
+    oov('ov-m');
+  } finally {
+    _openingModal = false;
+  }
 }
 
 async function editM(id) {
@@ -214,6 +224,13 @@ async function delM(id, btn) {
 
     const data = await safeQuery('delM', supabase.from('membres').delete().eq('id', id));
     if (data === null) return;
+
+    // Si le perso supprimé était le main de l'utilisateur courant → nettoyer le state
+    if (getMainMembreId() === id) {
+      setState('currentMainMembreId', null);
+      updateUserBarMain(null);
+    }
+
     toast('Supprimé');
     await renderMembres();
   } finally {

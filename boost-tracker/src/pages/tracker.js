@@ -17,12 +17,12 @@ function updateStats(runs) {
     else {
       unpaid++;
       total += (r.prix || 0);
-      // Gold "perso" : seulement les runs où l'user est dedans
       const isMine = (r.membres || []).some(m => _myMembresIds.has(m.membre_id));
       if (isMine) myTotal += (r.prix || 0);
     }
   });
-  g('s-total').textContent  = gold(myTotal);
+  // Si pas de main configuré → afficher le total global
+  g('s-total').textContent  = gold(_myMembresIds.size > 0 ? myTotal : total);
   g('s-runs').textContent   = runs.length;
   g('s-paid').textContent   = paid;
   g('s-unpaid').textContent = unpaid;
