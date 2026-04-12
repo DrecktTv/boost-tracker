@@ -9,7 +9,7 @@ import { renderBlacklist, filterBL, openAddBL, saveBL } from './pages/blacklist.
 import { renderHist }     from './pages/historique.js';
 import { renderLadder, renderLadderSession, renderLadderAlltime, renderSmizzLadder } from './pages/ladder.js';
 import { loadUsers }      from './pages/users.js';
-import { openAddRun, saveRun, addCleInput } from './pages/runs-modal.js';
+import { openAddRun, openAddRunSolo, saveRun, addCleInput, addParticipantInput } from './pages/runs-modal.js';
 import { openReset, doReset } from './pages/reset.js';
 import { initSmizz }      from './smizz/smizz.js';
 import { initRealtime }   from './lib/realtime.js';
@@ -64,12 +64,14 @@ document.addEventListener('app:ready', () => {
 
 function wireButtons() {
   // Tracker
-  on('btn-add-run',    () => openAddRun());
+  on('btn-add-run',      () => openAddRun());
+  on('btn-add-run-solo', () => openAddRunSolo());
   on('btn-open-reset', () => openReset());
 
   // Modal Run
   on('btn-save-run',   () => saveRun());
-  on('btn-add-cle',    () => addCleInput());
+  on('btn-add-cle',         () => addCleInput());
+  on('btn-add-participant', () => addParticipantInput());
 
   // Modal Reset
   on('btn-do-reset', () => doReset());
