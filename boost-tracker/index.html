@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Boosterinos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@700;900&display=swap" rel="stylesheet"/>
+  <script type="module" src="/src/main.js"></script>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="login-screen" style="display:flex;position:fixed;inset:0;background:#0e1015;z-index:9000;align-items:center;justify-content:center">
+  <div style="text-align:center;max-width:380px;width:90%;padding:40px;background:#13161d;border:1px solid #2a2f3d;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+    <div style="font-size:48px;margin-bottom:16px">⚔️</div>
+    <div style="font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#eabc3a;margin-bottom:6px;letter-spacing:.04em">Boosterinos</div>
+    <div style="font-size:13px;color:#555f7a;margin-bottom:32px">Connexion requise pour accéder au tracker</div>
+    <button id="btn-discord-login" style="width:100%;padding:14px 20px;background:#5865F2;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s">
+      <svg width="22" height="22" viewBox="0 0 127.14 96.36" fill="white"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+      Se connecter avec Discord
+    </button>
+    <div id="login-error" style="margin-top:14px;font-size:12px;color:#e05555;display:none"></div>
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid #2a2f3d;font-size:11px;color:#555f7a;line-height:1.7">
+      Accès réservé aux membres des Boosterinos.<br>Contacte un admin si tu n'as pas accès.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app" style="display:none">
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="brand-dot"></div>Boosterinos</div>
+    <div id="user-bar" style="display:none;padding:12px 14px;border-bottom:1px solid var(--border);align-items:center;gap:10px;flex-wrap:wrap">
+      <img id="user-avatar" src="" width="34" height="34" style="border-radius:50%;border:2px solid var(--border);display:none;flex-shrink:0"/>
+      <div style="flex:1;min-width:0">
+        <div id="user-name" style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+        <span id="user-role-badge" style="font-size:10px;padding:1px 7px;border-radius:8px;font-weight:700;font-family:'Cinzel',serif;margin-top:2px;display:inline-block"></span>
+      </div>
+      <button id="btn-logout" title="Se déconnecter" style="background:transparent;border:1px solid var(--border);color:var(--text3);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s">⏻</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="stab" data-p="tracker">  <span class="stab-icon">🎯</span><span class="stab-label">Tracker</span></div>
+      <div class="stab" data-p="membres">  <span class="stab-icon">⚔</span> <span class="stab-label">Membres</span></div>
+      <div class="stab" data-p="teams">    <span class="stab-icon">🐗</span><span class="stab-label">Teams</span></div>
+      <div class="stab" data-p="cles">      <span class="stab-icon">🗝️</span><span class="stab-label">Clés</span></div>
+      <div class="stab" data-p="historique"><span class="stab-icon">🪙</span><span class="stab-label">Historique</span></div>
+      <div class="stab" data-p="blacklist"><span class="stab-icon">🚫</span><span class="stab-label">Blacklist</span></div>
+      <div class="stab" data-p="ladder">   <span class="stab-icon">🏆</span><span class="stab-label">Ladder</span></div>
+      <div class="stab admin-only" data-p="users" style="display:none"><span class="stab-icon">👥</span><span class="stab-label">Utilisateurs</span></div>
+    </nav>
+  </aside>
+
+  <!-- CONTENU PRINCIPAL -->
+  <div class="main-content">
+    <div class="toast" id="toast"></div>
+
+    <!-- ═══ TRACKER ═══ -->
+    <div class="page" id="page-tracker">
+      <div class="stats-row">
+        <div class="sc"><div class="sc-label">Total dû (session)</div><div class="sc-val gold"><span>🪙</span><span id="s-total">0</span></div></div>
+        <div class="sc"><div class="sc-label">Runs</div><div class="sc-val blue" id="s-runs">0</div></div>
+        <div class="sc"><div class="sc-label">Payés</div><div class="sc-val green" id="s-paid">0</div></div>
+        <div class="sc"><div class="sc-label">Non payés</div><div class="sc-val red" id="s-unpaid">0</div></div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="page-title">Runs de la session</span>
+          <span class="pill" id="runs-pill">0 run</span>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-danger btn-sm" id="btn-open-reset">↺ Reset &amp; Archiver</button>
+          <button class="btn btn-primary" id="btn-add-run">+ Nouveau run</button>
+        </div>
+      </div>
+      <div class="runs-list" id="runs-list">
+        <div class="empty"><div class="empty-icon">🎯</div><p>Aucun run — clique sur <strong>+ Nouveau run</strong></p></div>
+      </div>
+    </div>
+
+    <!-- ═══ MEMBRES ═══ -->
+    <div class="page" id="page-membres">
+      <div class="toolbar">
+        <div class="toolbar-left"><span class="page-title">Membres</span><span class="pill" id="m-count">0</span></div>
+        <button class="btn btn-primary" id="btn-add-membre">+ Ajouter</button>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Nom</th><th>Spé</th><th>Spécialisation</th><th>ilvl</th><th>Rio</th><th></th></tr></thead>
+          <tbody id="m-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ TEAMS ═══ -->
+    <div class="page" id="page-teams">
+      <div class="toolbar">
+        <div class="toolbar-left"><span class="page-title">Teams</span><span class="pill" id="tm-count">0</span></div>
+        <button class="btn btn-primary" id="btn-add-team">+ Nouvelle team</button>
+      </div>
+      <div id="teams-cfg"></div>
+    </div>
+
+    <!-- ═══ CLÉS ═══ -->
+    <div class="page" id="page-cles">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="page-title">Clés</span>
+          <span class="pill" id="cles-count">0</span>
+        </div>
+      </div>
+      <div class="cles-grid" id="cles-grid"></div>
+    </div>
+
+    <!-- ═══ HISTORIQUE ═══ -->
+    <div class="page" id="page-historique">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="page-title">Historique des sessions</span>
+          <span class="pill" id="h-count">0 session</span>
+        </div>
+      </div>
+      <div id="hist-body"></div>
+    </div>
+
+    <!-- ═══ BLACKLIST ═══ -->
+    <div class="page" id="page-blacklist">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="page-title">Blacklist</span>
+          <span class="pill" id="bl-count">0</span>
+        </div>
+        <button class="btn btn-danger btn-sm" id="btn-add-bl">+ Blacklister</button>
+      </div>
+      <div style="margin-bottom:14px;position:relative">
+        <input id="bl-search" type="text" placeholder="🔍  Rechercher un joueur..." style="width:100%;max-width:420px;padding:10px 14px 10px 40px;font-size:14px"/>
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:16px;pointer-events:none">🔍</span>
+      </div>
+      <div id="bl-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- ═══ LADDER ═══ -->
+    <div class="page" id="page-ladder">
+      <div class="toolbar">
+        <div class="toolbar-left"><span class="page-title">Ladder</span></div>
+      </div>
+      <div class="ladder-tabs">
+        <div class="ltab active" data-view="session">Session en cours</div>
+        <div class="ltab" data-view="alltime">All Time</div>
+        <div class="ltab" data-view="smizz">🗡️ Smizz livrés</div>
+      </div>
+      <div class="ladder-view active" id="lv-session"></div>
+      <div class="ladder-view" id="lv-alltime"></div>
+      <div class="ladder-view" id="lv-smizz"></div>
+    </div>
+
+    <!-- ═══ UTILISATEURS (admin) ═══ -->
+    <div class="page" id="page-users">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="page-title">Utilisateurs</span>
+          <span class="pill" id="users-count">0</span>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Utilisateur</th><th>Rôle</th><th>Depuis</th><th></th></tr></thead>
+          <tbody id="users-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- .main-content -->
+</div><!-- .layout -->
+
+<!-- ═══ MODAL : NOUVEAU RUN ═══ -->
+<div class="overlay" id="ov-run">
+  <div class="modal">
+    <button class="modal-x" data-close="ov-run">✕</button>
+    <div class="modal-title">Nouveau run</div>
+    <div class="modal-body">
+      <div class="fg">
+        <label>Team</label>
+        <select id="run-team"><option value="">— Choisir une team —</option></select>
+      </div>
+      <div class="fg">
+        <label>Clés (plusieurs possibles)</label>
+        <div id="run-cles-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button class="btn btn-ghost btn-sm" id="btn-add-cle" style="margin-top:6px;align-self:flex-start">+ Ajouter une clé</button>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label>Note (optionnel)</label><input id="run-note" placeholder="ex: +12 timed..."/></div>
+        <div class="fg"><label>Prix par personne 🪙</label><input id="run-prix" type="number" placeholder="25"/></div>
+      </div>
+      <div id="run-preview" style="display:none;border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Aperçu de la team</div>
+        <div id="run-preview-body" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ov-run">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-run">Créer le run</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL : RESET SESSION ═══ -->
+<div class="overlay" id="ov-reset">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-x" data-close="ov-reset">✕</button>
+    <div class="modal-title">↺ Reset &amp; Archiver la session</div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--text2);line-height:1.6">
+        Archiver la session va enregistrer les gains de chaque membre dans l'historique et le All Time Ladder, puis vider la liste des runs.
+      </p>
+      <div class="fg">
+        <label>Nom de la session (optionnel)</label>
+        <input id="reset-note" placeholder="ex: Mercredi soir — M+12"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ov-reset">Annuler</button>
+      <button class="btn btn-danger" id="btn-do-reset">↺ Archiver &amp; Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL : MEMBRE ═══ -->
+<div class="overlay" id="ov-m">
+  <div class="modal">
+    <button class="modal-x" data-close="ov-m">✕</button>
+    <div class="modal-title" id="m-title">Ajouter un membre</div>
+    <div class="modal-body">
+      <input type="hidden" id="m-id"/>
+      <div class="fg"><label>Nom</label><input id="mn" placeholder=""/></div>
+      <div class="fg2">
+        <div class="fg">
+          <label>Rôle</label>
+          <select id="ms">
+            <option value="">— Rôle —</option>
+            <option value="DPS.C">DPS Corps-à-corps</option>
+            <option value="DPS.D">DPS Distance</option>
+            <option value="TANK">Tank</option>
+            <option value="Heal">Heal</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Spécialisation</label>
+          <select id="mc"><option value="">— Choisir un rôle —</option></select>
+        </div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label>ilvl</label><input id="mi" type="number" placeholder="630"/></div>
+        <div class="fg"><label>Rio</label><input id="mr" type="number" placeholder="3000"/></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ov-m">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-membre">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL : BLACKLIST ═══ -->
+<div class="overlay" id="ov-bl">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-x" data-close="ov-bl">✕</button>
+    <div class="modal-title">🚫 Ajouter à la Blacklist</div>
+    <div class="modal-body">
+      <div class="fg"><label>Nom du joueur</label><input id="bl-nom" placeholder=""/></div>
+      <div class="fg"><label>Lien Raider.io</label><input id="bl-rio" placeholder="https://raider.io/characters/..."/></div>
+      <div class="fg"><label>Raison (optionnel)</label><input id="bl-raison" placeholder="ex: Scam, no show..."/></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ov-bl">Annuler</button>
+      <button class="btn btn-danger" id="btn-save-bl">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- ═══ EASTER EGG : LE SMIZZ ═══ -->
+<style>
+#smizz-wrap{position:fixed;bottom:20px;left:-90px;z-index:9998;cursor:pointer;user-select:none;width:80px;height:80px;display:none}
+#smizz-wrap:hover{filter:brightness(1.3)}
+.smizz-svg{width:80px;height:80px}
+@keyframes leg-front{0%,100%{transform:rotate(-30deg)}50%{transform:rotate(30deg)}}
+@keyframes leg-back {0%,100%{transform:rotate(30deg)} 50%{transform:rotate(-30deg)}}
+@keyframes arm-front{0%,100%{transform:rotate(20deg)} 50%{transform:rotate(-20deg)}}
+@keyframes arm-back {0%,100%{transform:rotate(-20deg)}50%{transform:rotate(20deg)}}
+@keyframes body-bob {0%,100%{transform:translateY(0px)}50%{transform:translateY(-3px)}}
+@keyframes bag-swing{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+#smizz-body{animation:body-bob .35s infinite ease-in-out;transform-origin:center}
+#smizz-leg1{animation:leg-front .35s infinite ease-in-out;transform-origin:40px 46px}
+#smizz-leg2{animation:leg-back  .35s infinite ease-in-out;transform-origin:40px 46px}
+#smizz-arm1{animation:arm-front .35s infinite ease-in-out;transform-origin:40px 32px}
+#smizz-arm2{animation:arm-back  .35s infinite ease-in-out;transform-origin:40px 32px}
+#smizz-bag {animation:bag-swing .35s infinite ease-in-out;transform-origin:55px 32px}
+@keyframes smizz-pop{from{transform:scale(.4) rotate(-15deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+</style>
+
+<div id="smizz-wrap" title="...">
+  <svg class="smizz-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="40" cy="77" rx="18" ry="4" fill="rgba(0,0,0,0.25)"/>
+    <g id="smizz-body">
+      <circle cx="40" cy="14" r="10" fill="#e8c87a" stroke="#c8a050" stroke-width="1"/>
+      <path d="M30 12 Q40 2 50 12 L50 18 Q40 14 30 18 Z" fill="#1a1a2e"/>
+      <rect x="30" y="14" width="6" height="10" fill="#1a1a2e"/>
+      <rect x="44" y="14" width="6" height="10" fill="#1a1a2e"/>
+      <rect x="32" y="15" width="16" height="5" rx="2" fill="#111" opacity="0.85"/>
+      <ellipse cx="36" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
+      <ellipse cx="44" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
+      <path d="M36 21 Q40 24 44 21" stroke="#c8a050" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <line x1="40" y1="24" x2="40" y2="46" stroke="#1a1a2e" stroke-width="5" stroke-linecap="round"/>
+      <path d="M36 26 Q28 36 30 46 L36 42 Z" fill="#2a2a4e" opacity="0.8"/>
+      <g id="smizz-arm1">
+        <line x1="40" y1="32" x2="22" y2="42" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="21" cy="43" r="3.5" fill="#e8c87a"/>
+      </g>
+      <g id="smizz-arm2">
+        <line x1="40" y1="32" x2="56" y2="28" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <g id="smizz-bag">
+          <line x1="57" y1="28" x2="62" y2="35" stroke="#c07800" stroke-width="2"/>
+          <circle cx="64" cy="40" r="9" fill="#d49000"/>
+          <circle cx="64" cy="40" r="7" fill="#f0b800"/>
+          <circle cx="62" cy="38" r="3" fill="#ffe060" opacity="0.6"/>
+          <text x="64" y="44" font-size="9" font-family="Arial Black" font-weight="900" fill="#7a4400" text-anchor="middle">$</text>
+          <ellipse cx="64" cy="31" rx="4" ry="2.5" fill="#c07800"/>
+        </g>
+      </g>
+      <g id="smizz-leg1">
+        <line x1="40" y1="46" x2="28" y2="64" stroke="#1a1a2e" stroke-width="4.5" stroke-linecap="round"/>
+        <ellipse cx="25" cy="67" rx="6" ry="3" fill="#111"/>
+      </g>
+      <g id="smizz-leg2">
+        <line x1="40" y1="46" x2="52" y2="62" stroke="#2a2a4e" stroke-width="4.5" stroke-linecap="round"/>
+        <ellipse cx="55" cy="65" rx="5" ry="2.5" fill="#222"/>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<div id="smizz-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(6px)">
+  <div style="background:#13161d;border:2px solid #e8d44d;border-radius:18px;padding:40px 44px;text-align:center;max-width:380px;width:90%;box-shadow:0 0 80px rgba(232,212,77,.3);animation:smizz-pop .35s cubic-bezier(.34,1.56,.64,1)">
+    <div style="margin-bottom:16px">
+      <svg viewBox="0 0 80 80" width="80" height="80" xmlns="http://www.w3.org/2000/svg" style="margin:0 auto;display:block">
+        <circle cx="40" cy="14" r="10" fill="#e8c87a" stroke="#c8a050" stroke-width="1"/>
+        <path d="M30 12 Q40 2 50 12 L50 18 Q40 14 30 18 Z" fill="#1a1a2e"/>
+        <rect x="30" y="14" width="6" height="10" fill="#1a1a2e"/>
+        <rect x="44" y="14" width="6" height="10" fill="#1a1a2e"/>
+        <rect x="32" y="15" width="16" height="5" rx="2" fill="#111" opacity="0.85"/>
+        <ellipse cx="36" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
+        <ellipse cx="44" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
+        <line x1="40" y1="24" x2="40" y2="46" stroke="#1a1a2e" stroke-width="5" stroke-linecap="round"/>
+        <line x1="40" y1="32" x2="22" y2="42" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="21" cy="43" r="3.5" fill="#e8c87a"/>
+        <line x1="40" y1="32" x2="58" y2="30" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="64" cy="38" r="9" fill="#f0b800"/>
+        <text x="64" y="43" font-size="9" font-family="Arial Black" font-weight="900" fill="#7a4400" text-anchor="middle">$</text>
+        <line x1="40" y1="46" x2="28" y2="66" stroke="#1a1a2e" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="40" y1="46" x2="52" y2="64" stroke="#2a2a4e" stroke-width="4.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div style="font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#e8d44d;margin-bottom:10px;letter-spacing:.04em">Félicitations !</div>
+    <div style="font-size:15px;color:#d4d8e8;line-height:1.7;margin-bottom:6px">Tu as attrapé le <strong style="color:#e8d44d">Smizz</strong> 🎉</div>
+    <div style="font-size:13px;color:#8890aa;font-style:italic;margin-top:10px">La cliente attend la livraison...</div>
+    <div style="margin-top:18px;font-size:11px;color:#555f7a">Clique pour fermer</div>
+  </div>
+</div>
+
+</body>
+</html>
