@@ -52,8 +52,8 @@ export function initSmizz() {
     if (!visible) return;
     running = false;
 
-    // 10% de chance que le Smizz se barre en disant "Cheh"
-    if (Math.random() < 0.10) {
+    // 25% de chance que le Smizz se barre en disant "Cheh"
+    if (Math.random() < 0.25) {
       cheh();
       return;
     }
