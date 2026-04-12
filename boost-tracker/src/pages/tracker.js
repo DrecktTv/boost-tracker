@@ -2,12 +2,31 @@ import { supabase } from '../lib/supabase.js';
 import { safeQuery } from '../lib/errors.js';
 import { escHtml, gold, g, setLoading } from '../lib/utils.js';
 import { toast } from '../ui/toast.js';
-import { isMember } from '../lib/state.js';
+import { isMember, getUser } from '../lib/state.js';
 import { roleImg, speColor } from '../ui/components.js';
 import { ICON_GOLD } from '../constants.js';
 
 const ROLE_ORDER = { DPS: 0, TANK: 1, Heal: 2 };
 let _rendering = false; // guard contre les renders concurrents (ex: realtime pendant reset)
+let _myMembresIds = new Set(); // ids des persos (main+alt) appartenant à l'utilisateur connecté
+
+function updateStats(runs) {
+  let myTotal = 0, total = 0, paid = 0, unpaid = 0;
+  runs.forEach(r => {
+    if (r.paye) { paid++; }
+    else {
+      unpaid++;
+      total += (r.prix || 0);
+      // Gold "perso" : seulement les runs où l'user est dedans
+      const isMine = (r.membres || []).some(m => _myMembresIds.has(m.membre_id));
+      if (isMine) myTotal += (r.prix || 0);
+    }
+  });
+  g('s-total').textContent  = gold(myTotal);
+  g('s-runs').textContent   = runs.length;
+  g('s-paid').textContent   = paid;
+  g('s-unpaid').textContent = unpaid;
+}
 
 // ── Rendu ──────────────────────────────────────────────────────────────────────
 
@@ -29,13 +48,11 @@ export async function renderTracker() {
   const rl = g('runs-list');
   g('runs-pill').textContent = runs.length + ' run' + (runs.length > 1 ? 's' : '');
 
-  // Stats
-  let total = 0, paid = 0, unpaid = 0;
-  runs.forEach(r => { if (r.paye) { paid++; } else { unpaid++; total += (r.prix || 0); } });
-  g('s-total').textContent  = gold(total);
-  g('s-runs').textContent   = runs.length;
-  g('s-paid').textContent   = paid;
-  g('s-unpaid').textContent = unpaid;
+  // Calcul des ids "mes persos" (owner_id = moi, main ou alt)
+  const userId = getUser()?.id;
+  _myMembresIds = new Set((membres || []).filter(m => m.owner_id === userId).map(m => m.id));
+
+  updateStats(runs);
 
   if (!runs.length) {
     rl.innerHTML = '<div class="empty"><div class="empty-icon">🎯</div><p>Aucun run — clique sur <strong>+ Nouveau run</strong></p></div>';
@@ -102,14 +119,9 @@ export async function renderTracker() {
 // ── Refresh stats seul (sans re-render la liste) ──────────────────────────────
 
 async function refreshStats() {
-  const runs = await safeQuery('refreshStats', supabase.from('runs').select('paye,prix'));
+  const runs = await safeQuery('refreshStats', supabase.from('runs').select('paye,prix,membres'));
   if (!runs) return;
-  let total = 0, paid = 0, unpaid = 0;
-  runs.forEach(r => { if (r.paye) { paid++; } else { unpaid++; total += (r.prix || 0); } });
-  g('s-total').textContent  = gold(total);
-  g('s-runs').textContent   = runs.length;
-  g('s-paid').textContent   = paid;
-  g('s-unpaid').textContent = unpaid;
+  updateStats(runs);
   g('runs-pill').textContent = runs.length + ' run' + (runs.length > 1 ? 's' : '');
 }
 
