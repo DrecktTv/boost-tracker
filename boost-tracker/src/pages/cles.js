@@ -5,6 +5,7 @@ import { toast } from '../ui/toast.js';
 import { isMember } from '../lib/state.js';
 import { roleImg, speColor } from '../ui/components.js';
 import { CLE_OPTIONS, DONJONS } from '../constants.js';
+import { refreshCoverage } from '../ui/coverage.js';
 
 const ROLE_ORDER = { 'TANK': 0, 'Heal': 1, 'DPS.C': 2, 'DPS.D': 3 };
 
@@ -158,4 +159,5 @@ async function saveCle(membreId) {
   }
 
   toast('🗝️ Clé mise à jour');
+  refreshCoverage();
 }

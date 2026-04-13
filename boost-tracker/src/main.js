@@ -15,7 +15,7 @@ import { initSmizz }      from './smizz/smizz.js';
 import { initRealtime }   from './lib/realtime.js';
 import { debounce }       from './lib/utils.js';
 import { renderCles }     from './pages/cles.js';
-import { initCoverage, refreshCoverage } from './ui/coverage.js';
+import { initCoverage } from './ui/coverage.js';
 
 // ── Enregistrement des pages ───────────────────────────────────────────────────
 
@@ -54,8 +54,8 @@ document.addEventListener('app:ready', () => {
     tracker:       renderTracker,
     ladderSession: renderLadderSession,
     ladderAlltime: renderLadderAlltime,
-    membres:       () => { renderMembres(); refreshCoverage(); },
-    cles:          () => { renderCles();    refreshCoverage(); },
+    membres:       renderMembres,
+    cles:          renderCles,
     teams:         renderTeams,
     blacklist:     renderBlacklist,
     smizz:         renderSmizzLadder,

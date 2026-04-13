@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { refreshCoverage } from '../ui/coverage.js';
 
 let _initialized = false;
 
@@ -36,6 +37,7 @@ export function initRealtime({ tracker, ladderSession, ladderAlltime, membres, c
     .on('postgres_changes', { event: '*', schema: 'public', table: 'membres' }, () => {
       if (isActive('membres')) membres?.();
       if (isActive('cles'))    cles?.();
+      refreshCoverage(); // sidebar widget — toujours actif
     })
     .subscribe();
 
