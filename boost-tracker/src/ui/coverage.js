@@ -34,7 +34,6 @@ export async function initCoverage() {
   _teams   = teams  || [];
   _slots   = slots  || [];
 
-  // Init selection: keep previous selection if teams still exist, otherwise select all
   const existingIds = new Set(_teams.map(t => t.id));
   if (_selectedTeamIds.size === 0) {
     _selectedTeamIds = new Set(existingIds);
@@ -54,20 +53,71 @@ function renderWidget(wrap) {
     return `<div class="kc-badge${has ? ' kc-have' : ''}">${def.lbl}</div>`;
   }).join('');
 
-  const teamsHTML = _teams.map(t =>
-    `<div class="kc-team-pill${_selectedTeamIds.has(t.id) ? ' kc-team-on' : ''}" data-tid="${t.id}">${t.nom}</div>`
-  ).join('');
+  const selectedCount = _selectedTeamIds.size;
+  const totalCount    = _teams.length;
+  const btnLabel      = selectedCount === totalCount
+    ? 'Toutes les teams'
+    : selectedCount === 0
+      ? 'Aucune team'
+      : `${selectedCount} / ${totalCount} teams`;
 
-  wrap.innerHTML = `<div class="kc-badges">${badgesHTML}</div><div class="kc-teams">${teamsHTML}</div>`;
+  const dropItems = _teams.map(t => {
+    const checked = _selectedTeamIds.has(t.id) ? ' checked' : '';
+    return `<label class="kc-drop-item">
+      <input type="checkbox" class="kc-cb" data-tid="${t.id}"${checked}>
+      <span>${t.nom}</span>
+    </label>`;
+  }).join('');
 
-  wrap.querySelectorAll('.kc-team-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      const tid = pill.dataset.tid;
-      if (_selectedTeamIds.has(tid)) _selectedTeamIds.delete(tid);
-      else _selectedTeamIds.add(tid);
-      renderWidget(wrap);
+  wrap.innerHTML = `
+    <div class="kc-badges">${badgesHTML}</div>
+    <div class="kc-dropdown">
+      <button class="kc-drop-btn" type="button">${btnLabel} ▾</button>
+      <div class="kc-drop-menu">${dropItems}</div>
+    </div>`;
+
+  // Toggle dropdown open/close
+  const btn  = wrap.querySelector('.kc-drop-btn');
+  const menu = wrap.querySelector('.kc-drop-menu');
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    menu.classList.toggle('kc-drop-open');
+  });
+
+  // Close on outside click
+  const closeMenu = () => menu.classList.remove('kc-drop-open');
+  document.addEventListener('click', closeMenu, { once: true });
+
+  // Checkbox changes — re-render badges without closing dropdown
+  wrap.querySelectorAll('.kc-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const tid = cb.dataset.tid;
+      if (cb.checked) _selectedTeamIds.add(tid);
+      else _selectedTeamIds.delete(tid);
+      // Update badges and button label only, keep dropdown open
+      updateBadges(wrap);
+      updateBtnLabel(wrap);
     });
   });
+}
+
+function updateBadges(wrap) {
+  wrap.querySelectorAll('.kc-badge').forEach((el, i) => {
+    const has = hasCoverage(COVERAGE_DEFS[i].key);
+    el.classList.toggle('kc-have', has);
+  });
+}
+
+function updateBtnLabel(wrap) {
+  const selectedCount = _selectedTeamIds.size;
+  const totalCount    = _teams.length;
+  const btn = wrap.querySelector('.kc-drop-btn');
+  if (!btn) return;
+  btn.textContent = selectedCount === totalCount
+    ? 'Toutes les teams ▾'
+    : selectedCount === 0
+      ? 'Aucune team ▾'
+      : `${selectedCount} / ${totalCount} teams ▾`;
 }
 
 function hasCoverage(donjonKey) {
@@ -83,7 +133,6 @@ function hasCoverage(donjonKey) {
   );
 }
 
-// Called by realtime when membres table changes
 export async function refreshCoverage() {
   const wrap = document.getElementById('key-coverage');
   if (!wrap || wrap.style.display === 'none') return;

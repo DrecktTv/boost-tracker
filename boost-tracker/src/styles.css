@@ -351,14 +351,26 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   border:1px solid rgba(255,255,255,.07); transition:background .15s,color .15s,border-color .15s;
 }
 .kc-have { background:rgba(76,175,120,.18); color:#4caf78; border-color:rgba(76,175,120,.35) }
-.kc-teams { display:flex; flex-wrap:wrap; gap:4px }
-.kc-team-pill {
-  font-size:9px; padding:2px 7px; border-radius:8px; cursor:pointer; user-select:none;
-  background:rgba(255,255,255,.05); color:var(--text3); border:1px solid rgba(255,255,255,.07);
-  transition:all .12s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:78px;
+/* Dropdown */
+.kc-dropdown { position:relative }
+.kc-drop-btn {
+  width:100%; text-align:left; font-size:10px; padding:4px 8px; cursor:pointer;
+  background:rgba(255,255,255,.04); color:var(--text3); border:1px solid rgba(255,255,255,.07);
+  border-radius:6px; transition:border-color .12s;
 }
-.kc-team-pill:hover { border-color:rgba(255,255,255,.15) }
-.kc-team-on { background:rgba(74,144,226,.15); color:var(--blue2); border-color:rgba(74,144,226,.3) }
+.kc-drop-btn:hover { border-color:rgba(255,255,255,.18) }
+.kc-drop-menu {
+  display:none; position:absolute; bottom:calc(100% + 4px); left:0; right:0;
+  background:var(--bg2); border:1px solid var(--border); border-radius:7px;
+  padding:4px; z-index:200; max-height:180px; overflow-y:auto;
+}
+.kc-drop-menu.kc-drop-open { display:block }
+.kc-drop-item {
+  display:flex; align-items:center; gap:7px; padding:5px 7px; border-radius:5px;
+  cursor:pointer; font-size:11px; color:var(--text2); user-select:none; transition:background .1s;
+}
+.kc-drop-item:hover { background:rgba(255,255,255,.06) }
+.kc-drop-item input[type="checkbox"] { accent-color:var(--blue); cursor:pointer; flex-shrink:0 }
 
 @keyframes smizz-cheh {
   0%   { opacity:1; transform:translateY(0) scale(1); }
