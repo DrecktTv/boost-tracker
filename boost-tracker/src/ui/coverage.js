@@ -13,10 +13,30 @@ const COVERAGE_DEFS = [
   { key: 'AA',    lbl: 'AA'   },
 ];
 
+const LS_KEY = 'kc_selected_teams';
+
 let _membres         = [];
 let _teams           = [];
 let _slots           = [];
 let _selectedTeamIds = new Set();
+
+// ── Persistence ────────────────────────────────────────────────────────────────
+
+function loadSelection() {
+  try {
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) return new Set(JSON.parse(saved));
+  } catch { /* ignore */ }
+  return null;
+}
+
+function saveSelection() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify([..._selectedTeamIds]));
+  } catch { /* ignore */ }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
 
 export async function initCoverage() {
   const wrap = document.getElementById('key-coverage');
@@ -35,17 +55,23 @@ export async function initCoverage() {
   _slots   = slots  || [];
 
   const existingIds = new Set(_teams.map(t => t.id));
-  if (_selectedTeamIds.size === 0) {
-    _selectedTeamIds = new Set(existingIds);
+  const saved = loadSelection();
+
+  if (saved) {
+    // Restore persisted selection, drop any teams that no longer exist
+    _selectedTeamIds = new Set([...saved].filter(id => existingIds.has(id)));
+    // If all were removed, fall back to all selected
+    if (_selectedTeamIds.size === 0) _selectedTeamIds = new Set(existingIds);
   } else {
-    for (const id of [..._selectedTeamIds]) {
-      if (!existingIds.has(id)) _selectedTeamIds.delete(id);
-    }
+    _selectedTeamIds = new Set(existingIds);
   }
 
   wrap.style.display = '';
   renderWidget(wrap);
+  mountModal();
 }
+
+// ── Widget (badges + gear button) ──────────────────────────────────────────────
 
 function renderWidget(wrap) {
   const badgesHTML = COVERAGE_DEFS.map(def => {
@@ -53,71 +79,95 @@ function renderWidget(wrap) {
     return `<div class="kc-badge${has ? ' kc-have' : ''}">${def.lbl}</div>`;
   }).join('');
 
-  const selectedCount = _selectedTeamIds.size;
-  const totalCount    = _teams.length;
-  const btnLabel      = selectedCount === totalCount
-    ? 'Toutes les teams'
-    : selectedCount === 0
-      ? 'Aucune team'
-      : `${selectedCount} / ${totalCount} teams`;
-
-  const dropItems = _teams.map(t => {
-    const checked = _selectedTeamIds.has(t.id) ? ' checked' : '';
-    return `<label class="kc-drop-item">
-      <input type="checkbox" class="kc-cb" data-tid="${t.id}"${checked}>
-      <span>${t.nom}</span>
-    </label>`;
-  }).join('');
-
   wrap.innerHTML = `
-    <div class="kc-badges">${badgesHTML}</div>
-    <div class="kc-dropdown">
-      <button class="kc-drop-btn" type="button">${btnLabel} ▾</button>
-      <div class="kc-drop-menu">${dropItems}</div>
+    <div class="kc-header">
+      <span class="kc-title">Couverture clés</span>
+      <button class="kc-gear" id="kc-open-modal" title="Filtrer les teams" type="button">⚙</button>
+    </div>
+    <div class="kc-badges">${badgesHTML}</div>`;
+
+  document.getElementById('kc-open-modal')?.addEventListener('click', openModal);
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────────
+
+function mountModal() {
+  if (document.getElementById('kc-modal')) return; // already mounted
+
+  const modal = document.createElement('div');
+  modal.id = 'kc-modal';
+  modal.className = 'kc-modal-backdrop';
+  modal.innerHTML = `
+    <div class="kc-modal-box">
+      <div class="kc-modal-head">
+        <span>Teams incluses</span>
+        <button class="kc-modal-close" id="kc-close-modal" type="button">✕</button>
+      </div>
+      <div class="kc-modal-body" id="kc-modal-body"></div>
+      <div class="kc-modal-foot">
+        <button class="kc-modal-all" id="kc-select-all" type="button">Tout sélectionner</button>
+        <button class="kc-modal-none" id="kc-select-none" type="button">Tout désélectionner</button>
+      </div>
     </div>`;
 
-  // Toggle dropdown open/close
-  const btn  = wrap.querySelector('.kc-drop-btn');
-  const menu = wrap.querySelector('.kc-drop-menu');
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    menu.classList.toggle('kc-drop-open');
+  document.body.appendChild(modal);
+
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  document.getElementById('kc-close-modal').addEventListener('click', closeModal);
+  document.getElementById('kc-select-all').addEventListener('click', () => {
+    _selectedTeamIds = new Set(_teams.map(t => t.id));
+    saveSelection();
+    refreshModalCheckboxes();
+    updateBadges();
   });
+  document.getElementById('kc-select-none').addEventListener('click', () => {
+    _selectedTeamIds = new Set();
+    saveSelection();
+    refreshModalCheckboxes();
+    updateBadges();
+  });
+}
 
-  // Close on outside click
-  const closeMenu = () => menu.classList.remove('kc-drop-open');
-  document.addEventListener('click', closeMenu, { once: true });
+function openModal() {
+  const modal = document.getElementById('kc-modal');
+  const body  = document.getElementById('kc-modal-body');
+  if (!modal || !body) return;
 
-  // Checkbox changes — re-render badges without closing dropdown
-  wrap.querySelectorAll('.kc-cb').forEach(cb => {
+  body.innerHTML = _teams.map(t => `
+    <label class="kc-modal-item">
+      <input type="checkbox" class="kc-cb" data-tid="${t.id}"${_selectedTeamIds.has(t.id) ? ' checked' : ''}>
+      <span>${t.nom}</span>
+    </label>`).join('');
+
+  body.querySelectorAll('.kc-cb').forEach(cb => {
     cb.addEventListener('change', () => {
-      const tid = cb.dataset.tid;
-      if (cb.checked) _selectedTeamIds.add(tid);
-      else _selectedTeamIds.delete(tid);
-      // Update badges and button label only, keep dropdown open
-      updateBadges(wrap);
-      updateBtnLabel(wrap);
+      if (cb.checked) _selectedTeamIds.add(cb.dataset.tid);
+      else _selectedTeamIds.delete(cb.dataset.tid);
+      saveSelection();
+      updateBadges();
     });
   });
+
+  modal.classList.add('kc-modal-open');
 }
 
-function updateBadges(wrap) {
-  wrap.querySelectorAll('.kc-badge').forEach((el, i) => {
-    const has = hasCoverage(COVERAGE_DEFS[i].key);
-    el.classList.toggle('kc-have', has);
+function closeModal() {
+  document.getElementById('kc-modal')?.classList.remove('kc-modal-open');
+}
+
+function refreshModalCheckboxes() {
+  document.querySelectorAll('#kc-modal-body .kc-cb').forEach(cb => {
+    cb.checked = _selectedTeamIds.has(cb.dataset.tid);
   });
 }
 
-function updateBtnLabel(wrap) {
-  const selectedCount = _selectedTeamIds.size;
-  const totalCount    = _teams.length;
-  const btn = wrap.querySelector('.kc-drop-btn');
-  if (!btn) return;
-  btn.textContent = selectedCount === totalCount
-    ? 'Toutes les teams ▾'
-    : selectedCount === 0
-      ? 'Aucune team ▾'
-      : `${selectedCount} / ${totalCount} teams ▾`;
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function updateBadges() {
+  const wrap = document.getElementById('key-coverage');
+  wrap?.querySelectorAll('.kc-badge').forEach((el, i) => {
+    el.classList.toggle('kc-have', hasCoverage(COVERAGE_DEFS[i].key));
+  });
 }
 
 function hasCoverage(donjonKey) {
@@ -133,6 +183,8 @@ function hasCoverage(donjonKey) {
   );
 }
 
+// ── Realtime refresh ───────────────────────────────────────────────────────────
+
 export async function refreshCoverage() {
   const wrap = document.getElementById('key-coverage');
   if (!wrap || wrap.style.display === 'none') return;
@@ -143,5 +195,5 @@ export async function refreshCoverage() {
   if (!membres) return;
 
   _membres = membres;
-  renderWidget(wrap);
+  updateBadges();
 }
