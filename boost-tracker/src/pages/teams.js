@@ -3,7 +3,6 @@ import { safeQuery } from '../lib/errors.js';
 import { escHtml, g, setLoading } from '../lib/utils.js';
 import { toast } from '../ui/toast.js';
 import { isMember, getState, setState } from '../lib/state.js';
-import { roleImg } from '../ui/components.js';
 import { SLOT_DEFS } from '../constants.js';
 
 /** Filtre les membres du state par rôle */
@@ -40,22 +39,39 @@ export async function renderTeams() {
     return;
   }
 
+  // Ordre d'affichage : Tank, Heal, DPS1, DPS2
+  const DISPLAY_ORDER = [2, 3, 0, 1];
+
   cont.innerHTML = `<div class="teams-grid">${teams.map((team, ti) => {
     const ts = (slots || []).filter(s => s.team_id === team.id);
 
-    const roleAccent = { DPS: 'var(--red2)', TANK: 'var(--blue3)', Heal: 'rgba(76,175,120,.2)' };
-    const slotsHTML = SLOT_DEFS.map((def, i) => {
+    // Chips de statut
+    const dpsCount  = [0, 1].filter(i => ts.find(s => s.slot_index === i)?.membre_id).length;
+    const tankFilled = !!ts.find(s => s.slot_index === 2)?.membre_id;
+    const healFilled = !!ts.find(s => s.slot_index === 3)?.membre_id;
+
+    const chipDps  = dpsCount > 0
+      ? `<span class="tc-chip chip-dps">⚔️ ${dpsCount} DPS</span>`
+      : `<span class="tc-chip chip-empty">⚔️ —</span>`;
+    const chipTank = tankFilled
+      ? `<span class="tc-chip chip-tank">🛡 Tank</span>`
+      : `<span class="tc-chip chip-empty">🛡 —</span>`;
+    const chipHeal = healFilled
+      ? `<span class="tc-chip chip-heal">🍃 Heal</span>`
+      : `<span class="tc-chip chip-empty">🍃 —</span>`;
+
+    // Rows des slots dans l'ordre Tank, Heal, DPS1, DPS2
+    const dotClass = { DPS: 'dot-dps', TANK: 'dot-tank', Heal: 'dot-heal' };
+    const slotsHTML = DISPLAY_ORDER.map(i => {
+      const def  = SLOT_DEFS[i];
       const slot = ts.find(s => s.slot_index === i);
       const mb   = slot?.membre_id ? (membres || []).find(m => m.id === slot.membre_id) : null;
 
-      const filled = !!mb;
-      return `<div class="team-slot${filled ? ' team-slot-filled' : ''}" data-slot-role="${def.role}">
-        <div class="team-slot-icon" style="background:${roleAccent[def.role] || 'var(--bg2)'}">
-          ${roleImg(def.role, 20)}
-        </div>
-        <span class="team-slot-lbl">${def.lbl}</span>
+      return `<div class="tc-row">
+        <div class="tc-dot ${dotClass[def.role] || ''}"></div>
+        <span class="tc-lbl">${def.lbl}</span>
         <select class="slot-inp" data-team="${escHtml(team.id)}" data-slot="${i}" data-role="${def.role}">
-          <option value="">—</option>
+          <option value="">— Vide —</option>
           ${membresForRole(def.role).map(m =>
             `<option value="${escHtml(m.id)}"${mb?.id === m.id ? ' selected' : ''}>${escHtml(m.nom)}${m.classe ? ' (' + escHtml(m.classe.split(' ')[0]) + ')' : ''}</option>`
           ).join('')}
@@ -64,17 +80,15 @@ export async function renderTeams() {
     }).join('');
 
     return `<div class="team-card" data-team-id="${escHtml(team.id)}">
-      <div class="team-card-head">
-        <div class="team-card-num">${ti + 1}</div>
-        <span
-          class="team-name-edit"
-          data-id="${escHtml(team.id)}"
-          contenteditable="true"
-          spellcheck="false"
-        >${escHtml(team.nom)}</span>
-        <button class="btn btn-ghost btn-sm team-card-del" data-action="del-team" data-id="${escHtml(team.id)}">✕</button>
+      <div class="tc-top">
+        <div class="tc-top-row">
+          <div class="team-card-num">${ti + 1}</div>
+          <span class="team-name-edit" data-id="${escHtml(team.id)}" contenteditable="true" spellcheck="false">${escHtml(team.nom)}</span>
+          <button class="btn btn-ghost btn-sm team-card-del" data-action="del-team" data-id="${escHtml(team.id)}">✕</button>
+        </div>
+        <div class="tc-chips">${chipTank}${chipHeal}${chipDps}</div>
       </div>
-      <div class="team-card-slots">${slotsHTML}</div>
+      <div class="tc-members">${slotsHTML}</div>
     </div>`;
   }).join('')}</div>`;
 
