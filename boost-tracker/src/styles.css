@@ -386,7 +386,9 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 }
 .kc-modal-item:hover { background:rgba(255,255,255,.05) }
 .kc-modal-item input[type="checkbox"] { accent-color:var(--blue); cursor:pointer; flex-shrink:0; width:14px; height:14px }
-.kc-modal-sep { height:1px; background:var(--border); margin:4px 8px }
+.kc-modal-sep { height:1px; background:var(--border); margin:6px 8px }
+.kc-modal-section-lbl { font-size:9px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; padding:4px 9px 2px }
+.kc-modal-item-sub { padding-left:18px }
 .kc-modal-foot {
   display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--border);
 }

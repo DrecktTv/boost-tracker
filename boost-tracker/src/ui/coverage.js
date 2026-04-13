@@ -13,13 +13,19 @@ const COVERAGE_DEFS = [
   { key: 'AA',    lbl: 'AA'   },
 ];
 
-const LS_KEY   = 'kc_selected_teams';
-const NO_TEAM  = '__no_team__'; // sentinel pour les membres sans team
+const LS_KEY = 'kc_selected_teams';
 
-let _membres         = [];
-let _teams           = [];
-let _slots           = [];
-let _selectedTeamIds = new Set();
+// _selected contient des team IDs et des "m:{membreId}" pour les membres sans team
+let _membres  = [];
+let _teams    = [];
+let _slots    = [];
+let _selected = new Set();
+
+// ── Helpers IDs ────────────────────────────────────────────────────────────────
+
+const mKey  = id => `m:${id}`;
+const isMId = k  => k.startsWith('m:');
+const rawId = k  => k.slice(2);
 
 // ── Persistence ────────────────────────────────────────────────────────────────
 
@@ -33,7 +39,7 @@ function loadSelection() {
 
 function saveSelection() {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify([..._selectedTeamIds]));
+    localStorage.setItem(LS_KEY, JSON.stringify([..._selected]));
   } catch { /* ignore */ }
 }
 
@@ -45,7 +51,7 @@ export async function initCoverage() {
   if (!isMember()) { wrap.style.display = 'none'; return; }
 
   const [membres, teams, slots] = await Promise.all([
-    safeQuery('coverage:membres', supabase.from('membres').select('id,cle_donjon,cle_niveau')),
+    safeQuery('coverage:membres', supabase.from('membres').select('id,nom,cle_donjon,cle_niveau')),
     safeQuery('coverage:teams',   supabase.from('teams').select('id,nom').order('created_at')),
     safeQuery('coverage:slots',   supabase.from('team_slots').select('team_id,membre_id')),
   ]);
@@ -55,15 +61,17 @@ export async function initCoverage() {
   _teams   = teams  || [];
   _slots   = slots  || [];
 
-  const existingIds = new Set(_teams.map(t => t.id));
-  const saved = loadSelection();
+  const teamIds      = new Set(_teams.map(t => t.id));
+  const assignedIds  = new Set(_slots.map(s => s.membre_id));
+  const noTeamMIds   = new Set(_membres.filter(m => !assignedIds.has(m.id)).map(m => mKey(m.id)));
+  const allValid     = new Set([...teamIds, ...noTeamMIds]);
 
+  const saved = loadSelection();
   if (saved) {
-    // Restore persisted selection — keep NO_TEAM sentinel + valid team ids
-    _selectedTeamIds = new Set([...saved].filter(id => id === NO_TEAM || existingIds.has(id)));
-    if (_selectedTeamIds.size === 0) _selectedTeamIds = new Set([...existingIds, NO_TEAM]);
+    _selected = new Set([...saved].filter(k => allValid.has(k)));
+    if (_selected.size === 0) _selected = new Set(allValid);
   } else {
-    _selectedTeamIds = new Set([...existingIds, NO_TEAM]);
+    _selected = new Set(allValid);
   }
 
   wrap.style.display = '';
@@ -71,7 +79,7 @@ export async function initCoverage() {
   mountModal();
 }
 
-// ── Widget (badges + gear button) ──────────────────────────────────────────────
+// ── Widget ─────────────────────────────────────────────────────────────────────
 
 function renderWidget(wrap) {
   const badgesHTML = COVERAGE_DEFS.map(def => {
@@ -82,7 +90,7 @@ function renderWidget(wrap) {
   wrap.innerHTML = `
     <div class="kc-header">
       <span class="kc-title">Couverture clés</span>
-      <button class="kc-gear" id="kc-open-modal" title="Filtrer les teams" type="button">⚙</button>
+      <button class="kc-gear" id="kc-open-modal" title="Filtrer" type="button">⚙</button>
     </div>
     <div class="kc-badges">${badgesHTML}</div>`;
 
@@ -92,7 +100,7 @@ function renderWidget(wrap) {
 // ── Modal ──────────────────────────────────────────────────────────────────────
 
 function mountModal() {
-  if (document.getElementById('kc-modal')) return; // already mounted
+  if (document.getElementById('kc-modal')) return;
 
   const modal = document.createElement('div');
   modal.id = 'kc-modal';
@@ -100,12 +108,12 @@ function mountModal() {
   modal.innerHTML = `
     <div class="kc-modal-box">
       <div class="kc-modal-head">
-        <span>Teams incluses</span>
+        <span>Membres inclus</span>
         <button class="kc-modal-close" id="kc-close-modal" type="button">✕</button>
       </div>
       <div class="kc-modal-body" id="kc-modal-body"></div>
       <div class="kc-modal-foot">
-        <button class="kc-modal-all" id="kc-select-all" type="button">Tout sélectionner</button>
+        <button class="kc-modal-all"  id="kc-select-all"  type="button">Tout sélectionner</button>
         <button class="kc-modal-none" id="kc-select-none" type="button">Tout désélectionner</button>
       </div>
     </div>`;
@@ -114,14 +122,20 @@ function mountModal() {
 
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
   document.getElementById('kc-close-modal').addEventListener('click', closeModal);
+
   document.getElementById('kc-select-all').addEventListener('click', () => {
-    _selectedTeamIds = new Set([..._teams.map(t => t.id), NO_TEAM]);
+    const assignedIds = new Set(_slots.map(s => s.membre_id));
+    _selected = new Set([
+      ..._teams.map(t => t.id),
+      ..._membres.filter(m => !assignedIds.has(m.id)).map(m => mKey(m.id)),
+    ]);
     saveSelection();
     refreshModalCheckboxes();
     updateBadges();
   });
+
   document.getElementById('kc-select-none').addEventListener('click', () => {
-    _selectedTeamIds = new Set();
+    _selected = new Set();
     saveSelection();
     refreshModalCheckboxes();
     updateBadges();
@@ -133,25 +147,30 @@ function openModal() {
   const body  = document.getElementById('kc-modal-body');
   if (!modal || !body) return;
 
-  const assignedIds = new Set(_slots.map(s => s.membre_id));
-  const hasNoTeam   = _membres.some(m => !assignedIds.has(m.id));
+  const assignedIds  = new Set(_slots.map(s => s.membre_id));
+  const noTeamMembres = _membres.filter(m => !assignedIds.has(m.id));
 
-  body.innerHTML = _teams.map(t => `
+  const teamsHTML = _teams.map(t => `
     <label class="kc-modal-item">
-      <input type="checkbox" class="kc-cb" data-tid="${t.id}"${_selectedTeamIds.has(t.id) ? ' checked' : ''}>
+      <input type="checkbox" class="kc-cb" data-key="${t.id}"${_selected.has(t.id) ? ' checked' : ''}>
       <span>${t.nom}</span>
-    </label>`).join('')
-    + (hasNoTeam ? `
+    </label>`).join('');
+
+  const noTeamHTML = noTeamMembres.length ? `
     <div class="kc-modal-sep"></div>
-    <label class="kc-modal-item">
-      <input type="checkbox" class="kc-cb" data-tid="${NO_TEAM}"${_selectedTeamIds.has(NO_TEAM) ? ' checked' : ''}>
-      <span>Sans team</span>
-    </label>` : '');
+    <div class="kc-modal-section-lbl">Sans team</div>
+    ${noTeamMembres.map(m => `
+    <label class="kc-modal-item kc-modal-item-sub">
+      <input type="checkbox" class="kc-cb" data-key="${mKey(m.id)}"${_selected.has(mKey(m.id)) ? ' checked' : ''}>
+      <span>${m.nom}</span>
+    </label>`).join('')}` : '';
+
+  body.innerHTML = teamsHTML + noTeamHTML;
 
   body.querySelectorAll('.kc-cb').forEach(cb => {
     cb.addEventListener('change', () => {
-      if (cb.checked) _selectedTeamIds.add(cb.dataset.tid);
-      else _selectedTeamIds.delete(cb.dataset.tid);
+      if (cb.checked) _selected.add(cb.dataset.key);
+      else _selected.delete(cb.dataset.key);
       saveSelection();
       updateBadges();
     });
@@ -166,7 +185,7 @@ function closeModal() {
 
 function refreshModalCheckboxes() {
   document.querySelectorAll('#kc-modal-body .kc-cb').forEach(cb => {
-    cb.checked = _selectedTeamIds.has(cb.dataset.tid);
+    cb.checked = _selected.has(cb.dataset.key);
   });
 }
 
@@ -180,16 +199,14 @@ function updateBadges() {
 }
 
 function hasCoverage(donjonKey) {
+  // Membres via leurs teams sélectionnées
   const memberIds = new Set(
-    _slots
-      .filter(s => _selectedTeamIds.has(s.team_id))
-      .map(s => s.membre_id)
+    _slots.filter(s => _selected.has(s.team_id)).map(s => s.membre_id)
   );
 
-  // Inclure les membres sans team si le sentinel est coché
-  if (_selectedTeamIds.has(NO_TEAM)) {
-    const assignedIds = new Set(_slots.map(s => s.membre_id));
-    _membres.forEach(m => { if (!assignedIds.has(m.id)) memberIds.add(m.id); });
+  // Membres sans team sélectionnés individuellement
+  for (const k of _selected) {
+    if (isMId(k)) memberIds.add(rawId(k));
   }
 
   return _membres.some(m =>
@@ -206,7 +223,7 @@ export async function refreshCoverage() {
   if (!wrap || wrap.style.display === 'none') return;
 
   const membres = await safeQuery('coverage:refresh',
-    supabase.from('membres').select('id,cle_donjon,cle_niveau')
+    supabase.from('membres').select('id,nom,cle_donjon,cle_niveau')
   );
   if (!membres) return;
 
