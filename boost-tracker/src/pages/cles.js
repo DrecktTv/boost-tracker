@@ -96,8 +96,8 @@ export async function renderCles() {
       .filter(m => { const seen = assignedIds.has(m.id); assignedIds.add(m.id); return !seen; });
 
     if (!teamMembres.length) return '';
-    return `<div class="cles-section" style="margin-bottom:24px">
-      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:4px 2px 8px;border-bottom:1px solid var(--border);margin-bottom:10px">${escHtml(team.nom)}</div>
+    return `<div class="cles-section">
+      <div class="cles-section-head">${escHtml(team.nom)}</div>
       <div class="cles-team-grid">${sortByRole(teamMembres).map(cardHTML).join('')}</div>
     </div>`;
   });
@@ -105,8 +105,8 @@ export async function renderCles() {
   // Membres sans team
   const unassigned = sortByRole(membres.filter(m => !assignedIds.has(m.id)));
   if (unassigned.length) {
-    sections.push(`<div class="cles-section" style="margin-bottom:24px">
-      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:4px 2px 8px;border-bottom:1px solid var(--border);margin-bottom:10px">Sans team</div>
+    sections.push(`<div class="cles-section">
+      <div class="cles-section-head">Sans team</div>
       <div class="cles-team-grid">${unassigned.map(cardHTML).join('')}</div>
     </div>`);
   }
