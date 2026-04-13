@@ -43,12 +43,17 @@ export async function renderTeams() {
   cont.innerHTML = `<div class="teams-grid">${teams.map((team, ti) => {
     const ts = (slots || []).filter(s => s.team_id === team.id);
 
+    const roleAccent = { DPS: 'var(--red2)', TANK: 'var(--blue3)', Heal: 'rgba(76,175,120,.2)' };
     const slotsHTML = SLOT_DEFS.map((def, i) => {
       const slot = ts.find(s => s.slot_index === i);
       const mb   = slot?.membre_id ? (membres || []).find(m => m.id === slot.membre_id) : null;
 
-      return `<div class="team-slot">
-        ${roleImg(def.role, 14)}
+      const filled = !!mb;
+      return `<div class="team-slot${filled ? ' team-slot-filled' : ''}" data-slot-role="${def.role}">
+        <div class="team-slot-icon" style="background:${roleAccent[def.role] || 'var(--bg2)'}">
+          ${roleImg(def.role, 20)}
+        </div>
+        <span class="team-slot-lbl">${def.lbl}</span>
         <select class="slot-inp" data-team="${escHtml(team.id)}" data-slot="${i}" data-role="${def.role}">
           <option value="">—</option>
           ${membresForRole(def.role).map(m =>
@@ -60,15 +65,14 @@ export async function renderTeams() {
 
     return `<div class="team-card" data-team-id="${escHtml(team.id)}">
       <div class="team-card-head">
-        <div style="width:20px;height:20px;border-radius:50%;background:var(--blue3);border:1px solid var(--blue);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${ti + 1}</div>
+        <div class="team-card-num">${ti + 1}</div>
         <span
           class="team-name-edit"
           data-id="${escHtml(team.id)}"
           contenteditable="true"
           spellcheck="false"
-          style="flex:1;font-size:13px;font-weight:600;color:var(--text);outline:none;border-bottom:1px solid transparent;padding:2px 4px;border-radius:4px;cursor:text;min-width:0;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
         >${escHtml(team.nom)}</span>
-        <button class="btn btn-ghost btn-sm" data-action="del-team" data-id="${escHtml(team.id)}" style="padding:3px 7px;font-size:13px;flex-shrink:0">✕</button>
+        <button class="btn btn-ghost btn-sm team-card-del" data-action="del-team" data-id="${escHtml(team.id)}">✕</button>
       </div>
       <div class="team-card-slots">${slotsHTML}</div>
     </div>`;
@@ -88,17 +92,9 @@ export async function renderTeams() {
   };
 
   // Event delegation — noms d'équipe (contenteditable)
-  cont.addEventListener('focusin', e => {
-    const el = e.target.closest('.team-name-edit');
-    if (!el) return;
-    el.style.borderBottomColor = 'var(--blue)';
-    el.style.background = 'rgba(74,144,226,.08)';
-  });
   cont.addEventListener('focusout', e => {
     const el = e.target.closest('.team-name-edit');
     if (!el) return;
-    el.style.borderBottomColor = 'transparent';
-    el.style.background = 'transparent';
     saveTeamName(el.dataset.id, el);
   });
   cont.addEventListener('keydown', e => {

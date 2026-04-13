@@ -155,15 +155,22 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .team-cfg-head { background:var(--bg2); padding:11px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border) }
 .slot-row { display:grid; grid-template-columns:90px 1fr; align-items:center; gap:10px; padding:12px 18px; border-bottom:1px solid rgba(255,255,255,.04) }
 .slot-row:last-child { border-bottom:none }
-/* ── Teams grid (nouveau layout compact) ── */
-.teams-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px }
-.team-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--rad2); overflow:hidden }
-.team-card-head { background:var(--bg2); padding:8px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border) }
-.team-card-slots { display:grid; grid-template-columns:1fr 1fr }
-.team-slot { display:flex; align-items:center; gap:6px; padding:8px 10px; border-bottom:1px solid var(--border); border-right:1px solid var(--border) }
-.team-slot:nth-child(2n) { border-right:none }
-.team-slot:nth-last-child(-n+2) { border-bottom:none }
-.team-slot select { flex:1; min-width:0; font-size:12px; background:var(--bg2); border:1px solid var(--border); color:var(--text); padding:4px 5px; border-radius:4px; cursor:pointer }
+/* ── Teams grid ── */
+.teams-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:14px }
+.team-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--rad2); overflow:hidden; transition:border-color .15s }
+.team-card:hover { border-color:var(--bd2) }
+.team-card-head { background:var(--bg2); padding:9px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border) }
+.team-card-num { width:22px;height:22px;border-radius:50%;background:var(--blue3);border:1px solid var(--blue);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0 }
+.team-name-edit { flex:1;font-size:13px;font-weight:600;color:var(--text);outline:none;border-bottom:1px solid transparent;padding:2px 4px;border-radius:4px;cursor:text;min-width:0;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis }
+.team-name-edit:focus { border-bottom-color:var(--blue);background:rgba(74,144,226,.08) }
+.team-card-del { padding:3px 7px;font-size:13px;flex-shrink:0 }
+.team-card-slots { display:grid; grid-template-columns:repeat(4,1fr) }
+.team-slot { display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 8px 10px; border-right:1px solid var(--border); transition:background .12s }
+.team-slot:last-child { border-right:none }
+.team-slot-filled { background:rgba(255,255,255,.02) }
+.team-slot-icon { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0 }
+.team-slot-lbl { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.6px; font-weight:600 }
+.team-slot select { width:100%; font-size:11px; background:var(--bg2); border:1px solid var(--border); color:var(--text); padding:3px 4px; border-radius:4px; cursor:pointer; text-align:center }
 .slot-inp { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:5px; font-size:14px; width:100%; font-family:'Inter',sans-serif }
 .slot-inp:focus { outline:none; border-color:var(--blue) }
 
