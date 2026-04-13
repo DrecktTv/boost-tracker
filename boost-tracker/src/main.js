@@ -15,6 +15,7 @@ import { initSmizz }      from './smizz/smizz.js';
 import { initRealtime }   from './lib/realtime.js';
 import { debounce }       from './lib/utils.js';
 import { renderCles }     from './pages/cles.js';
+import { initCoverage, refreshCoverage } from './ui/coverage.js';
 
 // ── Enregistrement des pages ───────────────────────────────────────────────────
 
@@ -46,14 +47,15 @@ document.addEventListener('app:ready', () => {
 
   restorePage('tracker'); // reprend la page du hash URL, sinon tracker
   initSmizz();
+  initCoverage();
 
   // Realtime — toutes les tables surveillées
   initRealtime({
     tracker:       renderTracker,
     ladderSession: renderLadderSession,
     ladderAlltime: renderLadderAlltime,
-    membres:       renderMembres,
-    cles:          renderCles,
+    membres:       () => { renderMembres(); refreshCoverage(); },
+    cles:          () => { renderCles();    refreshCoverage(); },
     teams:         renderTeams,
     blacklist:     renderBlacklist,
     smizz:         renderSmizzLadder,

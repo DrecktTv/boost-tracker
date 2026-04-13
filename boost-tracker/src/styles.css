@@ -341,6 +341,25 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   animation:sk-shimmer 1.4s ease-in-out infinite;
 }
 
+/* ── KEY COVERAGE WIDGET ── */
+#key-coverage { padding:10px 12px 8px; border-top:1px solid var(--border) }
+.kc-badges { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin-bottom:7px }
+.kc-badge {
+  font-size:9px; font-weight:700; text-align:center;
+  padding:5px 2px; border-radius:5px; letter-spacing:.02em;
+  background:rgba(255,255,255,.04); color:var(--text3);
+  border:1px solid rgba(255,255,255,.07); transition:background .15s,color .15s,border-color .15s;
+}
+.kc-have { background:rgba(76,175,120,.18); color:#4caf78; border-color:rgba(76,175,120,.35) }
+.kc-teams { display:flex; flex-wrap:wrap; gap:4px }
+.kc-team-pill {
+  font-size:9px; padding:2px 7px; border-radius:8px; cursor:pointer; user-select:none;
+  background:rgba(255,255,255,.05); color:var(--text3); border:1px solid rgba(255,255,255,.07);
+  transition:all .12s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:78px;
+}
+.kc-team-pill:hover { border-color:rgba(255,255,255,.15) }
+.kc-team-on { background:rgba(74,144,226,.15); color:var(--blue2); border-color:rgba(74,144,226,.3) }
+
 @keyframes smizz-cheh {
   0%   { opacity:1; transform:translateY(0) scale(1); }
   60%  { opacity:1; transform:translateY(-18px) scale(1.2); }
