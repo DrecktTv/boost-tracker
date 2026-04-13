@@ -33,17 +33,6 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand"><div class="brand-dot"></div>Boosterinos</div>
-    <div id="user-bar" style="display:none;padding:12px 14px;border-bottom:1px solid var(--border);align-items:center;gap:10px;flex-wrap:wrap">
-      <img id="user-avatar" src="" width="34" height="34" style="border-radius:50%;border:2px solid var(--border);display:none;flex-shrink:0"/>
-      <div style="flex:1;min-width:0">
-        <div id="user-name" style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap">
-          <span id="user-role-badge" style="font-size:10px;padding:1px 7px;border-radius:8px;font-weight:700;font-family:'Cinzel',serif;display:inline-block"></span>
-          <span id="user-main-perso" style="display:none;font-size:10px;color:var(--text2);background:var(--bg3);padding:1px 7px;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px"></span>
-        </div>
-      </div>
-      <button id="btn-logout" title="Se déconnecter" style="background:transparent;border:1px solid var(--border);color:var(--text3);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s">⏻</button>
-    </div>
     <nav class="sidebar-nav">
       <div class="stab" data-p="tracker">  <span class="stab-icon">🎯</span><span class="stab-label">Tracker</span></div>
       <div class="stab" data-p="membres">  <span class="stab-icon">⚔</span> <span class="stab-label">Membres</span></div>
@@ -54,6 +43,17 @@
       <div class="stab" data-p="ladder">   <span class="stab-icon">🏆</span><span class="stab-label">Ladder</span></div>
       <div class="stab admin-only" data-p="users" style="display:none"><span class="stab-icon">👥</span><span class="stab-label">Utilisateurs</span></div>
     </nav>
+    <div id="user-bar" style="display:none;padding:12px 14px;border-top:1px solid var(--border);align-items:center;gap:10px">
+      <img id="user-avatar" src="" width="32" height="32" style="border-radius:50%;border:2px solid var(--border);display:none;flex-shrink:0"/>
+      <div style="flex:1;min-width:0">
+        <div id="user-name" style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap">
+          <span id="user-role-badge" style="font-size:10px;padding:1px 7px;border-radius:8px;font-weight:700;font-family:'Cinzel',serif;display:inline-block"></span>
+          <span id="user-main-perso" style="display:none;font-size:10px;color:var(--text2);background:var(--bg3);padding:1px 7px;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px"></span>
+        </div>
+      </div>
+      <button id="btn-logout" title="Se déconnecter" style="background:transparent;border:1px solid var(--border);color:var(--text3);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s">⏻</button>
+    </div>
   </aside>
 
   <!-- CONTENU PRINCIPAL -->
