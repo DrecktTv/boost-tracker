@@ -4,7 +4,7 @@ import { escHtml, g, setLoading } from '../lib/utils.js';
 import { toast } from '../ui/toast.js';
 import { isMember } from '../lib/state.js';
 import { roleImg, speColor } from '../ui/components.js';
-import { CLE_OPTIONS } from '../constants.js';
+import { CLE_OPTIONS, DONJONS } from '../constants.js';
 
 const ROLE_ORDER = { 'TANK': 0, 'Heal': 1, 'DPS.C': 2, 'DPS.D': 3 };
 
@@ -22,35 +22,44 @@ function cardHTML(m) {
   const donjon  = m.cle_donjon || '';
   const niveau  = m.cle_niveau || '';
   const nc      = niveauColor(niveau);
+  const dInfo   = donjon ? DONJONS[donjon] : null;
+
   const options = CLE_OPTIONS.map(c =>
-    `<option value="${escHtml(c)}"${donjon === c ? ' selected' : ''}>${escHtml(c)}</option>`
+    `<option value="${escHtml(c)}"${donjon === c ? ' selected' : ''}>${escHtml(DONJONS[c]?.fr || c)}</option>`
   ).join('');
 
+  const artContent = dInfo
+    ? `<img src="${escHtml(dInfo.img)}" alt="${escHtml(dInfo.en)}" loading="lazy">`
+    : `<div class="cle-art-placeholder">🗝️</div>`;
+
+  const namesContent = dInfo
+    ? `<div class="cle-art-fr">${escHtml(dInfo.fr)}</div><div class="cle-art-en">${escHtml(dInfo.en)}</div>`
+    : `<div class="cle-art-fr cle-art-nokey">Pas de clé définie</div>`;
+
   return `<div class="cle-card" data-id="${escHtml(m.id)}">
-    <div class="cle-card-head">
-      ${roleImg(roleKey, 20)}
-      <span style="background:${color};width:7px;height:7px;border-radius:50%;flex-shrink:0"></span>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(m.nom)}</div>
-        ${m.classe ? `<div style="font-size:11px;color:var(--text3)">${escHtml(m.classe.split(' ')[0])}</div>` : ''}
-      </div>
-      <span class="cle-niveau-badge" style="font-size:18px;font-weight:700;color:${nc};flex-shrink:0;min-width:36px;text-align:right">
-        ${niveau ? '+' + niveau : '—'}
-      </span>
+    <div class="cle-art">
+      ${artContent}
+      <div class="cle-art-overlay"></div>
+      <span class="cle-art-level" style="color:${nc}">${niveau ? '+' + niveau : '—'}</span>
+      <div class="cle-art-names">${namesContent}</div>
     </div>
-    <div class="cle-card-inputs">
-      <select class="cle-donjon slot-inp" data-id="${escHtml(m.id)}">
-        <option value="">— Donjon —</option>
-        ${options}
-      </select>
-      <input
-        type="number"
-        class="cle-niveau-inp"
-        data-id="${escHtml(m.id)}"
-        value="${escHtml(String(niveau))}"
-        placeholder="Niv."
-        min="1" max="30"
-      />
+    <div class="cle-body">
+      <div class="cle-member">
+        ${roleImg(roleKey, 16)}
+        <span class="cle-dot" style="background:${color}"></span>
+        <div class="cle-member-info">
+          <div class="cle-nom">${escHtml(m.nom)}</div>
+          ${m.classe ? `<div class="cle-spe">${escHtml(m.classe.split(' ')[0])}</div>` : ''}
+        </div>
+      </div>
+      <div class="cle-inputs">
+        <select class="cle-donjon slot-inp" data-id="${escHtml(m.id)}">
+          <option value="">— Donjon —</option>
+          ${options}
+        </select>
+        <input type="number" class="cle-niveau-inp" data-id="${escHtml(m.id)}"
+          value="${escHtml(String(niveau))}" placeholder="Niv." min="1" max="30">
+      </div>
     </div>
   </div>`;
 }
@@ -125,11 +134,27 @@ async function saveCle(membreId) {
   );
   if (data === null) return;
 
-  // Mise à jour du badge inline sans re-render complet
-  const badge = card.querySelector('.cle-niveau-badge');
-  if (badge) {
-    badge.textContent = niveau ? '+' + niveau : '—';
-    badge.style.color = niveauColor(niveau);
+  // Mise à jour inline — level
+  const levelEl = card.querySelector('.cle-art-level');
+  if (levelEl) { levelEl.textContent = niveau ? '+' + niveau : '—'; levelEl.style.color = niveauColor(niveau); }
+
+  // Mise à jour inline — image du donjon
+  const dInfo  = donjon ? DONJONS[donjon] : null;
+  const artImg = card.querySelector('.cle-art img');
+  const artPh  = card.querySelector('.cle-art-placeholder');
+  if (dInfo) {
+    if (artImg) { artImg.src = dInfo.img; }
+    else if (artPh) { artPh.outerHTML = `<img src="${dInfo.img}" alt="${dInfo.en}" loading="lazy">`; }
+  } else {
+    if (artImg) { artImg.outerHTML = `<div class="cle-art-placeholder">🗝️</div>`; }
+  }
+
+  // Mise à jour inline — noms FR/EN
+  const namesEl = card.querySelector('.cle-art-names');
+  if (namesEl) {
+    namesEl.innerHTML = dInfo
+      ? `<div class="cle-art-fr">${dInfo.fr}</div><div class="cle-art-en">${dInfo.en}</div>`
+      : `<div class="cle-art-fr cle-art-nokey">Pas de clé définie</div>`;
   }
 
   toast('🗝️ Clé mise à jour');

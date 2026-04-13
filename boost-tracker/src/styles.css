@@ -283,26 +283,44 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 /* ── CLÉS ────────────────────────────────────────────────────────────────── */
 .cles-grid, .cles-team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 12px;
 }
+/* Poster card */
 .cle-card {
   background: var(--bg1); border: 1px solid var(--border);
-  border-radius: var(--rad2); padding: 16px 18px;
-  display: flex; flex-direction: column; gap: 12px;
-  transition: border-color .15s;
+  border-radius: var(--rad2); overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: border-color .15s, transform .15s, box-shadow .15s;
 }
-.cle-card:hover { border-color: var(--bd2) }
-.cle-card-head { display: flex; align-items: center; gap: 8px }
-.cle-card-inputs { display: flex; gap: 8px }
-.cle-niveau-inp { width: 72px !important; flex-shrink: 0; text-align: center }
+.cle-card:hover { border-color: var(--bd2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.45) }
+/* Art zone */
+.cle-art { height: 110px; position: relative; overflow: hidden; background: var(--bg3) }
+.cle-art img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s }
+.cle-card:hover .cle-art img { transform: scale(1.04) }
+.cle-art-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 32px; opacity: .2 }
+.cle-art-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 70px; background: linear-gradient(transparent, rgba(13,15,20,.96)); pointer-events: none }
+.cle-art-level { position: absolute; top: 8px; right: 10px; font-size: 22px; font-weight: 900; text-shadow: 0 1px 6px rgba(0,0,0,.9) }
+.cle-art-names { position: absolute; bottom: 8px; left: 10px; right: 10px }
+.cle-art-fr { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.cle-art-en { font-size: 9px; color: rgba(255,255,255,.38); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.cle-art-nokey { color: rgba(255,255,255,.25) !important; font-style: italic }
+/* Body */
+.cle-body { padding: 10px 11px; display: flex; flex-direction: column; gap: 8px }
+.cle-member { display: flex; align-items: center; gap: 6px; min-width: 0 }
+.cle-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0 }
+.cle-member-info { min-width: 0 }
+.cle-nom { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.cle-spe { font-size: 10px; color: var(--text3) }
+.cle-inputs { display: flex; gap: 5px }
+.cle-inputs .cle-donjon { flex: 1; min-width: 0; font-size: 11px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 4px 5px; border-radius: 5px; cursor: pointer }
+.cle-niveau-inp { width: 48px !important; flex-shrink: 0; text-align: center; font-size: 12px; font-weight: 700; background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 4px 5px; border-radius: 5px }
 
 @media (max-width:640px) {
-  .cles-grid { grid-template-columns: 1fr 1fr }
-  .cle-card { padding: 12px 14px }
+  .cles-grid, .cles-team-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) }
 }
 @media (max-width:400px) {
-  .cles-grid { grid-template-columns: 1fr }
+  .cles-grid, .cles-team-grid { grid-template-columns: 1fr 1fr }
 }
 
 /* ── LOADING SKELETON ─────────────────────────────────────────────────────── */
