@@ -13,7 +13,8 @@ const COVERAGE_DEFS = [
   { key: 'AA',    lbl: 'AA'   },
 ];
 
-const LS_KEY = 'kc_selected_teams';
+const LS_KEY   = 'kc_selected_teams';
+const NO_TEAM  = '__no_team__'; // sentinel pour les membres sans team
 
 let _membres         = [];
 let _teams           = [];
@@ -58,12 +59,11 @@ export async function initCoverage() {
   const saved = loadSelection();
 
   if (saved) {
-    // Restore persisted selection, drop any teams that no longer exist
-    _selectedTeamIds = new Set([...saved].filter(id => existingIds.has(id)));
-    // If all were removed, fall back to all selected
-    if (_selectedTeamIds.size === 0) _selectedTeamIds = new Set(existingIds);
+    // Restore persisted selection — keep NO_TEAM sentinel + valid team ids
+    _selectedTeamIds = new Set([...saved].filter(id => id === NO_TEAM || existingIds.has(id)));
+    if (_selectedTeamIds.size === 0) _selectedTeamIds = new Set([...existingIds, NO_TEAM]);
   } else {
-    _selectedTeamIds = new Set(existingIds);
+    _selectedTeamIds = new Set([...existingIds, NO_TEAM]);
   }
 
   wrap.style.display = '';
@@ -115,7 +115,7 @@ function mountModal() {
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
   document.getElementById('kc-close-modal').addEventListener('click', closeModal);
   document.getElementById('kc-select-all').addEventListener('click', () => {
-    _selectedTeamIds = new Set(_teams.map(t => t.id));
+    _selectedTeamIds = new Set([..._teams.map(t => t.id), NO_TEAM]);
     saveSelection();
     refreshModalCheckboxes();
     updateBadges();
@@ -133,11 +133,20 @@ function openModal() {
   const body  = document.getElementById('kc-modal-body');
   if (!modal || !body) return;
 
+  const assignedIds = new Set(_slots.map(s => s.membre_id));
+  const hasNoTeam   = _membres.some(m => !assignedIds.has(m.id));
+
   body.innerHTML = _teams.map(t => `
     <label class="kc-modal-item">
       <input type="checkbox" class="kc-cb" data-tid="${t.id}"${_selectedTeamIds.has(t.id) ? ' checked' : ''}>
       <span>${t.nom}</span>
-    </label>`).join('');
+    </label>`).join('')
+    + (hasNoTeam ? `
+    <div class="kc-modal-sep"></div>
+    <label class="kc-modal-item">
+      <input type="checkbox" class="kc-cb" data-tid="${NO_TEAM}"${_selectedTeamIds.has(NO_TEAM) ? ' checked' : ''}>
+      <span>Sans team</span>
+    </label>` : '');
 
   body.querySelectorAll('.kc-cb').forEach(cb => {
     cb.addEventListener('change', () => {
@@ -176,6 +185,13 @@ function hasCoverage(donjonKey) {
       .filter(s => _selectedTeamIds.has(s.team_id))
       .map(s => s.membre_id)
   );
+
+  // Inclure les membres sans team si le sentinel est coché
+  if (_selectedTeamIds.has(NO_TEAM)) {
+    const assignedIds = new Set(_slots.map(s => s.membre_id));
+    _membres.forEach(m => { if (!assignedIds.has(m.id)) memberIds.add(m.id); });
+  }
+
   return _membres.some(m =>
     memberIds.has(m.id) &&
     m.cle_donjon === donjonKey &&
