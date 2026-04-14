@@ -401,6 +401,93 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .kc-modal-none { background:rgba(255,255,255,.04); color:var(--text3) }
 .kc-modal-none:hover { background:rgba(255,255,255,.08); color:var(--text2) }
 
+/* ── WCL IMPORT WIZARD ── */
+.wcl-modal { max-width:780px; width:95vw; max-height:90vh; overflow-y:auto }
+
+.wcl-url-wrap { display:flex; gap:10px; align-items:center }
+.wcl-url-wrap input { flex:1 }
+
+.wcl-spinner { text-align:center; padding:40px 0; color:var(--text2); font-size:14px }
+.wcl-error   { color:var(--red); font-size:13px; margin-top:10px; padding:10px 12px; background:rgba(224,85,85,.08); border-radius:6px; border:1px solid rgba(224,85,85,.2) }
+
+/* Step 1 — table */
+.wcl-table { width:100%; border-collapse:collapse; font-size:13px }
+.wcl-table th { text-align:left; padding:8px 10px; color:var(--text2); font-weight:500; border-bottom:1px solid var(--border); white-space:nowrap }
+.wcl-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle }
+.wcl-table tr:hover td { background:rgba(255,255,255,.03) }
+.wcl-table input[type=checkbox] { width:15px; height:15px; cursor:pointer; accent-color:var(--blue) }
+
+.wcl-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin:0 2px }
+.wcl-dot-found  { background:var(--green) }
+.wcl-dot-client { background:var(--text3) }
+
+.wcl-dungeon-img { width:36px; height:36px; border-radius:6px; object-fit:cover; vertical-align:middle; margin-right:7px }
+
+/* Step 2 — run cards */
+.wcl-cards { display:flex; flex-direction:column; gap:12px; padding:4px 0 }
+.wcl-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; overflow:hidden }
+.wcl-card-head { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--bg3); border-bottom:1px solid var(--border) }
+.wcl-card-head img { width:44px; height:44px; border-radius:8px; object-fit:cover }
+.wcl-card-title { font-weight:600; font-size:14px; color:var(--text) }
+.wcl-card-sub   { font-size:12px; color:var(--text2); margin-top:1px }
+.wcl-team-badge { margin-left:auto; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px }
+.wcl-team-ok    { background:rgba(76,175,120,.15); color:var(--green); border:1px solid rgba(76,175,120,.25) }
+.wcl-team-none  { background:rgba(255,255,255,.05); color:var(--text3); border:1px solid var(--border) }
+.wcl-card-body  { padding:10px 14px }
+.wcl-player-row { display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; color:var(--text) }
+.wcl-player-role { font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(255,255,255,.06); color:var(--text2); min-width:38px; text-align:center }
+.wcl-player-name-found  { color:var(--green) }
+.wcl-player-name-client { color:var(--text3); font-style:italic }
+
+/* Global price input */
+.wcl-prix-global { display:flex; align-items:center; gap:12px; padding:14px 0 4px }
+.wcl-prix-global label { font-size:13px; color:var(--text2); white-space:nowrap }
+.wcl-prix-global input { width:160px }
+
+.wcl-step-footer { display:flex; align-items:center; justify-content:flex-end; gap:10px; padding:16px 0 0; border-top:1px solid var(--border); margin-top:16px }
+.wcl-step-footer .wcl-count { flex:1; font-size:13px; color:var(--text2) }
+
+/* Step 0 intro */
+.wcl-intro { display:flex; flex-direction:column; gap:14px }
+.wcl-hint { font-size:13px; color:var(--text2); line-height:1.6 }
+.wcl-loading { font-size:13px; color:var(--text3); font-style:italic }
+
+/* Step 1 */
+.wcl-select-all-row { margin-bottom:10px; font-size:13px; color:var(--text2) }
+.wcl-table-wrap { overflow-x:auto; max-height:400px; overflow-y:auto }
+.wcl-donjon-img { width:32px; height:32px; border-radius:5px; object-fit:cover; vertical-align:middle; margin-right:6px }
+.wcl-level { font-weight:700; color:var(--gold2) }
+.wcl-p-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:12px; font-size:11px; margin:1px 2px; background:rgba(255,255,255,.05) }
+.wcl-p-found  { color:var(--green) }
+.wcl-p-client { color:var(--text3) }
+.wcl-p-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0 }
+
+/* Step 2 run cards */
+.wcl-run-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:10px }
+.wcl-card-head { position:relative; display:flex; align-items:center; gap:12px; padding:12px 14px; min-height:56px; background-size:cover; background-position:center }
+.wcl-card-head-overlay { position:absolute; inset:0; background:rgba(14,16,21,.75) }
+.wcl-card-head-info { position:relative; z-index:1; display:flex; flex-direction:column; gap:2px }
+.wcl-card-level { font-size:15px; font-weight:700; color:var(--gold2) }
+.wcl-card-name  { font-size:13px; font-weight:600; color:var(--text) }
+.wcl-card-time  { font-size:11px; color:var(--text2) }
+.wcl-team-badge { position:relative; z-index:1; margin-left:auto; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px }
+.wcl-team-badge:not(.wcl-team-none) { background:rgba(76,175,120,.15); color:var(--green); border:1px solid rgba(76,175,120,.25) }
+.wcl-team-none  { background:rgba(255,255,255,.05); color:var(--text3); border:1px solid var(--border) }
+.wcl-card-players { padding:8px 14px; display:flex; flex-direction:column; gap:4px }
+.wcl-pr { display:flex; align-items:center; gap:8px; font-size:13px }
+.wcl-pr-dot  { width:9px; height:9px; border-radius:50%; flex-shrink:0 }
+.wcl-pr-role { font-size:13px; width:20px; text-align:center }
+.wcl-pr-name { flex:1; color:var(--text) }
+.wcl-pr-found .wcl-pr-name  { color:var(--green) }
+.wcl-pr-client .wcl-pr-name { color:var(--text3); font-style:italic }
+.wcl-pr-tag  { font-size:10px; background:rgba(255,255,255,.06); color:var(--text3); padding:1px 6px; border-radius:4px }
+.wcl-donjon-sel { margin:6px 14px; width:calc(100% - 28px); font-size:13px }
+
+/* Prix row */
+.wcl-prix-row { display:flex; align-items:center; gap:12px; padding:0 0 14px; border-bottom:1px solid var(--border); margin-bottom:14px }
+.wcl-prix-lbl { font-size:13px; color:var(--text2); white-space:nowrap }
+.wcl-prix-inp { width:140px }
+
 @keyframes smizz-cheh {
   0%   { opacity:1; transform:translateY(0) scale(1); }
   60%  { opacity:1; transform:translateY(-18px) scale(1.2); }

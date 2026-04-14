@@ -38,6 +38,18 @@ export const SPES = {
 
 export const CLE_OPTIONS = ['MT', 'MC', 'Nexus', 'WS', 'AA', 'Pit', 'Seat', 'Sky'];
 
+// Mapping noms WCL (lowercase) → clés CLE_OPTIONS
+export const WCL_DUNGEON_MAP = {
+  "magisters' terrace":      'MT',
+  "maisara caverns":         'MC',
+  "nexus-point xenas":       'Nexus',
+  "windrunner spire":        'WS',
+  "algeth'ar academy":       'AA',
+  "pit of saron":            'Pit',
+  "seat of the triumvirate": 'Seat',
+  "skyreach":                'Sky',
+};
+
 const CDN = 'https://cdn.raiderio.net/images/dungeons';
 export const DONJONS = {
   MT:    { fr: "Terrasse des Mages",    en: "Magisters' Terrace",       img: `${CDN}/expansion11/base/magisters-terrace.jpg`        },

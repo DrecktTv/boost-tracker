@@ -76,6 +76,7 @@
         </div>
         <div class="toolbar-right">
           <button class="btn btn-danger btn-sm" id="btn-open-reset">↺ Reset &amp; Archiver</button>
+          <button class="btn btn-secondary btn-sm" id="btn-wcl-import">📋 Import WCL</button>
           <button class="btn btn-ghost btn-sm" id="btn-add-run-solo">+ Run sans team</button>
           <button class="btn btn-primary" id="btn-add-run">+ Nouveau run</button>
         </div>
@@ -294,6 +295,16 @@
       <button class="btn btn-ghost" data-close="ov-bl">Annuler</button>
       <button class="btn btn-danger" id="btn-save-bl">Ajouter</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL : WCL IMPORT ═══ -->
+<div class="overlay" id="ov-wcl">
+  <div class="modal wcl-modal">
+    <button class="modal-x" data-close="ov-wcl">✕</button>
+    <div class="modal-title" id="wcl-modal-title">📋 Import WarcraftLogs</div>
+    <div id="wcl-modal-body" class="modal-body"></div>
+    <div id="wcl-modal-foot" class="modal-foot"></div>
   </div>
 </div>
 
