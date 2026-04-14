@@ -114,17 +114,21 @@ function buildRunMembres(players, team, prix) {
   const result = [];
   let dpsSlot  = 0;
 
+  // Helper : construit un slot, stocke le nom WCL si pas de membre_id
+  const mkSlot = (slotIndex, role, p) => ({
+    slot_index: slotIndex,
+    role,
+    membre_id:  p?.membre?.id ?? null,
+    nom_wcl:    (!p?.membre && p?.actor?.name) ? p.actor.name : null, // nom WCL si inconnu
+    tarif:      p?.status === 'free' ? 0 : prix,
+    paid:       p?.status === 'free',
+  });
+
   if (team) {
     const teamSlots = _slots.filter(s => s.team_id === team.id);
     for (const ts of teamSlots) {
       const p = active.find(b => b.membre?.id === ts.membre_id);
-      result.push({
-        slot_index: ts.slot_index,
-        role:       SLOT_DEFS[ts.slot_index].role,
-        membre_id:  p ? (p.membre?.id ?? null) : null,
-        tarif:      p?.status === 'free' ? 0 : prix,
-        paid:       p?.status === 'free',   // gratuit = déjà "payé" (rien à verser)
-      });
+      result.push(mkSlot(ts.slot_index, SLOT_DEFS[ts.slot_index].role, p ?? null));
     }
     const teamMemberIds = new Set(teamSlots.map(s => s.membre_id).filter(Boolean));
     for (const p of active) {
@@ -132,13 +136,7 @@ function buildRunMembres(players, team, prix) {
         if      (p.role === 'TANK') dpsSlot = 2;
         else if (p.role === 'Heal') dpsSlot = 3;
         else dpsSlot = result.filter(r => r.role === 'DPS').length === 0 ? 0 : 1;
-        result.push({
-          slot_index: dpsSlot,
-          role:       SLOT_DEFS[dpsSlot]?.role ?? p.role,
-          membre_id:  p.membre?.id ?? null,
-          tarif:      p.status === 'free' ? 0 : prix,
-          paid:       p.status === 'free',
-        });
+        result.push(mkSlot(dpsSlot, SLOT_DEFS[dpsSlot]?.role ?? p.role, p));
       }
     }
     return result;
@@ -149,13 +147,7 @@ function buildRunMembres(players, team, prix) {
     if      (p.role === 'TANK') si = 2;
     else if (p.role === 'Heal') si = 3;
     else si = dpsSlot++ < 1 ? 0 : 1;
-    result.push({
-      slot_index: si,
-      role:       SLOT_DEFS[si].role,
-      membre_id:  p.membre?.id ?? null,
-      tarif:      p.status === 'free' ? 0 : prix,
-      paid:       p.status === 'free',
-    });
+    result.push(mkSlot(si, SLOT_DEFS[si].role, p));
   }
   return result;
 }

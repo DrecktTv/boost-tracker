@@ -15,7 +15,7 @@ let _membresCache = [];        // membres pour résoudre les noms dans les panel
 // ── Helpers paiement ──────────────────────────────────────────────────────────
 
 function paidSlots(runMembres) {
-  const slots = (runMembres || []).filter(m => m.membre_id && m.role !== 'Client');
+  const slots = (runMembres || []).filter(m => (m.membre_id || m.nom_wcl) && m.role !== 'Client');
   return { paid: slots.filter(m => m.paid).length, total: slots.length };
 }
 
@@ -31,17 +31,18 @@ function payBtnState(runMembres, runPaye) {
 function renderPaymentPanel(run) {
   const slots = (run.membres || [])
     .map((m, i) => ({ ...m, _idx: i }))
-    .filter(m => m.membre_id && m.role !== 'Client')
+    .filter(m => (m.membre_id || m.nom_wcl) && m.role !== 'Client')
     .sort((a, b) => (ROLE_ORDER[a.role] ?? 9) - (ROLE_ORDER[b.role] ?? 9));
 
   if (!slots.length) return '<div style="padding:10px;color:var(--text3);font-size:13px">Aucun membre</div>';
 
   return slots.map(m => {
     const mb   = _membresCache.find(x => x.id === m.membre_id);
+    const nom  = mb?.nom || m.nom_wcl || '—';
     const paid = !!m.paid;
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border)">
       ${roleImg(m.role, 16)}
-      <span style="flex:1;font-size:13px;font-weight:500;color:var(--text)">${escHtml(mb?.nom || '—')}</span>
+      <span style="flex:1;font-size:13px;font-weight:500;color:var(--text)">${escHtml(nom)}${!mb && m.nom_wcl ? ' <span style="font-size:10px;color:var(--text3)">(WCL)</span>' : ''}</span>
       <span style="font-size:13px;color:var(--gold2);min-width:60px;text-align:right">${gold(m.tarif || 0)}</span>
       <button class="btn btn-sm ${paid ? 'btn-primary' : 'btn-ghost'}"
         data-member-paid="${escHtml(run.id)}"
