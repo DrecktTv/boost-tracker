@@ -74,6 +74,21 @@ function detectTeam(membreIds) {
   }) ?? null;
 }
 
+// Résout un nom de fight WCL (EN ou FR, avec/sans "The") → clé CLE_OPTIONS
+function resolveDungeon(name) {
+  if (!name) return null;
+  const n = name.toLowerCase().replace(/^the\s+|^le\s+|^la\s+|^les\s+|^l['']\s*/i, '').trim();
+  // 1. WCL_DUNGEON_MAP (noms EN canoniques)
+  if (WCL_DUNGEON_MAP[n]) return WCL_DUNGEON_MAP[n];
+  // 2. DONJONS.en et DONJONS.fr (insensible à la casse, sans article)
+  for (const [key, d] of Object.entries(DONJONS)) {
+    const en = (d.en || '').toLowerCase().replace(/^the\s+/i, '').trim();
+    const fr = (d.fr || '').toLowerCase().replace(/^le\s+|^la\s+|^les\s+|^l['']\s*/i, '').trim();
+    if (n === en || n === fr) return key;
+  }
+  return null;
+}
+
 function buildPlayers(fight, actorMap) {
   const friendly = new Set(fight.friendlyPlayers || []);
   // Garder uniquement les acteurs présents dans la map (évite les IDs fantômes de raids)
@@ -231,8 +246,7 @@ async function analyzeReport(code) {
         const players  = buildPlayers(f, actorMap);
         const mIds     = players.filter(p => p.membre).map(p => p.membre.id);
         const team     = detectTeam(mIds);
-        const fightName = (f.name || '').toLowerCase().replace(/^the\s+/, '');
-        const cleKey   = WCL_DUNGEON_MAP[fightName] ?? null;
+        const cleKey   = resolveDungeon(f.name);
         const absStart = (report.startTime || 0) + (f.startTime || 0);
         return { ...f, players, team, cleKey, absStart };
       } catch {
