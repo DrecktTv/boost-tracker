@@ -63,26 +63,65 @@
 
     <!-- ═══ TRACKER ═══ -->
     <div class="page" id="page-tracker">
-      <div class="stats-row">
-        <div class="sc"><div class="sc-label">Total dû (session)</div><div class="sc-val gold"><span>🪙</span><span id="s-total">0</span></div></div>
-        <div class="sc"><div class="sc-label">Runs</div><div class="sc-val blue" id="s-runs">0</div></div>
-        <div class="sc"><div class="sc-label">Payés</div><div class="sc-val green" id="s-paid">0</div></div>
-        <div class="sc"><div class="sc-label">Non payés</div><div class="sc-val red" id="s-unpaid">0</div></div>
+
+      <!-- Stats -->
+      <div class="stats-wrap">
+        <div class="sc-main">
+          <div class="sc-main-label">Total dû · session</div>
+          <div class="sc-main-val" id="s-total">0</div>
+          <div class="sc-main-sub">gold non encaissé</div>
+        </div>
+        <div class="sc-grid">
+          <div class="sc blue"><div class="sc-label">Runs</div><div class="sc-val" id="s-runs">0</div></div>
+          <div class="sc green"><div class="sc-label">Payés</div><div class="sc-val" id="s-paid">0</div></div>
+          <div class="sc red"><div class="sc-label">Non payés</div><div class="sc-val" id="s-unpaid">0</div></div>
+          <div class="sc-ratio">
+            <span class="sc-ratio-label">Payé</span>
+            <div class="ratio-track"><div class="ratio-fill" id="s-ratio" style="width:0%"></div></div>
+            <span class="ratio-nums" id="s-ratio-lbl">0 / 0</span>
+          </div>
+        </div>
       </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
+
+      <!-- Section header -->
+      <div class="section-header">
+        <div class="section-left">
           <span class="page-title">Runs de la session</span>
           <span class="pill" id="runs-pill">0 run</span>
         </div>
-        <div class="toolbar-right">
-          <button class="btn btn-danger btn-sm" id="btn-open-reset">↺ Reset &amp; Archiver</button>
-          <button class="btn btn-secondary btn-sm" id="btn-wcl-import">📋 Import WCL</button>
-          <button class="btn btn-ghost btn-sm" id="btn-add-run-solo">+ Run sans team</button>
-          <button class="btn btn-primary" id="btn-add-run">+ Nouveau run</button>
-        </div>
+        <button class="btn-reset" id="btn-open-reset">↺ Reset &amp; Archiver</button>
       </div>
+
+      <!-- Action cards -->
+      <div class="action-grid">
+        <button class="action-card ac-new" id="btn-add-run">
+          <div class="ac-icon">🎯</div>
+          <div class="ac-body">
+            <div class="ac-title">Nouveau run</div>
+            <div class="ac-desc">Avec une team enregistrée</div>
+          </div>
+          <div class="ac-arrow">→</div>
+        </button>
+        <button class="action-card ac-solo" id="btn-add-run-solo">
+          <div class="ac-icon">⚡</div>
+          <div class="ac-body">
+            <div class="ac-title">Run sans team</div>
+            <div class="ac-desc">Composition libre</div>
+          </div>
+          <div class="ac-arrow">→</div>
+        </button>
+        <button class="action-card ac-wcl" id="btn-wcl-import">
+          <div class="ac-icon">📋</div>
+          <div class="ac-body">
+            <div class="ac-title">Import WCL</div>
+            <div class="ac-desc">Depuis WarcraftLogs</div>
+          </div>
+          <div class="ac-arrow">→</div>
+        </button>
+      </div>
+
       <div class="runs-list" id="runs-list">
-        <div class="empty"><div class="empty-icon">🎯</div><p>Aucun run — clique sur <strong>+ Nouveau run</strong></p></div>
+        <div class="empty"><div class="empty-icon">🎯</div><p>Aucun run — clique sur <strong>Nouveau run</strong></p></div>
       </div>
     </div>
 

@@ -1,10 +1,10 @@
 import { supabase } from '../lib/supabase.js';
 import { safeQuery } from '../lib/errors.js';
-import { escHtml, gold, g, setLoading } from '../lib/utils.js';
+import { escHtml, gold, g, setLoading, formatDate } from '../lib/utils.js';
 import { toast } from '../ui/toast.js';
 import { isMember, getMainMembreId } from '../lib/state.js';
 import { roleImg, speColor } from '../ui/components.js';
-import { ICON_GOLD } from '../constants.js';
+import { DONJONS } from '../constants.js';
 
 const ROLE_ORDER = { DPS: 0, TANK: 1, Heal: 2 };
 let _rendering   = false;
@@ -62,7 +62,6 @@ function updateStats(runs) {
     if (r.paye) { paid++; return; }
     unpaid++;
     total += (r.prix || 0);
-    // s-total : seulement si mon slot n'est pas encore payé
     const myUnpaid = (r.membres || []).some(m => _myMembresIds.has(m.membre_id) && !m.paid);
     if (myUnpaid) myTotal += (r.prix || 0);
   });
@@ -70,6 +69,10 @@ function updateStats(runs) {
   g('s-runs').textContent   = runs.length;
   g('s-paid').textContent   = paid;
   g('s-unpaid').textContent = unpaid;
+  // Barre de ratio
+  const pct = runs.length ? Math.round(paid / runs.length * 100) : 0;
+  const ratio = g('s-ratio'); if (ratio) ratio.style.width = pct + '%';
+  const lbl = g('s-ratio-lbl'); if (lbl) lbl.textContent = `${paid} / ${runs.length}`;
 }
 
 // ── Rendu ─────────────────────────────────────────────────────────────────────
@@ -110,7 +113,14 @@ export async function renderTracker() {
     }
 
     rl.innerHTML = runs.map((run, ri) => {
-      const team = (teams || []).find(t => t.id === run.team_id);
+      const team   = (teams || []).find(t => t.id === run.team_id);
+      const donjon = DONJONS[run.cle] || null;
+      const imgUrl = donjon?.img || '';
+      const { cls, label } = payBtnState(run.membres, run.paye);
+
+      // Barre de progression
+      const { paid: pSlots, total: tSlots } = paidSlots(run.membres);
+      const barPct = tSlots ? Math.round(pSlots / tSlots * 100) : (run.paye ? 100 : 0);
 
       const runMembers = (run.membres || [])
         .filter(m => m.role !== 'Client')
@@ -120,43 +130,44 @@ export async function renderTracker() {
         const mb    = _membresCache.find(mb2 => mb2.id === m.membre_id);
         const color = speColor(mb?.classe || '');
         return `<div class="run-member">
-          ${roleImg(m.role, 18)}
+          ${roleImg(m.role, 14)}
           <span class="class-dot" style="background:${color}"></span>
-          <div>
-            <div class="run-member-name">${escHtml(mb?.nom || '—')}</div>
-            ${mb?.classe ? `<div class="run-member-spe">${escHtml(mb.classe.split(' ')[0])}</div>` : ''}
-          </div>
+          <span class="run-member-name">${escHtml(mb?.nom || '—')}</span>
+          ${mb?.classe ? `<span class="run-member-spe">${escHtml(mb.classe.split(' ')[0])}</span>` : ''}
         </div>`;
       }).join('');
 
-      const cles  = Array.isArray(run.cles) ? run.cles.map(escHtml).join(', ') : escHtml(run.cle || '—');
-      const { cls, label } = payBtnState(run.membres, run.paye);
+      const dateStr = run.date ? formatDate(run.date, { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
 
       return `<div class="run-card" data-run-id="${escHtml(run.id)}">
-        <div class="run-head">
+        <div class="run-img" ${imgUrl ? `style="background-image:url(${escHtml(imgUrl)})"` : ''}>
+          <div class="run-img-overlay"></div>
           <div class="run-num">${ri + 1}</div>
-          <span class="badge b-key">${cles}</span>
-          ${team ? `<span style="font-size:12px;color:var(--text2)">${escHtml(team.nom)}</span>` : ''}
-          ${run.note ? `<span style="font-size:11px;color:var(--text3);font-style:italic">${escHtml(run.note)}</span>` : ''}
-          <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
-            <div class="run-gold">
-              <img src="${ICON_GOLD}" style="width:18px;height:18px;object-fit:contain"/>
-              ${gold(run.prix || 0)}
-              <span style="color:var(--text3);font-size:11px;font-weight:400">/p</span>
-            </div>
-            <span class="run-paid ${cls}" data-open-panel="${escHtml(run.id)}">${label}</span>
-            <button class="btn btn-ghost btn-sm" data-del-run="${escHtml(run.id)}">✕</button>
-          </div>
         </div>
-        <div class="run-members">${membersHTML}</div>
-        <div class="run-payment-panel" style="display:none;border-top:1px solid var(--border);margin-top:4px"></div>
+        <div class="run-content">
+          <div class="run-top">
+            <span class="run-cle">${escHtml(run.cle || '—')}</span>
+            <span class="run-donjon">${donjon ? escHtml(donjon.fr) : escHtml(run.cle || '—')}</span>
+            ${team ? `<span class="run-team">${escHtml(team.nom)}</span>` : '<span class="run-notag">Sans team</span>'}
+            ${run.note ? `<span class="run-date" style="font-style:italic">${escHtml(run.note)}</span>` : ''}
+            ${dateStr ? `<span class="run-date">🕐 ${escHtml(dateStr)}</span>` : ''}
+            <div class="run-top-right">
+              <div class="run-gold">🪙 ${gold(run.prix || 0)}<span>/p</span></div>
+              <span class="run-paid ${cls}" data-open-panel="${escHtml(run.id)}">${label}</span>
+              <button class="run-del" data-del-run="${escHtml(run.id)}">✕</button>
+            </div>
+          </div>
+          <div class="run-members">${membersHTML}</div>
+          <div class="run-bar"><div class="run-bar-fill ${cls}" style="width:${barPct}%"></div></div>
+          <div class="run-payment-panel" style="display:none;border-top:1px solid var(--border)"></div>
+        </div>
       </div>`;
     }).join('');
 
     rl.onclick = async e => {
       const memberBtn = e.target.closest('[data-member-paid]');
       const openPanel = e.target.closest('[data-open-panel]');
-      const delBtn    = e.target.closest('[data-del-run]');
+      const delBtn    = e.target.closest('.run-del[data-del-run]');
 
       if (memberBtn && !memberBtn.disabled) {
         await toggleMemberPaid(memberBtn.dataset.memberPaid, parseInt(memberBtn.dataset.idx), memberBtn.dataset.paid === 'true');
