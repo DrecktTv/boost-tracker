@@ -84,26 +84,36 @@ function buildPlayers(fight, actorMap) {
     const role   = membre
       ? (membre.spe === 'TANK' ? 'TANK' : membre.spe === 'Heal' ? 'Heal' : 'DPS')
       : wclRoleFromSubType(actor.subType);
-    return { actor, membre, role };
+    return { actor, membre, role, isBooster: !!membre };
   });
 }
 
 function buildRunMembres(players, team, prix) {
-  const boosters = players.filter(p => p.membre);
+  const boosters = players.filter(p => p.isBooster);
   const result   = [];
   let dpsSlot = 0;
 
   if (team) {
     const teamSlots = _slots.filter(s => s.team_id === team.id);
     for (const ts of teamSlots) {
-      const p = boosters.find(b => b.membre.id === ts.membre_id);
+      const p = boosters.find(b => b.membre?.id === ts.membre_id);
       result.push({
         slot_index: ts.slot_index,
         role:       SLOT_DEFS[ts.slot_index].role,
-        membre_id:  p ? p.membre.id : null,
+        membre_id:  p ? (p.membre?.id ?? null) : null,
         tarif:      prix,
         paid:       false,
       });
+    }
+    // Ajouter les boosters manuels (sans membre_id) non couverts par les slots team
+    const teamMemberIds = new Set(teamSlots.map(s => s.membre_id).filter(Boolean));
+    for (const p of boosters) {
+      if (!p.membre || !teamMemberIds.has(p.membre.id)) {
+        if      (p.role === 'TANK') dpsSlot = 2;
+        else if (p.role === 'Heal') dpsSlot = 3;
+        else dpsSlot = result.filter(r => r.role === 'DPS').length === 0 ? 0 : 1;
+        result.push({ slot_index: dpsSlot, role: SLOT_DEFS[dpsSlot]?.role ?? p.role, membre_id: null, tarif: prix, paid: false });
+      }
     }
     return result;
   }
@@ -113,7 +123,7 @@ function buildRunMembres(players, team, prix) {
     if      (p.role === 'TANK') si = 2;
     else if (p.role === 'Heal') si = 3;
     else si = dpsSlot++ < 1 ? 0 : 1;
-    result.push({ slot_index: si, role: SLOT_DEFS[si].role, membre_id: p.membre.id, tarif: prix, paid: false });
+    result.push({ slot_index: si, role: SLOT_DEFS[si].role, membre_id: p.membre?.id ?? null, tarif: prix, paid: false });
   }
   return result;
 }
@@ -296,6 +306,29 @@ function updateStep1Foot() {
 
 // ── Step 2 — Review ────────────────────────────────────────────────────────────
 
+function renderPlayerRow(p, fid, pidx) {
+  const roleLabel = p.role === 'TANK' ? '🛡' : p.role === 'Heal' ? '💚' : '⚔';
+  if (p.isBooster) {
+    const color = p.membre ? dotColor(p.membre) : 'var(--blue2)';
+    const name  = p.membre ? escHtml(p.membre.nom) : escHtml(p.actor.name);
+    const added = !p.membre ? `<span class="wcl-pr-tag wcl-pr-tag-added">+ajouté</span>` : '';
+    return `<div class="wcl-pr wcl-pr-found" data-fid="${fid}" data-pidx="${pidx}">
+      <span class="wcl-pr-dot" style="background:${color}"></span>
+      <span class="wcl-pr-role">${roleLabel}</span>
+      <span class="wcl-pr-name">${name}</span>
+      ${added}
+      <button class="wcl-toggle-btn wcl-toggle-to-client" data-fid="${fid}" data-pidx="${pidx}">→ Client</button>
+    </div>`;
+  }
+  return `<div class="wcl-pr wcl-pr-client" data-fid="${fid}" data-pidx="${pidx}">
+    <span class="wcl-pr-dot" style="background:var(--text3)"></span>
+    <span class="wcl-pr-role">👤</span>
+    <span class="wcl-pr-name">${escHtml(p.actor.name)}</span>
+    <span class="wcl-pr-tag">Client</span>
+    <button class="wcl-toggle-btn wcl-toggle-to-booster" data-fid="${fid}" data-pidx="${pidx}">+ Booster</button>
+  </div>`;
+}
+
 function renderStep2() {
   const selectedFights = _fights.filter(f => _selected.has(f.id));
   setStep(`Review — ${selectedFights.length} run${selectedFights.length > 1 ? 's' : ''}`);
@@ -303,23 +336,9 @@ function renderStep2() {
   const cards = selectedFights.map(f => {
     const dInfo = f.cleKey ? DONJONS[f.cleKey] : null;
 
-    const playerRows = f.players.map(p => {
-      if (p.membre) {
-        const color = dotColor(p.membre);
-        const roleLabel = p.role === 'TANK' ? '🛡' : p.role === 'Heal' ? '💚' : '⚔';
-        return `<div class="wcl-pr wcl-pr-found">
-          <span class="wcl-pr-dot" style="background:${color}"></span>
-          <span class="wcl-pr-role">${roleLabel}</span>
-          <span class="wcl-pr-name">${escHtml(p.membre.nom)}</span>
-        </div>`;
-      }
-      return `<div class="wcl-pr wcl-pr-client">
-        <span class="wcl-pr-dot" style="background:var(--text3)"></span>
-        <span class="wcl-pr-role">👤</span>
-        <span class="wcl-pr-name">${escHtml(p.actor.name)}</span>
-        <span class="wcl-pr-tag">Client</span>
-      </div>`;
-    }).join('');
+    const playerRows = f.players.map((p, pidx) =>
+      renderPlayerRow(p, f.id, pidx)
+    ).join('');
 
     const teamBadge = f.team
       ? `<span class="wcl-team-badge">${escHtml(f.team.nom)}</span>`
@@ -360,6 +379,23 @@ function renderStep2() {
       const fight = _fights.find(f => f.id === fid);
       if (fight) fight.cleKey = sel.value || null;
     });
+  });
+
+  // Toggle booster/client par délégation
+  body().addEventListener('click', e => {
+    const btn = e.target.closest('.wcl-toggle-btn');
+    if (!btn) return;
+    const fid  = +btn.dataset.fid;
+    const pidx = +btn.dataset.pidx;
+    const fight = _fights.find(f => f.id === fid);
+    if (!fight) return;
+    fight.players[pidx].isBooster = !fight.players[pidx].isBooster;
+    const row = body().querySelector(`.wcl-pr[data-fid="${fid}"][data-pidx="${pidx}"]`);
+    if (row) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = renderPlayerRow(fight.players[pidx], fid, pidx);
+      row.replaceWith(tmp.firstElementChild);
+    }
   });
 
   foot().innerHTML = `
