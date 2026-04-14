@@ -76,7 +76,10 @@ function detectTeam(membreIds) {
 
 function buildPlayers(fight, actorMap) {
   const friendly = new Set(fight.friendlyPlayers || []);
-  const actors = [...actorMap.values()].filter(a => a.type === 'Player' && friendly.has(a.id));
+  // Garder uniquement les acteurs présents dans la map (évite les IDs fantômes de raids)
+  const actors = [...friendly]
+    .map(id => actorMap.get(id))
+    .filter(Boolean);
   const byNom  = new Map(_membres.map(m => [m.nom.toLowerCase(), m]));
 
   return actors.map(actor => {
@@ -193,16 +196,21 @@ async function analyzeReport(code) {
 
     _report = report;
 
-    // Build actor map
+    // Build actor map — joueurs uniquement, IDs valides
     const actorMap = new Map(
       (report.masterData?.actors || [])
-        .filter(a => a.type === 'Player')
+        .filter(a => a.type === 'Player' && a.id != null && a.name)
         .map(a => [a.id, a])
     );
 
-    // Filter M+ completed fights
+    // Filter M+ completed fights — exclut raids, wipes, et fights sans joueurs
     const mPlusFights = (report.fights || [])
-      .filter(f => f.keystoneLevel != null && f.kill === true);
+      .filter(f =>
+        f.keystoneLevel != null &&
+        f.kill === true &&
+        Array.isArray(f.friendlyPlayers) &&
+        f.friendlyPlayers.length > 0
+      );
 
     if (!mPlusFights.length) {
       renderStep0();
@@ -210,14 +218,18 @@ async function analyzeReport(code) {
       return;
     }
 
-    // Enrich fights
+    // Enrich fights — erreurs isolées par run pour ne pas bloquer les autres
     _fights = mPlusFights.map(f => {
-      const players  = buildPlayers(f, actorMap);
-      const mIds     = players.filter(p => p.membre).map(p => p.membre.id);
-      const team     = detectTeam(mIds);
-      const cleKey   = WCL_DUNGEON_MAP[f.name.toLowerCase()] ?? null;
-      const absStart = report.startTime + f.startTime;
-      return { ...f, players, team, cleKey, absStart };
+      try {
+        const players  = buildPlayers(f, actorMap);
+        const mIds     = players.filter(p => p.membre).map(p => p.membre.id);
+        const team     = detectTeam(mIds);
+        const cleKey   = WCL_DUNGEON_MAP[(f.name || '').toLowerCase()] ?? null;
+        const absStart = (report.startTime || 0) + (f.startTime || 0);
+        return { ...f, players, team, cleKey, absStart };
+      } catch {
+        return { ...f, players: [], team: null, cleKey: null, absStart: (report.startTime || 0) + (f.startTime || 0) };
+      }
     });
 
     renderStep1();
