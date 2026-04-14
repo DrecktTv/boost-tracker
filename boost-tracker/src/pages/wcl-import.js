@@ -362,15 +362,14 @@ function renderStep2() {
       </div>
       ${donjonSel}
       <div class="wcl-card-players">${playerRows}</div>
+      <div class="wcl-card-prix">
+        <label>🪙 Prix / personne</label>
+        <input type="number" class="wcl-prix-per-run" data-fid="${f.id}" placeholder="0" min="0">
+      </div>
     </div>`;
   }).join('');
 
-  body().innerHTML = `
-    <div class="wcl-prix-row">
-      <label class="wcl-prix-lbl">Prix par personne 🪙</label>
-      <input id="wcl-prix" type="number" class="wcl-prix-inp" placeholder="25" min="0">
-    </div>
-    <div class="wcl-cards">${cards}</div>`;
+  body().innerHTML = `<div class="wcl-cards">${cards}</div>`;
 
   // Donjon select listeners (when dungeon not found)
   document.querySelectorAll('.wcl-donjon-sel').forEach(sel => {
@@ -409,9 +408,6 @@ function renderStep2() {
 // ── Import ─────────────────────────────────────────────────────────────────────
 
 async function doImport(selectedFights) {
-  const prixRaw = parseFloat(document.getElementById('wcl-prix')?.value);
-  const prix    = isNaN(prixRaw) ? 0 : prixRaw;
-
   const btn = document.getElementById('wcl-btn-import');
   if (btn) { btn.disabled = true; btn.textContent = 'Import en cours…'; }
 
@@ -420,6 +416,8 @@ async function doImport(selectedFights) {
   for (const f of selectedFights) {
     if (!f.cleKey) { fail++; continue; } // donjon non sélectionné
 
+    const prixRaw = parseFloat(body().querySelector(`.wcl-prix-per-run[data-fid="${f.id}"]`)?.value);
+    const prix    = isNaN(prixRaw) ? 0 : prixRaw;
     const runMembres = buildRunMembres(f.players, f.team, prix);
 
     const res = await safeQuery('wcl:insert', supabase.from('runs').insert([{

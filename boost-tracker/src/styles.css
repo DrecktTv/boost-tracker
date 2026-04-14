@@ -489,10 +489,10 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .wcl-toggle-to-client:hover  { background:rgba(255,255,255,.1); color:var(--text2) }
 .wcl-donjon-sel { margin:6px 14px; width:calc(100% - 28px); font-size:13px }
 
-/* Prix row */
-.wcl-prix-row { display:flex; align-items:center; gap:12px; padding:0 0 14px; border-bottom:1px solid var(--border); margin-bottom:14px }
-.wcl-prix-lbl { font-size:13px; color:var(--text2); white-space:nowrap }
-.wcl-prix-inp { width:140px }
+/* Prix par run */
+.wcl-card-prix { display:flex; align-items:center; gap:10px; padding:8px 14px; border-top:1px solid var(--border); background:rgba(255,255,255,.02) }
+.wcl-card-prix label { font-size:12px; color:var(--text2); white-space:nowrap }
+.wcl-card-prix input { width:120px; font-size:13px }
 
 @keyframes smizz-cheh {
   0%   { opacity:1; transform:translateY(0) scale(1); }
