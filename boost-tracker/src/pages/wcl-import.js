@@ -224,7 +224,8 @@ async function analyzeReport(code) {
         const players  = buildPlayers(f, actorMap);
         const mIds     = players.filter(p => p.membre).map(p => p.membre.id);
         const team     = detectTeam(mIds);
-        const cleKey   = WCL_DUNGEON_MAP[(f.name || '').toLowerCase()] ?? null;
+        const fightName = (f.name || '').toLowerCase().replace(/^the\s+/, '');
+        const cleKey   = WCL_DUNGEON_MAP[fightName] ?? null;
         const absStart = (report.startTime || 0) + (f.startTime || 0);
         return { ...f, players, team, cleKey, absStart };
       } catch {
