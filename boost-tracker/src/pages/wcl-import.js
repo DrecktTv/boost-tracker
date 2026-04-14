@@ -107,41 +107,55 @@ function buildPlayers(fight, actorMap) {
 }
 
 function buildRunMembres(players, team, prix) {
-  const boosters = players.filter(p => p.status === 'booster');
-  const result   = [];
-  let dpsSlot = 0;
+  // 'booster' → inclus avec le prix normal
+  // 'free'    → inclus avec tarif 0 (participe mais ne prend pas de gold)
+  // 'client'  → exclu
+  const active = players.filter(p => p.status === 'booster' || p.status === 'free');
+  const result = [];
+  let dpsSlot  = 0;
 
   if (team) {
     const teamSlots = _slots.filter(s => s.team_id === team.id);
     for (const ts of teamSlots) {
-      const p = boosters.find(b => b.membre?.id === ts.membre_id);
+      const p = active.find(b => b.membre?.id === ts.membre_id);
       result.push({
         slot_index: ts.slot_index,
         role:       SLOT_DEFS[ts.slot_index].role,
         membre_id:  p ? (p.membre?.id ?? null) : null,
-        tarif:      prix,
-        paid:       false,
+        tarif:      p?.status === 'free' ? 0 : prix,
+        paid:       p?.status === 'free',   // gratuit = déjà "payé" (rien à verser)
       });
     }
-    // Boosters manuels (status==='booster' sans membre_id) non couverts par les slots team
     const teamMemberIds = new Set(teamSlots.map(s => s.membre_id).filter(Boolean));
-    for (const p of boosters) {
+    for (const p of active) {
       if (!p.membre || !teamMemberIds.has(p.membre.id)) {
         if      (p.role === 'TANK') dpsSlot = 2;
         else if (p.role === 'Heal') dpsSlot = 3;
         else dpsSlot = result.filter(r => r.role === 'DPS').length === 0 ? 0 : 1;
-        result.push({ slot_index: dpsSlot, role: SLOT_DEFS[dpsSlot]?.role ?? p.role, membre_id: null, tarif: prix, paid: false });
+        result.push({
+          slot_index: dpsSlot,
+          role:       SLOT_DEFS[dpsSlot]?.role ?? p.role,
+          membre_id:  p.membre?.id ?? null,
+          tarif:      p.status === 'free' ? 0 : prix,
+          paid:       p.status === 'free',
+        });
       }
     }
     return result;
   }
 
-  for (const p of boosters) {
+  for (const p of active) {
     let si;
     if      (p.role === 'TANK') si = 2;
     else if (p.role === 'Heal') si = 3;
     else si = dpsSlot++ < 1 ? 0 : 1;
-    result.push({ slot_index: si, role: SLOT_DEFS[si].role, membre_id: p.membre?.id ?? null, tarif: prix, paid: false });
+    result.push({
+      slot_index: si,
+      role:       SLOT_DEFS[si].role,
+      membre_id:  p.membre?.id ?? null,
+      tarif:      p.status === 'free' ? 0 : prix,
+      paid:       p.status === 'free',
+    });
   }
   return result;
 }
@@ -342,18 +356,17 @@ function updateStep1Foot() {
 
 function renderPlayerRow(p, fid, pidx) {
   const roleLabel = p.role === 'TANK' ? '🛡' : p.role === 'Heal' ? '💚' : '⚔';
-  const btn = `<button class="wcl-toggle-btn" data-fid="${fid}" data-pidx="${pidx}">`;
+  const mkBtn = (label) => `<button class="wcl-toggle-btn" data-fid="${fid}" data-pidx="${pidx}">${label}</button>`;
 
   if (p.status === 'booster') {
     const color = p.membre ? dotColor(p.membre) : 'var(--blue2)';
     const name  = p.membre ? escHtml(p.membre.nom) : escHtml(p.actor.name);
-    const added = !p.membre ? `<span class="wcl-pr-tag wcl-pr-tag-added">+ajouté</span>` : '';
     return `<div class="wcl-pr wcl-pr-found" data-fid="${fid}" data-pidx="${pidx}">
       <span class="wcl-pr-dot" style="background:${color}"></span>
       <span class="wcl-pr-role">${roleLabel}</span>
       <span class="wcl-pr-name">${name}</span>
-      ${added}
-      ${btn}→ Gratuit</button>
+      <span class="wcl-pr-tag wcl-pr-tag-booster">💰 Booster</span>
+      ${mkBtn('→ Non payé')}
     </div>`;
   }
 
@@ -364,18 +377,18 @@ function renderPlayerRow(p, fid, pidx) {
       <span class="wcl-pr-dot" style="background:${color}"></span>
       <span class="wcl-pr-role">${roleLabel}</span>
       <span class="wcl-pr-name">${name}</span>
-      <span class="wcl-pr-tag wcl-pr-tag-free">Gratuit</span>
-      ${btn}→ Client</button>
+      <span class="wcl-pr-tag wcl-pr-tag-free">🎁 Non payé</span>
+      ${mkBtn('→ Client')}
     </div>`;
   }
 
-  // client
+  // client (boosté)
   return `<div class="wcl-pr wcl-pr-client" data-fid="${fid}" data-pidx="${pidx}">
     <span class="wcl-pr-dot" style="background:var(--text3)"></span>
     <span class="wcl-pr-role">👤</span>
     <span class="wcl-pr-name">${escHtml(p.actor.name)}</span>
-    <span class="wcl-pr-tag">Client</span>
-    ${btn}+ Booster</button>
+    <span class="wcl-pr-tag wcl-pr-tag-client">Boosté</span>
+    ${mkBtn('+ Booster')}
   </div>`;
 }
 
