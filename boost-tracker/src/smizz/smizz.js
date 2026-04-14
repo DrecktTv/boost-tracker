@@ -20,8 +20,13 @@ export function initSmizz() {
   function appear() {
     if (caught) return;
     const fromLeft = Math.random() > 0.5;
-    x  = fromLeft ? -90 : window.innerWidth + 10;
-    vx = fromLeft ? 2.8 : -2.8;
+    x = fromLeft ? -90 : window.innerWidth + 10;
+
+    // 10% de chance de passage éclair
+    const speed = Math.random() < 0.10
+      ? 7 + Math.random() * 3        // 7–10 px/frame
+      : 2.0 + Math.random() * 3.5;   // 2–5.5 px/frame
+    vx = fromLeft ? speed : -speed;
     wrap.style.left      = x + 'px';
     wrap.style.transform = fromLeft ? 'scaleX(1)' : 'scaleX(-1)';
     wrap.style.display   = 'block';
