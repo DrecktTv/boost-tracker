@@ -482,11 +482,10 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .wcl-pr-client .wcl-pr-name { color:var(--text3); font-style:italic }
 .wcl-pr-tag       { font-size:10px; background:rgba(255,255,255,.06); color:var(--text3); padding:1px 6px; border-radius:4px }
 .wcl-pr-tag-added { background:rgba(74,144,226,.12); color:var(--blue2) }
-.wcl-toggle-btn { margin-left:auto; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; cursor:pointer; border:1px solid; transition:all .12s; flex-shrink:0 }
-.wcl-toggle-to-booster { background:rgba(74,144,226,.1); color:var(--blue2); border-color:rgba(74,144,226,.25) }
-.wcl-toggle-to-booster:hover { background:rgba(74,144,226,.22) }
-.wcl-toggle-to-client  { background:rgba(255,255,255,.05); color:var(--text3); border-color:var(--border) }
-.wcl-toggle-to-client:hover  { background:rgba(255,255,255,.1); color:var(--text2) }
+.wcl-pr-tag-free  { background:rgba(155,111,212,.12); color:var(--purple) }
+.wcl-pr-free .wcl-pr-name { color:var(--text2); text-decoration:line-through; text-decoration-color:var(--text3) }
+.wcl-toggle-btn { margin-left:auto; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; cursor:pointer; border:1px solid var(--border); background:rgba(255,255,255,.05); color:var(--text3); transition:all .12s; flex-shrink:0 }
+.wcl-toggle-btn:hover { background:rgba(255,255,255,.1); color:var(--text2) }
 .wcl-donjon-sel { margin:6px 14px; width:calc(100% - 28px); font-size:13px }
 
 /* Prix par run */

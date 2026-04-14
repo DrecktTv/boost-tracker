@@ -87,12 +87,12 @@ function buildPlayers(fight, actorMap) {
     const role   = membre
       ? (membre.spe === 'TANK' ? 'TANK' : membre.spe === 'Heal' ? 'Heal' : 'DPS')
       : wclRoleFromSubType(actor.subType);
-    return { actor, membre, role, isBooster: !!membre };
+    return { actor, membre, role, status: membre ? 'booster' : 'client' };
   });
 }
 
 function buildRunMembres(players, team, prix) {
-  const boosters = players.filter(p => p.isBooster);
+  const boosters = players.filter(p => p.status === 'booster');
   const result   = [];
   let dpsSlot = 0;
 
@@ -108,7 +108,7 @@ function buildRunMembres(players, team, prix) {
         paid:       false,
       });
     }
-    // Ajouter les boosters manuels (sans membre_id) non couverts par les slots team
+    // Boosters manuels (status==='booster' sans membre_id) non couverts par les slots team
     const teamMemberIds = new Set(teamSlots.map(s => s.membre_id).filter(Boolean));
     for (const p of boosters) {
       if (!p.membre || !teamMemberIds.has(p.membre.id)) {
@@ -129,6 +129,13 @@ function buildRunMembres(players, team, prix) {
     result.push({ slot_index: si, role: SLOT_DEFS[si].role, membre_id: p.membre?.id ?? null, tarif: prix, paid: false });
   }
   return result;
+}
+
+// Cycle de status : booster → free → client → booster
+function nextStatus(current, hasMembre) {
+  if (current === 'client')  return 'booster';
+  if (current === 'booster') return 'free';
+  return hasMembre ? 'booster' : 'client'; // free → retour à booster si membre connu, sinon client
 }
 
 // ── Step 0 — URL input ─────────────────────────────────────────────────────────
@@ -321,7 +328,9 @@ function updateStep1Foot() {
 
 function renderPlayerRow(p, fid, pidx) {
   const roleLabel = p.role === 'TANK' ? '🛡' : p.role === 'Heal' ? '💚' : '⚔';
-  if (p.isBooster) {
+  const btn = `<button class="wcl-toggle-btn" data-fid="${fid}" data-pidx="${pidx}">`;
+
+  if (p.status === 'booster') {
     const color = p.membre ? dotColor(p.membre) : 'var(--blue2)';
     const name  = p.membre ? escHtml(p.membre.nom) : escHtml(p.actor.name);
     const added = !p.membre ? `<span class="wcl-pr-tag wcl-pr-tag-added">+ajouté</span>` : '';
@@ -330,15 +339,29 @@ function renderPlayerRow(p, fid, pidx) {
       <span class="wcl-pr-role">${roleLabel}</span>
       <span class="wcl-pr-name">${name}</span>
       ${added}
-      <button class="wcl-toggle-btn wcl-toggle-to-client" data-fid="${fid}" data-pidx="${pidx}">→ Client</button>
+      ${btn}→ Gratuit</button>
     </div>`;
   }
+
+  if (p.status === 'free') {
+    const color = p.membre ? dotColor(p.membre) : 'var(--text3)';
+    const name  = p.membre ? escHtml(p.membre.nom) : escHtml(p.actor.name);
+    return `<div class="wcl-pr wcl-pr-free" data-fid="${fid}" data-pidx="${pidx}">
+      <span class="wcl-pr-dot" style="background:${color}"></span>
+      <span class="wcl-pr-role">${roleLabel}</span>
+      <span class="wcl-pr-name">${name}</span>
+      <span class="wcl-pr-tag wcl-pr-tag-free">Gratuit</span>
+      ${btn}→ Client</button>
+    </div>`;
+  }
+
+  // client
   return `<div class="wcl-pr wcl-pr-client" data-fid="${fid}" data-pidx="${pidx}">
     <span class="wcl-pr-dot" style="background:var(--text3)"></span>
     <span class="wcl-pr-role">👤</span>
     <span class="wcl-pr-name">${escHtml(p.actor.name)}</span>
     <span class="wcl-pr-tag">Client</span>
-    <button class="wcl-toggle-btn wcl-toggle-to-booster" data-fid="${fid}" data-pidx="${pidx}">+ Booster</button>
+    ${btn}+ Booster</button>
   </div>`;
 }
 
@@ -401,7 +424,8 @@ function renderStep2() {
     const pidx = +btn.dataset.pidx;
     const fight = _fights.find(f => f.id === fid);
     if (!fight) return;
-    fight.players[pidx].isBooster = !fight.players[pidx].isBooster;
+    const player = fight.players[pidx];
+    player.status = nextStatus(player.status, !!player.membre);
     const row = body().querySelector(`.wcl-pr[data-fid="${fid}"][data-pidx="${pidx}"]`);
     if (row) {
       const tmp = document.createElement('div');
