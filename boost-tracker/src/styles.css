@@ -78,6 +78,7 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; 
   display:flex; align-items:center; gap:16px; padding:16px 18px;
   border-radius:12px; border:1px solid; cursor:pointer; font-family:inherit;
   text-align:left; transition:all .18s; position:relative; overflow:hidden; background:none;
+  color:inherit;
 }
 .action-card::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.03),transparent); opacity:0; transition:opacity .2s }
 .action-card:hover::after { opacity:1 }
