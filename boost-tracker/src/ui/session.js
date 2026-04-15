@@ -360,7 +360,7 @@ export function renderSignWidget() {
   wrap.style.display = '';
   wrap.innerHTML = `
     <div class="sign-widget">
-      <button class="sign-copy-btn" id="btn-copy-sign">📋 Copier le signe</button>
+      <button class="sign-copy-btn" id="btn-copy-sign">📋 Copier le texte</button>
     </div>`;
 
   wrap.querySelector('#btn-copy-sign')?.addEventListener('click', async () => {
