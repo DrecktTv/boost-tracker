@@ -183,6 +183,8 @@ select option { background:var(--bg2) }
 .run-member { display:flex; align-items:center; gap:7px; padding:6px 11px; border-radius:8px; background:var(--bg2); border:1px solid var(--border) }
 .run-member-name { font-size:13px; font-weight:600; color:var(--text) }
 .run-member-spe { font-size:11px; color:var(--text3); margin-left:1px }
+.run-client { display:flex; align-items:center; gap:6px; padding:4px 16px 6px; font-size:12px; color:var(--text3) }
+.run-client span { color:var(--text2); font-weight:600 }
 .class-dot { width:3px; height:22px; border-radius:2px; flex-shrink:0 }
 .run-bar { height:3px; background:var(--bg3); flex-shrink:0 }
 .run-bar-fill { height:100%; transition:width .4s }

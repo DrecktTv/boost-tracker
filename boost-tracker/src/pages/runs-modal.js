@@ -13,8 +13,9 @@ let _runMode = 'team'; // 'team' | 'solo'
 // ── Ouvrir le modal ────────────────────────────────────────────────────────────
 
 function resetModal() {
-  g('run-note').value = '';
-  g('run-prix').value = '';
+  g('run-note').value   = '';
+  g('run-prix').value   = '';
+  g('run-client').value = '';
   g('run-preview').style.display = 'none';
   g('run-cles-list').innerHTML = '';
   addCleInput();
@@ -173,6 +174,11 @@ export async function saveRun() {
         const slot = (slots || []).find(s => s.slot_index === i);
         return { slot_index: i, role: def.role, membre_id: slot?.membre_id || null, tarif: prix };
       });
+    }
+
+    const clientName = g('run-client').value.trim();
+    if (clientName) {
+      membres.push({ slot_index: null, role: 'Client', membre_id: null, nom_wcl: clientName, tarif: 0, paid: false });
     }
 
     const run = {

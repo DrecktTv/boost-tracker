@@ -109,17 +109,18 @@ function buildPlayers(fight, actorMap) {
 function buildRunMembres(players, team, prix) {
   // 'booster' → inclus avec le prix normal
   // 'free'    → inclus avec tarif 0 (participe mais ne prend pas de gold)
-  // 'client'  → exclu
-  const active = players.filter(p => p.status === 'booster' || p.status === 'free');
-  const result = [];
-  let dpsSlot  = 0;
+  // 'client'  → stocké avec role:'Client' pour affichage dans le tracker
+  const active  = players.filter(p => p.status === 'booster' || p.status === 'free');
+  const clients = players.filter(p => p.status === 'client');
+  const result  = [];
+  let dpsSlot   = 0;
 
   // Helper : construit un slot, stocke le nom WCL si pas de membre_id
   const mkSlot = (slotIndex, role, p) => ({
     slot_index: slotIndex,
     role,
     membre_id:  p?.membre?.id ?? null,
-    nom_wcl:    (!p?.membre && p?.actor?.name) ? p.actor.name : null, // nom WCL si inconnu
+    nom_wcl:    (!p?.membre && p?.actor?.name) ? p.actor.name : null,
     tarif:      p?.status === 'free' ? 0 : prix,
     paid:       p?.status === 'free',
   });
@@ -139,16 +140,21 @@ function buildRunMembres(players, team, prix) {
         result.push(mkSlot(dpsSlot, SLOT_DEFS[dpsSlot]?.role ?? p.role, p));
       }
     }
-    return result;
+  } else {
+    for (const p of active) {
+      let si;
+      if      (p.role === 'TANK') si = 2;
+      else if (p.role === 'Heal') si = 3;
+      else si = dpsSlot++ < 1 ? 0 : 1;
+      result.push(mkSlot(si, SLOT_DEFS[si].role, p));
+    }
   }
 
-  for (const p of active) {
-    let si;
-    if      (p.role === 'TANK') si = 2;
-    else if (p.role === 'Heal') si = 3;
-    else si = dpsSlot++ < 1 ? 0 : 1;
-    result.push(mkSlot(si, SLOT_DEFS[si].role, p));
+  // Toujours ajouter les clients (boostés) pour les afficher dans le tracker
+  for (const p of clients) {
+    result.push({ slot_index: null, role: 'Client', membre_id: null, nom_wcl: p.actor.name, tarif: 0, paid: false });
   }
+
   return result;
 }
 

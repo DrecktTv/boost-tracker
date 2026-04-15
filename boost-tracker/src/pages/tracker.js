@@ -138,6 +138,11 @@ export async function renderTracker() {
         </div>`;
       }).join('');
 
+      const clientEntry = (run.membres || []).find(m => m.role === 'Client');
+      const clientHTML  = clientEntry?.nom_wcl
+        ? `<div class="run-client">👤 <span>${escHtml(clientEntry.nom_wcl)}</span></div>`
+        : '';
+
       const dateStr = run.date ? formatDate(run.date, { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
 
       return `<div class="run-card" data-run-id="${escHtml(run.id)}">
@@ -159,6 +164,7 @@ export async function renderTracker() {
             </div>
           </div>
           <div class="run-members">${membersHTML}</div>
+          ${clientHTML}
           <div class="run-bar"><div class="run-bar-fill ${cls}" style="width:${barPct}%"></div></div>
           <div class="run-payment-panel" style="display:none;border-top:1px solid var(--border)"></div>
         </div>
