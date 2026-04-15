@@ -111,14 +111,18 @@ export async function initCoverage() {
   const teamIds      = new Set(_teams.map(t => t.id));
   const assignedIds  = new Set(_slots.map(s => s.membre_id));
   const noTeamMIds   = new Set(_membres.filter(m => !assignedIds.has(m.id)).map(m => mKey(m.id)));
-  const allValid     = new Set([...teamIds, ...noTeamMIds]);
+  // allValid inclut tous les m:{id} (pas seulement sans-team) pour que la
+  // sélection manuelle de la session survive au rechargement
+  const allMIds      = new Set(_membres.map(m => mKey(m.id)));
+  const allValid     = new Set([...teamIds, ...allMIds]);
+  const defaultSel   = new Set([...teamIds, ...noTeamMIds]);
 
   const saved = loadSelection();
   if (saved) {
     _selected = new Set([...saved].filter(k => allValid.has(k)));
-    if (_selected.size === 0) _selected = new Set(allValid);
+    if (_selected.size === 0) _selected = new Set(defaultSel);
   } else {
-    _selected = new Set(allValid);
+    _selected = new Set(defaultSel);
   }
 
   wrap.style.display = '';
