@@ -285,7 +285,10 @@ function generateSignText(mainMembers, altMembers) {
     lines.push(`\nAlt Keys: ${altKeys}`);
   }
 
-  return lines.join('\n');
+  const isFull = (_mode === 'team' && _selectedTeamId) || _manualKeys.size >= 4;
+  const header = isFull ? 'TT\n' : '';
+
+  return header + lines.join('\n');
 }
 
 // ── Membres du roster principal seulement (sans les ALTs) ─────────────────────
@@ -322,11 +325,7 @@ export function renderSignWidget() {
   wrap.style.display = '';
   wrap.innerHTML = `
     <div class="sign-widget">
-      <div class="sign-widget-head">
-        <span class="sign-widget-lbl">📋 Signe · ${members.length} membres</span>
-        <button class="sign-copy-btn" id="btn-copy-sign">Copier</button>
-      </div>
-      <textarea class="sign-textarea" id="sign-text" readonly spellcheck="false">${escHtml(text)}</textarea>
+      <button class="sign-copy-btn" id="btn-copy-sign">📋 Copier le signe</button>
     </div>`;
 
   wrap.querySelector('#btn-copy-sign')?.addEventListener('click', async () => {
