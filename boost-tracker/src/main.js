@@ -43,11 +43,32 @@ document.addEventListener('DOMContentLoaded', () => {
 // Guard contre le double-fire de app:ready (onAuthStateChange + getSession)
 let _appReady = false;
 
+function initWednesdayBanner() {
+  const banner = document.getElementById('wednesday-banner');
+  if (!banner) return;
+  const now = new Date();
+  if (now.getDay() !== 3 || now.getHours() < 5) return;
+
+  banner.style.display = 'flex';
+  banner.innerHTML = `
+    <span class="wb-icon">🔑</span>
+    <div class="wb-text">
+      <div class="wb-title">Mettez à jour votre clé &amp; vos tradables !</div>
+      <div class="wb-sub">C'est mercredi — pensez à mettre à jour votre keystone et vos slots tradables dans l'onglet Membres.</div>
+    </div>
+    <button class="wb-close" id="wb-close-btn" title="Fermer">✕</button>`;
+
+  document.getElementById('wb-close-btn')?.addEventListener('click', () => {
+    banner.style.display = 'none';
+  });
+}
+
 document.addEventListener('app:ready', () => {
   if (_appReady) return;
   _appReady = true;
 
-  restorePage('tracker'); // reprend la page du hash URL, sinon tracker
+  restorePage('tracker');
+  initWednesdayBanner(); // reprend la page du hash URL, sinon tracker
   initSmizz();
   initCoverage();
   initSession();

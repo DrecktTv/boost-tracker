@@ -29,6 +29,15 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; 
 .stab-label { font-size:14px; font-weight:500 }
 .main-content { flex:1; min-width:0; overflow-x:hidden }
 
+/* ── WEDNESDAY BANNER ── */
+#wednesday-banner        { background:linear-gradient(135deg,#2a1f00,#1a1200); border-bottom:2px solid var(--gold2); padding:18px 32px; display:flex; align-items:center; gap:16px; animation:fi .3s ease }
+.wb-icon                 { font-size:32px; flex-shrink:0 }
+.wb-text                 { flex:1 }
+.wb-title                { font-size:17px; font-weight:800; color:var(--gold2); letter-spacing:.02em; text-transform:uppercase }
+.wb-sub                  { font-size:13px; color:rgba(234,188,58,.65); margin-top:3px }
+.wb-close                { background:none; border:1px solid rgba(234,188,58,.25); color:rgba(234,188,58,.5); border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:14px; flex-shrink:0; transition:all .15s; display:flex; align-items:center; justify-content:center }
+.wb-close:hover          { border-color:var(--gold2); color:var(--gold2) }
+
 /* ── PAGES ── */
 .page { display:none; padding:28px 32px; max-width:1400px; margin:0 auto }
 .page.active { display:block; animation:fi .15s ease }
