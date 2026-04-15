@@ -88,6 +88,31 @@ function memberRowHtml(m, inputType, inputClass, dataKey, checked, disabled) {
   </label>`;
 }
 
+// ── Row condensé pour les ALTs (type + ilvl + key) ────────────────────────────
+
+function altRowHtml(m, checked) {
+  const color   = speColor(m.classe || '');
+  const role    = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+  const roleTag = m.spe === 'TANK' ? 'Tank' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+  const k       = `m:${m.id}`;
+  const keyStr  = (m.cle_donjon && m.cle_niveau)
+    ? `<span class="smr-badge smr-badge-key">+${m.cle_niveau} ${DUNGEON_LBL[m.cle_donjon] || m.cle_donjon}</span>`
+    : '';
+  const ilvlStr = m.ilvl ? `<span class="smr-badge">${m.ilvl}</span>` : '';
+
+  return `
+  <label class="smr${checked ? ' smr-selected' : ''}">
+    <input type="checkbox" class="setup-alt-cb" data-key="${escHtml(k)}" ${checked ? 'checked' : ''}>
+    <span class="smr-bar" style="background:${color}"></span>
+    ${roleImg(role, 18)}
+    <span class="smr-name">${escHtml(m.nom)}</span>
+    <div class="smr-right">
+      <span class="smr-badge smr-badge-role">${roleTag}</span>
+      ${ilvlStr}${keyStr}
+    </div>
+  </label>`;
+}
+
 // ── Étape 1 : Team principale ou Composition manuelle ─────────────────────────
 
 function renderStep1(body) {
@@ -222,11 +247,7 @@ function renderStep2(body) {
   _altKeys.forEach(k => { if (mainIds.has(k.replace('m:', ''))) _altKeys.delete(k); });
 
   const altItems = available.length
-    ? available.map(m => {
-        const k       = `m:${m.id}`;
-        const checked = _altKeys.has(k);
-        return memberRowHtml(m, 'checkbox', 'setup-alt-cb', k, checked, false);
-      }).join('')
+    ? available.map(m => altRowHtml(m, _altKeys.has(`m:${m.id}`))).join('')
     : '<p class="setup-empty">Tous les personnages sont déjà dans le roster principal.</p>';
 
   body.innerHTML = `
