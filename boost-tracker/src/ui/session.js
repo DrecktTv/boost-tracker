@@ -259,24 +259,33 @@ function formatTrade(canTrade) {
   }
 }
 
-function generateSignText(members) {
-  const sorted = [...members].sort((a, b) => {
+function memberKey(m) {
+  return (m.cle_donjon && m.cle_niveau)
+    ? `+${m.cle_niveau} ${DUNGEON_LBL[m.cle_donjon] || m.cle_donjon}`
+    : 'no key';
+}
+
+function generateSignText(mainMembers, altMembers) {
+  const sorted = [...mainMembers].sort((a, b) => {
     return (ROLE_ORDER[a.spe] ?? 2) - (ROLE_ORDER[b.spe] ?? 2);
   });
 
-  return sorted.map(m => {
+  const lines = sorted.map(m => {
     const roleTag = m.spe === 'TANK' ? ':Tank:' : m.spe === 'Heal' ? ':Heal:' : ':DPS:';
     const clsFr   = m.classe?.split(' ')[0] || m.nom;
     const cls     = (CLASS_EN[clsFr] || clsFr).padEnd(14);
     const rio     = m.rio ? m.rio : '?';
-    const keyStr  = (m.cle_donjon && m.cle_niveau)
-      ? `+${m.cle_niveau} ${DUNGEON_LBL[m.cle_donjon] || m.cle_donjon}`
-      : 'no key';
     const ilvlStr = m.ilvl ? `${m.ilvl} ilvl` : '';
     const trade   = formatTrade(m.can_trade);
+    return `${roleTag}  ${cls} / :Raiderio: ${rio} / :Keystone: ${memberKey(m)} / ${ilvlStr}  / ${trade}`;
+  });
 
-    return `${roleTag}  ${cls} / :Raiderio: ${rio} / :Keystone: ${keyStr} / ${ilvlStr}  / ${trade}`;
-  }).join('\n');
+  if (altMembers.length) {
+    const altKeys = altMembers.map(m => memberKey(m)).join(', ');
+    lines.push(`\nAlt Keys: ${altKeys}`);
+  }
+
+  return lines.join('\n');
 }
 
 // ── Membres du roster principal seulement (sans les ALTs) ─────────────────────
@@ -292,6 +301,12 @@ function getMainMembers() {
   return membres.filter(m => mainIds.has(m.id));
 }
 
+function getAltMembers() {
+  const { membres } = getSetupData();
+  const altIds = new Set([..._altKeys].map(k => k.replace('m:', '')));
+  return membres.filter(m => altIds.has(m.id));
+}
+
 // ── Widget signe dans la sidebar ───────────────────────────────────────────────
 
 export function renderSignWidget() {
@@ -300,8 +315,9 @@ export function renderSignWidget() {
 
   const members = getMainMembers();
   if (!members.length) { wrap.style.display = 'none'; return; }
+  const alts = getAltMembers();
 
-  const text = generateSignText(members);
+  const text = generateSignText(members, alts);
 
   wrap.style.display = '';
   wrap.innerHTML = `
