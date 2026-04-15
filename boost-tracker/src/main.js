@@ -16,7 +16,7 @@ import { initRealtime }   from './lib/realtime.js';
 import { debounce }       from './lib/utils.js';
 import { renderCles }     from './pages/cles.js';
 import { initCoverage } from './ui/coverage.js';
-import { initSession }  from './ui/session.js';
+import { initSession, renderSignWidget }  from './ui/session.js';
 import { initWclImport, openWclImport } from './pages/wcl-import.js';
 
 // ── Enregistrement des pages ───────────────────────────────────────────────────
@@ -51,6 +51,7 @@ document.addEventListener('app:ready', () => {
   initSmizz();
   initCoverage();
   initSession();
+  document.addEventListener('coverage:changed', renderSignWidget);
   initWclImport();
 
   // Realtime — toutes les tables surveillées

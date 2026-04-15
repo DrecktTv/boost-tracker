@@ -98,7 +98,7 @@ export async function initCoverage() {
   if (!isMember()) { wrap.style.display = 'none'; return; }
 
   const [membres, teams, slots] = await Promise.all([
-    safeQuery('coverage:membres', supabase.from('membres').select('id,nom,spe,classe,rio,ilvl,cle_donjon,cle_niveau')),
+    safeQuery('coverage:membres', supabase.from('membres').select('id,nom,spe,classe,rio,ilvl,cle_donjon,cle_niveau,can_trade')),
     safeQuery('coverage:teams',   supabase.from('teams').select('id,nom').order('created_at')),
     safeQuery('coverage:slots',   supabase.from('team_slots').select('team_id,membre_id')),
   ]);
@@ -271,7 +271,7 @@ export async function refreshCoverage() {
   if (!wrap || wrap.style.display === 'none') return;
 
   const membres = await safeQuery('coverage:refresh',
-    supabase.from('membres').select('id,nom,cle_donjon,cle_niveau')
+    supabase.from('membres').select('id,nom,spe,classe,rio,ilvl,cle_donjon,cle_niveau,can_trade')
   );
   if (!membres) return;
 

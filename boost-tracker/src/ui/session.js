@@ -1,8 +1,9 @@
-import { getSetupData, getAllMembres, setSelection } from './coverage.js';
+import { getSetupData, getAllMembres, setSelection, getSelectedMembers } from './coverage.js';
 import { escHtml }  from '../lib/utils.js';
 import { isMember } from '../lib/state.js';
 import { oov, cov } from './modal.js';
 import { speColor, roleImg } from './components.js';
+import { DONJONS } from '../constants.js';
 
 // ── State wizard ───────────────────────────────────────────────────────────────
 let _step        = 1;           // 1 | 2
@@ -238,4 +239,60 @@ function applySelection() {
   } else {
     setSelection([..._manualKeys, ..._altKeys]);
   }
+  renderSignWidget();
+}
+
+// ── Génère le texte signe Discord ─────────────────────────────────────────────
+
+const ROLE_ORDER = { TANK: 0, Heal: 1 };
+
+function generateSignText(members) {
+  const sorted = [...members].sort((a, b) => {
+    return (ROLE_ORDER[a.spe] ?? 2) - (ROLE_ORDER[b.spe] ?? 2);
+  });
+
+  return sorted.map(m => {
+    const roleTag = m.spe === 'TANK' ? ':Tank:' : m.spe === 'Heal' ? ':Heal:' : ':DPS:';
+    const cls     = (m.classe?.split(' ')[0] || m.nom).padEnd(12);
+    const rio     = m.rio ? m.rio : '?';
+    const keyStr  = (m.cle_donjon && m.cle_niveau)
+      ? `+${m.cle_niveau} ${DONJONS[m.cle_donjon]?.fr || m.cle_donjon}`
+      : 'no key';
+    const ilvlStr = m.ilvl ? `${m.ilvl} ilvl` : '';
+    const trade   = m.can_trade ? 'Can trade all' : 'No trade';
+
+    return `${roleTag}  ${cls} / :Raiderio: ${rio} / :Keystone: ${keyStr} / ${ilvlStr}  / ${trade}`;
+  }).join('\n');
+}
+
+// ── Widget signe dans la sidebar ───────────────────────────────────────────────
+
+export function renderSignWidget() {
+  const wrap = document.getElementById('session-sign-wrap');
+  if (!wrap) return;
+
+  const members = getSelectedMembers();
+  if (!members.length) { wrap.style.display = 'none'; return; }
+
+  const text = generateSignText(members);
+
+  wrap.style.display = '';
+  wrap.innerHTML = `
+    <div class="sign-widget">
+      <div class="sign-widget-head">
+        <span class="sign-widget-lbl">📋 Signe · ${members.length} membres</span>
+        <button class="sign-copy-btn" id="btn-copy-sign">Copier</button>
+      </div>
+      <textarea class="sign-textarea" id="sign-text" readonly spellcheck="false">${escHtml(text)}</textarea>
+    </div>`;
+
+  wrap.querySelector('#btn-copy-sign')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      const btn = wrap.querySelector('#btn-copy-sign');
+      btn.textContent = '✓ Copié !';
+      btn.classList.add('sign-copy-ok');
+      setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('sign-copy-ok'); }, 2000);
+    } catch { /* ignore */ }
+  });
 }
