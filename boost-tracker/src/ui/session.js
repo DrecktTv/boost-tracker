@@ -311,9 +311,9 @@ function generateSignText(mainMembers, altMembers) {
     return `${roleTag}  ${cls} / :Raiderio: ${rio} / :Keystone: ${memberKey(m)} / ${ilvlStr}  / ${trade}`;
   });
 
-  if (altMembers.length) {
-    const altKeys = altMembers.map(m => memberKey(m)).join(', ');
-    lines.push(`\nAlt Keys: ${altKeys}`);
+  const altsWithKey = altMembers.filter(m => m.cle_donjon && m.cle_niveau);
+  if (altsWithKey.length) {
+    lines.push(`\nAlt Keys: ${altsWithKey.map(m => memberKey(m)).join(', ')}`);
   }
 
   const isFull = (_mode === 'team' && _selectedTeamId) || _manualKeys.size >= 4;
