@@ -76,6 +76,18 @@ export function toggleSetupKey(key) {
   updateBadges();
 }
 
+// Remplace toute la sélection (composition manuelle)
+export function setSelection(keys) {
+  _selected = new Set(keys);
+  saveSelection();
+  updateBadges();
+}
+
+// Tous les membres (pour composition manuelle)
+export function getAllMembres() {
+  return _membres;
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────────
 
 export async function initCoverage() {
