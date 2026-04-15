@@ -67,7 +67,7 @@ function renderStep1(body) {
   }).join('');
 
   const manualCount = _manualKeys.size;
-  const manualItems = membres.map(m => {
+  const manualItems = allM.map(m => {
     const k        = `m:${m.id}`;
     const checked  = _manualKeys.has(k);
     const disabled = !checked && manualCount >= 4;
