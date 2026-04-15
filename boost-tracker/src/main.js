@@ -44,14 +44,22 @@ document.addEventListener('DOMContentLoaded', () => {
 let _appReady = false;
 
 function initWednesdayBanner() {
-  const banner = document.getElementById('wednesday-banner');
-  if (!banner) return;
   const now = new Date();
   if (now.getDay() !== 3 || now.getHours() < 5) return;
 
-  // Clé = "YYYY-MM-DD" du mercredi courant
-  const todayKey = now.toISOString().slice(0, 10);
+  // Clé locale YYYY-MM-DD (pas UTC, pour éviter les décalages de timezone)
+  const pad = n => String(n).padStart(2, '0');
+  const todayKey = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   if (localStorage.getItem('wb_dismissed') === todayKey) return;
+
+  // Crée le banner dynamiquement si absent du HTML (cache navigateur)
+  let banner = document.getElementById('wednesday-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'wednesday-banner';
+    const mainContent = document.getElementById('main-content') ?? document.body;
+    mainContent.parentNode?.insertBefore(banner, mainContent);
+  }
 
   banner.style.display = 'flex';
   banner.innerHTML = `
