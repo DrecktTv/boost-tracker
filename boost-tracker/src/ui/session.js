@@ -265,13 +265,26 @@ function generateSignText(members) {
   }).join('\n');
 }
 
+// ── Membres du roster principal seulement (sans les ALTs) ─────────────────────
+
+function getMainMembers() {
+  const { slots, membres } = getSetupData();
+  const mainIds = new Set();
+  if (_mode === 'team' && _selectedTeamId) {
+    slots.filter(s => s.team_id === _selectedTeamId).forEach(s => mainIds.add(s.membre_id));
+  } else {
+    _manualKeys.forEach(k => mainIds.add(k.replace('m:', '')));
+  }
+  return membres.filter(m => mainIds.has(m.id));
+}
+
 // ── Widget signe dans la sidebar ───────────────────────────────────────────────
 
 export function renderSignWidget() {
   const wrap = document.getElementById('session-sign-wrap');
   if (!wrap) return;
 
-  const members = getSelectedMembers();
+  const members = getMainMembers();
   if (!members.length) { wrap.style.display = 'none'; return; }
 
   const text = generateSignText(members);
