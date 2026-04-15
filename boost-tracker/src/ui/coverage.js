@@ -56,6 +56,26 @@ export function getCoveredDungeons() {
   return COVERAGE_DEFS.filter(def => hasCoverage(def.key)).map(def => def.key);
 }
 
+// Données brutes pour le sélecteur inline du widget session
+export function getSetupData() {
+  const assignedIds  = new Set(_slots.map(s => s.membre_id));
+  const noTeamMembres = _membres.filter(m => !assignedIds.has(m.id));
+  return {
+    teams:     _teams,
+    noTeam:    noTeamMembres,
+    selected:  _selected,
+    keyOf:     { team: id => id, membre: id => mKey(id) },
+  };
+}
+
+// Toggle un chip team ou membre depuis le widget session
+export function toggleSetupKey(key) {
+  if (_selected.has(key)) _selected.delete(key);
+  else _selected.add(key);
+  saveSelection();
+  updateBadges();
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────────
 
 export async function initCoverage() {
