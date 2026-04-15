@@ -63,12 +63,23 @@ const BODY_SVG = `<svg class="armory-body-svg" viewBox="0 0 80 80" xmlns="http:/
   </g>
 </svg>`;
 
-function parseTradeKeys(val) {
-  if (!val) return new Set();
-  try { return new Set(JSON.parse(val)); } catch { return new Set(); }
+function parseTradeData(val) {
+  if (!val) return { tradable: new Set(), na: new Set() };
+  try {
+    const p = JSON.parse(val);
+    if (Array.isArray(p)) return { tradable: new Set(p), na: new Set() }; // ancien format
+    return { tradable: new Set(p.t || []), na: new Set(p.na || []) };
+  } catch { return { tradable: new Set(), na: new Set() }; }
 }
 
-function renderTradeSlots(selectedKeys = new Set()) {
+function serializeTrade(tradable, na) {
+  const t = [...tradable], n = [...na];
+  if (!t.length && !n.length) return '';
+  return JSON.stringify({ t, na: n });
+}
+
+function renderTradeSlots(data = { tradable: new Set(), na: new Set() }) {
+  const { tradable, na } = data;
   const container = document.getElementById('m-trade-slots');
   const hidden    = document.getElementById('m-trade');
   const count     = document.getElementById('m-trade-count');
@@ -77,9 +88,9 @@ function renderTradeSlots(selectedKeys = new Set()) {
   const slotMap = Object.fromEntries(TRADE_SLOTS.map(s => [s.key, s]));
 
   const mkSlot = key => {
-    const s = slotMap[key];
-    const active = selectedKeys.has(key);
-    return `<button type="button" class="armory-slot${active ? ' ts-active' : ''}" data-key="${key}" title="${s.fr}">
+    const s   = slotMap[key];
+    const cls = tradable.has(key) ? ' ts-active' : na.has(key) ? ' ts-na' : '';
+    return `<button type="button" class="armory-slot${cls}" data-key="${key}" title="${s.fr} — clic: tradable → N/A → rien">
       <span class="armory-slot-icon">${SLOT_ICONS[key] || '📦'}</span>
       <span class="armory-slot-lbl">${s.fr}</span>
     </button>`;
@@ -91,23 +102,34 @@ function renderTradeSlots(selectedKeys = new Set()) {
       <div class="armory-center">${BODY_SVG}</div>
       <div class="armory-col armory-right">${ARMORY_RIGHT.map(mkSlot).join('')}</div>
     </div>
-    <div class="armory-bottom">${ARMORY_BOTTOM.map(mkSlot).join('')}</div>`;
+    <div class="armory-bottom">${ARMORY_BOTTOM.map(mkSlot).join('')}</div>
+    <p style="font-size:10px;color:var(--text3);margin-top:6px">🟡 Tradable &nbsp;·&nbsp; ⬜ Pas tradable &nbsp;·&nbsp; <span style="opacity:.5">✕ N/A</span> (slot inexistant)</p>`;
 
   const update = () => {
-    const keys = [...container.querySelectorAll('.armory-slot.ts-active')].map(el => el.dataset.key);
-    hidden.value = keys.length ? JSON.stringify(keys) : '';
-    if (count) count.textContent = keys.length ? `${keys.length}/${TRADE_SLOTS.length}` : '';
+    const t  = [...container.querySelectorAll('.armory-slot.ts-active')].map(el => el.dataset.key);
+    const n  = [...container.querySelectorAll('.armory-slot.ts-na')].map(el => el.dataset.key);
+    hidden.value = serializeTrade(new Set(t), new Set(n));
+    if (count) count.textContent = t.length ? `${t.length} tradable${t.length > 1 ? 's' : ''}` : '';
   };
 
+  // Cycle : rien → tradable → N/A → rien
   container.querySelectorAll('.armory-slot').forEach(btn => {
-    btn.addEventListener('click', () => { btn.classList.toggle('ts-active'); update(); });
+    btn.addEventListener('click', () => {
+      if (!btn.classList.contains('ts-active') && !btn.classList.contains('ts-na')) {
+        btn.classList.add('ts-active');
+      } else if (btn.classList.contains('ts-active')) {
+        btn.classList.replace('ts-active', 'ts-na');
+      } else {
+        btn.classList.remove('ts-na');
+      }
+      update();
+    });
   });
 
-  // Tout / Aucun — onclick pour éviter accumulation d'écouteurs
   const allBtn  = document.getElementById('m-trade-all');
   const noneBtn = document.getElementById('m-trade-none');
-  if (allBtn)  allBtn.onclick  = () => { container.querySelectorAll('.armory-slot').forEach(b => b.classList.add('ts-active'));    update(); };
-  if (noneBtn) noneBtn.onclick = () => { container.querySelectorAll('.armory-slot').forEach(b => b.classList.remove('ts-active')); update(); };
+  if (allBtn)  allBtn.onclick  = () => { container.querySelectorAll('.armory-slot').forEach(b => { b.classList.remove('ts-na'); b.classList.add('ts-active'); }); update(); };
+  if (noneBtn) noneBtn.onclick = () => { container.querySelectorAll('.armory-slot').forEach(b => { b.classList.remove('ts-active','ts-na'); }); update(); };
 
   update();
 }
@@ -204,7 +226,7 @@ export async function openAddM() {
     ['mn', 'mi', 'mr'].forEach(id => { g(id).value = ''; });
     g('ms').selectedIndex = 0;
     g('mc').innerHTML = '<option value="">— Choisir un rôle —</option>';
-    renderTradeSlots();
+    renderTradeSlots({ tradable: new Set(), na: new Set() });
     const altWrap = document.getElementById('m-alts-wrap');
     if (altWrap) { altWrap.style.display = 'none'; altWrap.innerHTML = ''; }
 
@@ -233,7 +255,7 @@ async function editM(id) {
   g('mc').value     = m.classe || '';
   g('mi').value     = m.ilvl || '';
   g('mr').value     = m.rio || '';
-  renderTradeSlots(parseTradeKeys(m.can_trade));
+  renderTradeSlots(parseTradeData(m.can_trade));
 
   // Populate main select (exclude self so a member can't be its own main)
   populateMainSelect(allResult || [], id);

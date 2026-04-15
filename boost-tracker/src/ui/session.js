@@ -276,11 +276,15 @@ const SLOT_SHORT  = Object.fromEntries(TRADE_SLOTS.map(s => [s.key, s.short]));
 
 function formatTrade(canTrade) {
   try {
-    const tradable = canTrade ? new Set(JSON.parse(canTrade)) : new Set();
-    if (tradable.size === TRADE_SLOTS.length) return 'Can trade all';
-    const missing = TRADE_SLOTS.filter(s => !tradable.has(s.key)).map(s => s.short);
-    if (!missing.length) return 'Can trade all';
-    return `Can't trade: ${missing.join(', ')}`;
+    let tradable = new Set(), na = new Set();
+    if (canTrade) {
+      const p = JSON.parse(canTrade);
+      if (Array.isArray(p)) { tradable = new Set(p); }           // ancien format
+      else { tradable = new Set(p.t || []); na = new Set(p.na || []); }
+    }
+    const cantTrade = TRADE_SLOTS.filter(s => !tradable.has(s.key) && !na.has(s.key));
+    if (!cantTrade.length) return 'Can trade all';
+    return `Can't trade: ${cantTrade.map(s => s.short).join(', ')}`;
   } catch {
     return "Can't trade";
   }

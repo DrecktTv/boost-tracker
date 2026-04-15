@@ -428,6 +428,9 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .armory-slot-icon    { font-size:20px; line-height:1 }
 .armory-slot-lbl     { font-size:8.5px; font-weight:500; color:var(--text3); text-align:center; line-height:1.1; max-width:54px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .armory-slot.ts-active .armory-slot-lbl { color:var(--gold2) }
+.armory-slot.ts-na      { border-color:var(--bg3); background:var(--bg1); opacity:.45 }
+.armory-slot.ts-na .armory-slot-icon { filter:grayscale(1) }
+.armory-slot.ts-na .armory-slot-lbl  { text-decoration:line-through; color:var(--text3) }
 /* Smizz armory animations (classes pour ne pas confliter avec l'easter egg) */
 .as-body  { animation:as-bob .9s infinite ease-in-out; transform-origin:40px 40px }
 .as-leg1  { animation:as-leg-f .9s infinite ease-in-out; transform-origin:40px 46px }
