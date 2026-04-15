@@ -49,6 +49,10 @@ function initWednesdayBanner() {
   const now = new Date();
   if (now.getDay() !== 3 || now.getHours() < 5) return;
 
+  // Clé = "YYYY-MM-DD" du mercredi courant
+  const todayKey = now.toISOString().slice(0, 10);
+  if (localStorage.getItem('wb_dismissed') === todayKey) return;
+
   banner.style.display = 'flex';
   banner.innerHTML = `
     <span class="wb-icon">🔑</span>
@@ -59,6 +63,7 @@ function initWednesdayBanner() {
     <button class="wb-close" id="wb-close-btn" title="Fermer">✕</button>`;
 
   document.getElementById('wb-close-btn')?.addEventListener('click', () => {
+    localStorage.setItem('wb_dismissed', todayKey);
     banner.style.display = 'none';
   });
 }
