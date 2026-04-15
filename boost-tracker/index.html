@@ -43,8 +43,21 @@
       <div class="stab" data-p="ladder">   <span class="stab-icon">🏆</span><span class="stab-label">Ladder</span></div>
       <div class="stab admin-only" data-p="users" style="display:none"><span class="stab-icon">👥</span><span class="stab-label">Utilisateurs</span></div>
     </nav>
-    <div id="session-widget" style="display:none"></div>
+    <div id="session-btn-wrap" style="display:none;padding:10px 12px">
+      <button class="btn btn-secondary" id="btn-setup-session" style="width:100%;font-size:12px">⚡ Setup session</button>
+    </div>
     <div id="key-coverage" style="display:none"></div>
+
+    <!-- Modale Setup session -->
+    <div class="modal" id="ov-setup-session">
+      <div class="modal-box">
+        <div class="modal-head">
+          <span class="modal-title">Setup session</span>
+          <button class="modal-x" data-close="ov-setup-session">✕</button>
+        </div>
+        <div id="setup-session-body"></div>
+      </div>
+    </div>
     <div id="user-bar" style="display:none;padding:12px 14px;border-top:1px solid var(--border);align-items:center;gap:10px">
       <img id="user-avatar" src="" width="32" height="32" style="border-radius:50%;border:2px solid var(--border);display:none;flex-shrink:0"/>
       <div style="flex:1;min-width:0">
