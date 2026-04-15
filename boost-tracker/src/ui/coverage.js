@@ -138,11 +138,8 @@ function renderWidget(wrap) {
   wrap.innerHTML = `
     <div class="kc-header">
       <span class="kc-title">Couverture clés</span>
-      <button class="kc-gear" id="kc-open-modal" title="Filtrer" type="button">⚙</button>
     </div>
     <div class="kc-badges">${badgesHTML}</div>`;
-
-  document.getElementById('kc-open-modal')?.addEventListener('click', openModal);
 }
 
 // ── Modal ──────────────────────────────────────────────────────────────────────

@@ -322,6 +322,10 @@ export function renderSignWidget() {
 
   const text = generateSignText(members, alts);
 
+  // Bouton setup → "Modif Session" une fois la session configurée
+  const setupBtn = document.getElementById('btn-setup-session');
+  if (setupBtn) setupBtn.textContent = '✏️ Modif Session';
+
   wrap.style.display = '';
   wrap.innerHTML = `
     <div class="sign-widget">
