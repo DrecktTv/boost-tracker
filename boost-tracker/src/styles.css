@@ -407,23 +407,28 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   animation:sk-shimmer 1.4s ease-in-out infinite;
 }
 
-/* ── SETUP SESSION ── */
-.setup-tabs        { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:16px }
-.setup-tab         { flex:1; padding:9px 0; font-size:13px; font-weight:500; color:var(--text3); background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; transition:all .15s; margin-bottom:-1px }
-.setup-tab:hover   { color:var(--text2) }
-.setup-tab.active  { color:var(--blue2); border-bottom-color:var(--blue2) }
-.setup-section-lbl { font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin:0 0 8px }
-.setup-hint        { font-size:12px; color:var(--text3); margin:0 0 12px }
-.setup-hint strong { color:var(--text2) }
-.setup-items       { display:flex; flex-direction:column; gap:3px; max-height:320px; overflow-y:auto }
-.setup-item        { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:6px; cursor:pointer; transition:background .12s }
-.setup-item:hover  { background:rgba(255,255,255,.05) }
-.setup-item-disabled { opacity:.4; cursor:not-allowed }
+/* ── SETUP SESSION WIZARD ── */
+.setup-wizard-head   { margin-bottom:16px }
+.setup-step-lbl      { display:block; font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px }
+.setup-step-title    { display:block; font-size:16px; font-weight:700; color:var(--text) }
+.setup-mode-tabs     { display:flex; border-bottom:1px solid var(--border); margin-bottom:14px }
+.setup-mode-tab      { flex:1; padding:8px 0; font-size:13px; font-weight:500; color:var(--text3); background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; transition:all .15s; margin-bottom:-1px }
+.setup-mode-tab:hover  { color:var(--text2) }
+.setup-mode-tab.active { color:var(--blue2); border-bottom-color:var(--blue2) }
+.setup-hint          { font-size:12px; color:var(--text3); margin:0 0 12px }
+.setup-hint strong   { color:var(--text2) }
+.setup-empty         { font-size:13px; color:var(--text3); font-style:italic }
+.setup-items         { display:flex; flex-direction:column; gap:3px; max-height:300px; overflow-y:auto; margin-bottom:4px }
+.setup-item          { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:7px; cursor:pointer; transition:background .12s; border:1px solid transparent }
+.setup-item:hover    { background:rgba(255,255,255,.05) }
+.setup-item-selected { background:rgba(74,144,226,.08); border-color:rgba(74,144,226,.25) }
+.setup-item-disabled { opacity:.35; cursor:not-allowed }
 .setup-item-disabled:hover { background:none }
-.setup-item input[type="checkbox"] { accent-color:var(--blue); cursor:pointer; width:15px; height:15px; flex-shrink:0 }
-.setup-item-name   { font-size:13px; color:var(--text); flex:1 }
-.setup-item-cls    { font-size:11px; color:var(--text3); flex-shrink:0 }
-.setup-item-stats  { font-size:11px; color:var(--text2); flex-shrink:0 }
+.setup-item input    { accent-color:var(--blue); cursor:pointer; width:15px; height:15px; flex-shrink:0 }
+.setup-item-name     { font-size:13px; color:var(--text); flex:1 }
+.setup-item-cls      { font-size:11px; color:var(--text3); flex-shrink:0 }
+.setup-item-stats    { font-size:11px; color:var(--text2); flex-shrink:0 }
+.setup-foot          { display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:14px; border-top:1px solid var(--border) }
 
 /* ── KEY COVERAGE WIDGET ── */
 #key-coverage { padding:10px 12px 8px; border-top:1px solid var(--border) }
