@@ -52,6 +52,10 @@ export function getSelectedMembers() {
   return _membres.filter(m => ids.has(m.id));
 }
 
+export function getCoveredDungeons() {
+  return COVERAGE_DEFS.filter(def => hasCoverage(def.key)).map(def => def.key);
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────────
 
 export async function initCoverage() {
