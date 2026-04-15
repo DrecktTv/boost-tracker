@@ -39,16 +39,32 @@ function renderStep() {
 // ── Étape 1 : Team principale ou Composition manuelle ─────────────────────────
 
 function renderStep1(body) {
-  const { teams } = getSetupData();
-  const membres   = getAllMembres();
+  const { teams, slots, membres: allM } = getSetupData();
+
+  // Helper : membres d'une team
+  const teamMembers = (teamId) => {
+    const ids = slots.filter(s => s.team_id === teamId).map(s => s.membre_id);
+    return ids.map(id => allM.find(m => m.id === id)).filter(Boolean);
+  };
 
   // Sélecteur : une team OU composition manuelle
-  const teamOptions = teams.map(t => `
-    <label class="setup-item${_mode === 'team' && _selectedTeamId === t.id ? ' setup-item-selected' : ''}">
+  const teamOptions = teams.map(t => {
+    const tMembers = teamMembers(t.id);
+    const memberPills = tMembers.map(m => {
+      const icon = m.spe === 'TANK' ? '🛡' : m.spe === 'Heal' ? '💚' : '⚔';
+      const cls  = m.classe?.split(' ')[0] || '';
+      return `<span class="setup-team-member">${icon} ${escHtml(m.nom)} <span class="setup-team-cls">${escHtml(cls)}</span></span>`;
+    }).join('');
+    return `
+    <label class="setup-item setup-item-team${_mode === 'team' && _selectedTeamId === t.id ? ' setup-item-selected' : ''}">
       <input type="radio" name="setup-team" class="setup-radio" value="${escHtml(t.id)}"
         ${_mode === 'team' && _selectedTeamId === t.id ? 'checked' : ''}>
-      <span class="setup-item-name">🐗 ${escHtml(t.nom)}</span>
-    </label>`).join('');
+      <div class="setup-team-info">
+        <span class="setup-item-name">🐗 ${escHtml(t.nom)}</span>
+        <div class="setup-team-members">${memberPills}</div>
+      </div>
+    </label>`;
+  }).join('');
 
   const manualCount = _manualKeys.size;
   const manualItems = membres.map(m => {
@@ -126,18 +142,23 @@ function renderStep1(body) {
 // ── Étape 2 : ALTs potentiels ──────────────────────────────────────────────────
 
 function renderStep2(body) {
-  // Exclure les membres déjà dans la sélection principale
-  const { teams, keyOf } = getSetupData();
+  const { slots } = getSetupData();
   const allMembres = getAllMembres();
 
-  // IDs déjà dans le roster principal
+  // IDs déjà dans le roster principal → à exclure
   const mainIds = new Set();
   if (_mode === 'team' && _selectedTeamId) {
-    const { _slots } = getSetupData(); // on récupère via getAllMembres
-    // On utilise getAllMembres() côté couverture — les slots sont dans getSetupData
+    slots.filter(s => s.team_id === _selectedTeamId).forEach(s => mainIds.add(s.membre_id));
+  } else {
+    _manualKeys.forEach(k => mainIds.add(k.replace('m:', '')));
   }
-  // Simplification : on inclut tout le monde dans step 2, l'utilisateur choisit
-  const altItems = allMembres.map(m => {
+
+  const available = allMembres.filter(m => !mainIds.has(m.id));
+
+  // Retirer de _altKeys les membres qui sont maintenant dans le roster principal
+  _altKeys.forEach(k => { if (mainIds.has(k.replace('m:', ''))) _altKeys.delete(k); });
+
+  const altItems = available.length ? available.map(m => {
     const k       = `m:${m.id}`;
     const checked = _altKeys.has(k);
     const icon    = m.spe === 'TANK' ? '🛡' : m.spe === 'Heal' ? '💚' : '⚔';
@@ -149,7 +170,7 @@ function renderStep2(body) {
       <span class="setup-item-cls">${escHtml(cls)}</span>
       ${stats ? `<span class="setup-item-stats">${stats}</span>` : ''}
     </label>`;
-  }).join('');
+  }).join('') : '<p class="setup-empty">Tous les personnages sont déjà dans le roster principal.</p>';
 
   body.innerHTML = `
     <div class="setup-wizard-head">

@@ -64,6 +64,8 @@ export function getSetupData() {
     teams:     _teams,
     noTeam:    noTeamMembres,
     selected:  _selected,
+    slots:     _slots,
+    membres:   _membres,
     keyOf:     { team: id => id, membre: id => mKey(id) },
   };
 }
