@@ -3,7 +3,7 @@ import { escHtml }  from '../lib/utils.js';
 import { isMember } from '../lib/state.js';
 import { oov, cov } from './modal.js';
 import { speColor, roleImg } from './components.js';
-import { DONJONS, TRADE_SLOTS } from '../constants.js';
+import { DUNGEON_LBL, TRADE_SLOTS } from '../constants.js';
 
 // ── State wizard ───────────────────────────────────────────────────────────────
 let _step        = 1;           // 1 | 2
@@ -269,7 +269,7 @@ function generateSignText(members) {
     const cls     = (m.classe?.split(' ')[0] || m.nom).padEnd(12);
     const rio     = m.rio ? m.rio : '?';
     const keyStr  = (m.cle_donjon && m.cle_niveau)
-      ? `+${m.cle_niveau} ${DONJONS[m.cle_donjon]?.fr || m.cle_donjon}`
+      ? `+${m.cle_niveau} ${DUNGEON_LBL[m.cle_donjon] || m.cle_donjon}`
       : 'no key';
     const ilvlStr = m.ilvl ? `${m.ilvl} ilvl` : '';
     const trade   = formatTrade(m.can_trade);

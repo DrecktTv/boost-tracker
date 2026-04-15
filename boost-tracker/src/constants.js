@@ -38,6 +38,10 @@ export const SPES = {
 
 export const CLE_OPTIONS = ['MT', 'MC', 'Nexus', 'WS', 'AA', 'Pit', 'Seat', 'Sky'];
 
+export const DUNGEON_LBL = {
+  Sky: 'SR', Pit: 'POS', MT: 'MT', Nexus: 'NPX', WS: 'WS', Seat: 'SEAT', MC: 'MC', AA: 'AA',
+};
+
 // Slots d'équipement tradables (ordre WoW character panel)
 export const TRADE_SLOTS = [
   { key: 'head',     fr: 'Tête',      short: 'Head'   },
