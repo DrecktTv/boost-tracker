@@ -82,14 +82,14 @@ export const WCL_DUNGEON_MAP = {
 
 const CDN = 'https://cdn.raiderio.net/images/dungeons';
 export const DONJONS = {
-  MT:    { fr: "Terrasse des Mages",    en: "Magisters' Terrace",       img: `${CDN}/expansion11/base/magisters-terrace.jpg`        },
-  MC:    { fr: 'Cavernes de Maisara',   en: 'Maisara Caverns',          img: `${CDN}/expansion11/base/maisara-caverns.jpg`          },
-  Nexus: { fr: 'Point Néant Xenas',     en: 'Nexus-Point Xenas',        img: `${CDN}/expansion11/base/nexuspoint-xenas.jpg`         },
-  WS:    { fr: 'Flèche du Marchevents', en: 'Windrunner Spire',         img: `${CDN}/expansion11/base/windrunner-spire.jpg`         },
-  AA:    { fr: "Académie d'Algeth'ar",  en: "Algeth'ar Academy",        img: `${CDN}/expansion9/base/algethar-academy.jpg`          },
-  Pit:   { fr: 'Fosse de Saron',        en: 'Pit of Saron',             img: `${CDN}/expansion2/base/pit-of-saron.jpg`              },
-  Seat:  { fr: 'Siège du Triumvirat',   en: 'Seat of the Triumvirate',  img: `${CDN}/expansion6/base/seat-of-the-triumvirate.jpg`   },
-  Sky:   { fr: 'Cîmes Azurées',         en: 'Skyreach',                 img: `${CDN}/expansion5/base/skyreach.jpg`                  },
+  MT:    { fr: "Terrasse des Magistères", en: "Magisters' Terrace",       img: `${CDN}/expansion11/base/magisters-terrace.jpg`        },
+  MC:    { fr: 'Cavernes de Maisara',    en: 'Maisara Caverns',          img: `${CDN}/expansion11/base/maisara-caverns.jpg`          },
+  Nexus: { fr: 'Point-nexus Xenas',      en: 'Nexus-Point Xenas',        img: `${CDN}/expansion11/base/nexuspoint-xenas.jpg`         },
+  WS:    { fr: 'Flèche de Coursevent',   en: 'Windrunner Spire',         img: `${CDN}/expansion11/base/windrunner-spire.jpg`         },
+  AA:    { fr: "Académie d'Algéth'ar",   en: "Algeth'ar Academy",        img: `${CDN}/expansion9/base/algethar-academy.jpg`          },
+  Pit:   { fr: 'Fosse de Saron',         en: 'Pit of Saron',             img: `${CDN}/expansion2/base/pit-of-saron.jpg`              },
+  Seat:  { fr: 'Siège du Triumvirat',    en: 'Seat of the Triumvirate',  img: `${CDN}/expansion6/base/seat-of-the-triumvirate.jpg`   },
+  Sky:   { fr: 'Orée-du-Ciel',           en: 'Skyreach',                 img: `${CDN}/expansion5/base/skyreach.jpg`                  },
 };
 
 // Icons base64 (extraits de indexV2.html)
