@@ -104,6 +104,7 @@ export async function openAddM() {
     ['mn', 'mi', 'mr'].forEach(id => { g(id).value = ''; });
     g('ms').selectedIndex = 0;
     g('mc').innerHTML = '<option value="">— Choisir un rôle —</option>';
+    g('m-trade').value = '';
     const altWrap = document.getElementById('m-alts-wrap');
     if (altWrap) { altWrap.style.display = 'none'; altWrap.innerHTML = ''; }
 
@@ -132,6 +133,7 @@ async function editM(id) {
   g('mc').value     = m.classe || '';
   g('mi').value     = m.ilvl || '';
   g('mr').value     = m.rio || '';
+  g('m-trade').value = m.can_trade || '';
 
   // Populate main select (exclude self so a member can't be its own main)
   populateMainSelect(allResult || [], id);
@@ -179,9 +181,10 @@ export async function saveM() {
       nom,
       spe:     g('ms').value || null,
       classe:  g('mc').value || null,
-      ilvl:    parseInt(g('mi').value) || null,
-      rio:     parseInt(g('mr').value) || null,
-      main_id: g('m-main-id').value || null,
+      ilvl:      parseInt(g('mi').value) || null,
+      rio:       parseInt(g('mr').value) || null,
+      can_trade: g('m-trade').value || null,
+      main_id:   g('m-main-id').value || null,
       owner_id: getUser()?.id,
     };
 
