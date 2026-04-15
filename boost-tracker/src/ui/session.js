@@ -334,7 +334,12 @@ function generateSignText(mainMembers, altMembers) {
 
   const altsWithKey = altMembers.filter(m => m.cle_donjon && m.cle_niveau);
   if (altsWithKey.length) {
-    lines.push(`\nAlt Keys: ${altsWithKey.map(m => memberKey(m)).join(', ')}`);
+    const altList = altsWithKey.map(m => {
+      const role = m.spe === 'TANK' ? 'Tank' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+      const ilvl = m.ilvl ? ` ${m.ilvl}ilvl` : '';
+      return `${role}${ilvl} ${memberKey(m)}`;
+    }).join(' / ');
+    lines.push(`\nAlt Keys: ${altList}`);
   }
 
   const isFull = (_mode === 'team' && _selectedTeamId) || _manualKeys.size >= 4;
