@@ -1,7 +1,7 @@
 import { getSetupData, toggleSetupKey } from './coverage.js';
 import { escHtml }  from '../lib/utils.js';
 import { isMember } from '../lib/state.js';
-import { oov, cov } from '../ui/modal.js';
+import { oov, cov } from './modal.js';
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 
