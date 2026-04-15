@@ -248,14 +248,14 @@ const ROLE_ORDER = { TANK: 0, Heal: 1 };
 const SLOT_SHORT  = Object.fromEntries(TRADE_SLOTS.map(s => [s.key, s.short]));
 
 function formatTrade(canTrade) {
-  if (!canTrade) return 'No trade';
   try {
-    const keys = JSON.parse(canTrade);
-    if (!keys.length) return 'No trade';
-    if (keys.length === TRADE_SLOTS.length) return 'Can trade all';
-    return 'Trade: ' + keys.map(k => SLOT_SHORT[k] || k).join(', ');
+    const tradable = canTrade ? new Set(JSON.parse(canTrade)) : new Set();
+    if (tradable.size === TRADE_SLOTS.length) return 'Can trade all';
+    const missing = TRADE_SLOTS.filter(s => !tradable.has(s.key)).map(s => s.short);
+    if (!missing.length) return 'Can trade all';
+    return `Can't trade: ${missing.join(', ')}`;
   } catch {
-    return 'No trade';
+    return "Can't trade";
   }
 }
 
