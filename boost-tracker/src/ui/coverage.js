@@ -41,6 +41,15 @@ function saveSelection() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify([..._selected]));
   } catch { /* ignore */ }
+  document.dispatchEvent(new CustomEvent('coverage:changed'));
+}
+
+// ── Export pour session widget ─────────────────────────────────────────────────
+
+export function getSelectedMembers() {
+  const ids = new Set(_slots.filter(s => _selected.has(s.team_id)).map(s => s.membre_id));
+  for (const k of _selected) { if (isMId(k)) ids.add(rawId(k)); }
+  return _membres.filter(m => ids.has(m.id));
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
@@ -51,7 +60,7 @@ export async function initCoverage() {
   if (!isMember()) { wrap.style.display = 'none'; return; }
 
   const [membres, teams, slots] = await Promise.all([
-    safeQuery('coverage:membres', supabase.from('membres').select('id,nom,cle_donjon,cle_niveau')),
+    safeQuery('coverage:membres', supabase.from('membres').select('id,nom,spe,classe,rio,ilvl,cle_donjon,cle_niveau')),
     safeQuery('coverage:teams',   supabase.from('teams').select('id,nom').order('created_at')),
     safeQuery('coverage:slots',   supabase.from('team_slots').select('team_id,membre_id')),
   ]);
@@ -77,6 +86,7 @@ export async function initCoverage() {
   wrap.style.display = '';
   renderWidget(wrap);
   mountModal();
+  document.dispatchEvent(new CustomEvent('coverage:changed'));
 }
 
 // ── Widget ─────────────────────────────────────────────────────────────────────
@@ -229,4 +239,5 @@ export async function refreshCoverage() {
 
   _membres = membres;
   updateBadges();
+  document.dispatchEvent(new CustomEvent('coverage:changed'));
 }

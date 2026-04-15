@@ -407,6 +407,23 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   animation:sk-shimmer 1.4s ease-in-out infinite;
 }
 
+/* ── SESSION SIGN WIDGET ── */
+#session-widget { padding:10px 12px 8px; border-top:1px solid var(--border) }
+.ss-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px }
+.ss-title  { font-size:9px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em }
+.ss-copy   { background:none; border:1px solid var(--border); border-radius:4px; padding:1px 5px; cursor:pointer; font-size:11px; color:var(--text3); transition:all .12s }
+.ss-copy:hover { color:var(--text2); border-color:var(--bd2); background:rgba(255,255,255,.06) }
+.ss-members { display:flex; flex-direction:column; gap:2px }
+.ss-row    { display:flex; align-items:center; gap:5px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,.04) }
+.ss-row:last-child { border-bottom:none }
+.ss-role   { font-size:11px; flex-shrink:0; width:14px; text-align:center }
+.ss-name   { font-size:11px; font-weight:600; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.ss-cls    { font-size:10px; color:var(--text3); flex-shrink:0 }
+.ss-stat   { font-size:10px; color:var(--text2); flex-shrink:0; min-width:26px; text-align:right }
+.ss-rio-val { color:var(--gold2) }
+.ss-key-yes { font-size:10px; color:#4ae282; flex-shrink:0; min-width:22px; text-align:right }
+.ss-key-no  { font-size:10px; color:var(--text3); flex-shrink:0; min-width:22px; text-align:right }
+
 /* ── KEY COVERAGE WIDGET ── */
 #key-coverage { padding:10px 12px 8px; border-top:1px solid var(--border) }
 .kc-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px }
