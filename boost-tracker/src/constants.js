@@ -38,6 +38,26 @@ export const SPES = {
 
 export const CLE_OPTIONS = ['MT', 'MC', 'Nexus', 'WS', 'AA', 'Pit', 'Seat', 'Sky'];
 
+// Slots d'équipement tradables (ordre WoW character panel)
+export const TRADE_SLOTS = [
+  { key: 'head',     fr: 'Tête',      short: 'Head'   },
+  { key: 'neck',     fr: 'Cou',       short: 'Neck'   },
+  { key: 'shoulder', fr: 'Épaules',   short: 'Shldr'  },
+  { key: 'back',     fr: 'Dos',       short: 'Back'   },
+  { key: 'chest',    fr: 'Poitrine',  short: 'Chest'  },
+  { key: 'wrist',    fr: 'Poignets',  short: 'Wrist'  },
+  { key: 'hands',    fr: 'Mains',     short: 'Hands'  },
+  { key: 'waist',    fr: 'Ceinture',  short: 'Waist'  },
+  { key: 'legs',     fr: 'Jambes',    short: 'Legs'   },
+  { key: 'feet',     fr: 'Pieds',     short: 'Feet'   },
+  { key: 'ring1',    fr: 'Anneau 1',  short: 'Ring1'  },
+  { key: 'ring2',    fr: 'Anneau 2',  short: 'Ring2'  },
+  { key: 'trinket1', fr: 'Bijou 1',   short: 'Trnk1'  },
+  { key: 'trinket2', fr: 'Bijou 2',   short: 'Trnk2'  },
+  { key: 'weapon',   fr: 'Arme',      short: 'Weap'   },
+  { key: 'offhand',  fr: 'Off-hand',  short: 'OH'     },
+];
+
 // Mapping noms WCL (lowercase) → clés CLE_OPTIONS
 export const WCL_DUNGEON_MAP = {
   "magisters' terrace":      'MT',

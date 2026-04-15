@@ -407,6 +407,14 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   animation:sk-shimmer 1.4s ease-in-out infinite;
 }
 
+/* ── TRADE SLOT PICKER ── */
+.trade-slots        { display:grid; grid-template-columns:repeat(4,1fr); gap:4px }
+.trade-slot         { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6px 2px; border-radius:6px; border:1px solid var(--border); background:var(--bg3); cursor:pointer; transition:border-color .12s, background .12s; user-select:none }
+.trade-slot:hover   { border-color:var(--bd2) }
+.trade-slot.ts-active { border-color:var(--gold2); background:rgba(212,160,23,.13) }
+.ts-lbl             { font-size:10px; font-weight:500; color:var(--text3); text-align:center; line-height:1.2 }
+.trade-slot.ts-active .ts-lbl { color:var(--gold2) }
+
 /* ── SIGN WIDGET (sidebar) ── */
 .sign-widget        { padding:10px 12px }
 .sign-widget-head   { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px }

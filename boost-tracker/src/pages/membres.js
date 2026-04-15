@@ -6,11 +6,56 @@ import { toast } from '../ui/toast.js';
 import { oov, cov } from '../ui/modal.js';
 import { isMember, isAdmin, getUser, setState, getMainMembreId } from '../lib/state.js';
 import { updateUserBarMain } from '../auth/auth.js';
-import { SPES } from '../constants.js';
+import { SPES, TRADE_SLOTS } from '../constants.js';
 
 const SPE_LBL = { 'DPS.C': 'DPS C·C', 'DPS.D': 'DPS Dist.', 'TANK': 'Tank', 'Heal': 'Heal' };
 const SPE_CLS = { 'DPS.C': 'b-dps',   'DPS.D': 'b-dps',     'TANK': 'b-tank', 'Heal': 'b-heal' };
 let _openingModal = false;
+
+// ── Trade slot picker ──────────────────────────────────────────────────────────
+
+function parseTradeKeys(val) {
+  if (!val) return new Set();
+  try { return new Set(JSON.parse(val)); } catch { return new Set(); }
+}
+
+function renderTradeSlots(selectedKeys = new Set()) {
+  const container = document.getElementById('m-trade-slots');
+  const hidden    = document.getElementById('m-trade');
+  const count     = document.getElementById('m-trade-count');
+  if (!container) return;
+
+  const update = () => {
+    const active = container.querySelectorAll('.trade-slot.ts-active');
+    const keys   = [...active].map(el => el.dataset.key);
+    hidden.value = keys.length ? JSON.stringify(keys) : '';
+    if (count) count.textContent = keys.length ? `${keys.length}/${TRADE_SLOTS.length}` : '';
+  };
+
+  container.innerHTML = TRADE_SLOTS.map(s => `
+    <button type="button" class="trade-slot${selectedKeys.has(s.key) ? ' ts-active' : ''}" data-key="${s.key}" title="${s.fr}">
+      <span class="ts-lbl">${s.fr}</span>
+    </button>`).join('');
+
+  container.querySelectorAll('.trade-slot').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('ts-active');
+      update();
+    });
+  });
+
+  // Boutons Tout / Aucun
+  document.getElementById('m-trade-all')?.addEventListener('click', () => {
+    container.querySelectorAll('.trade-slot').forEach(b => b.classList.add('ts-active'));
+    update();
+  });
+  document.getElementById('m-trade-none')?.addEventListener('click', () => {
+    container.querySelectorAll('.trade-slot').forEach(b => b.classList.remove('ts-active'));
+    update();
+  });
+
+  update();
+}
 
 // ── Rendu ──────────────────────────────────────────────────────────────────────
 
@@ -104,7 +149,7 @@ export async function openAddM() {
     ['mn', 'mi', 'mr'].forEach(id => { g(id).value = ''; });
     g('ms').selectedIndex = 0;
     g('mc').innerHTML = '<option value="">— Choisir un rôle —</option>';
-    g('m-trade').value = '';
+    renderTradeSlots();
     const altWrap = document.getElementById('m-alts-wrap');
     if (altWrap) { altWrap.style.display = 'none'; altWrap.innerHTML = ''; }
 
@@ -133,7 +178,7 @@ async function editM(id) {
   g('mc').value     = m.classe || '';
   g('mi').value     = m.ilvl || '';
   g('mr').value     = m.rio || '';
-  g('m-trade').value = m.can_trade || '';
+  renderTradeSlots(parseTradeKeys(m.can_trade));
 
   // Populate main select (exclude self so a member can't be its own main)
   populateMainSelect(allResult || [], id);

@@ -3,7 +3,7 @@ import { escHtml }  from '../lib/utils.js';
 import { isMember } from '../lib/state.js';
 import { oov, cov } from './modal.js';
 import { speColor, roleImg } from './components.js';
-import { DONJONS } from '../constants.js';
+import { DONJONS, TRADE_SLOTS } from '../constants.js';
 
 // ── State wizard ───────────────────────────────────────────────────────────────
 let _step        = 1;           // 1 | 2
@@ -245,6 +245,19 @@ function applySelection() {
 // ── Génère le texte signe Discord ─────────────────────────────────────────────
 
 const ROLE_ORDER = { TANK: 0, Heal: 1 };
+const SLOT_SHORT  = Object.fromEntries(TRADE_SLOTS.map(s => [s.key, s.short]));
+
+function formatTrade(canTrade) {
+  if (!canTrade) return 'No trade';
+  try {
+    const keys = JSON.parse(canTrade);
+    if (!keys.length) return 'No trade';
+    if (keys.length === TRADE_SLOTS.length) return 'Can trade all';
+    return 'Trade: ' + keys.map(k => SLOT_SHORT[k] || k).join(', ');
+  } catch {
+    return 'No trade';
+  }
+}
 
 function generateSignText(members) {
   const sorted = [...members].sort((a, b) => {
@@ -259,7 +272,7 @@ function generateSignText(members) {
       ? `+${m.cle_niveau} ${DONJONS[m.cle_donjon]?.fr || m.cle_donjon}`
       : 'no key';
     const ilvlStr = m.ilvl ? `${m.ilvl} ilvl` : '';
-    const trade   = m.can_trade ? 'Can trade all' : 'No trade';
+    const trade   = formatTrade(m.can_trade);
 
     return `${roleTag}  ${cls} / :Raiderio: ${rio} / :Keystone: ${keyStr} / ${ilvlStr}  / ${trade}`;
   }).join('\n');
