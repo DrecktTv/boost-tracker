@@ -38,6 +38,12 @@ export const SPES = {
 
 export const CLE_OPTIONS = ['MT', 'MC', 'Nexus', 'WS', 'AA', 'Pit', 'Seat', 'Sky'];
 
+export const CLASS_EN = {
+  'Guerrier':'Warrior', 'Paladin':'Paladin', 'Chasseur':'Hunter', 'Voleur':'Rogue',
+  'Prêtre':'Priest', 'Chaman':'Shaman', 'Mage':'Mage', 'Démoniste':'Warlock',
+  'Druide':'Druid', 'Moine':'Monk', 'DK':'Death Knight', 'DH':'Demon Hunter', 'Évocateur':'Evoker',
+};
+
 export const DUNGEON_LBL = {
   Sky: 'SR', Pit: 'POS', MT: 'MT', Nexus: 'NPX', WS: 'WS', Seat: 'SEAT', MC: 'MC', AA: 'AA',
 };

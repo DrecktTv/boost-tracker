@@ -3,7 +3,7 @@ import { escHtml }  from '../lib/utils.js';
 import { isMember } from '../lib/state.js';
 import { oov, cov } from './modal.js';
 import { speColor, roleImg } from './components.js';
-import { DUNGEON_LBL, TRADE_SLOTS } from '../constants.js';
+import { DUNGEON_LBL, TRADE_SLOTS, CLASS_EN } from '../constants.js';
 
 // ── State wizard ───────────────────────────────────────────────────────────────
 let _step        = 1;           // 1 | 2
@@ -266,7 +266,8 @@ function generateSignText(members) {
 
   return sorted.map(m => {
     const roleTag = m.spe === 'TANK' ? ':Tank:' : m.spe === 'Heal' ? ':Heal:' : ':DPS:';
-    const cls     = (m.classe?.split(' ')[0] || m.nom).padEnd(12);
+    const clsFr   = m.classe?.split(' ')[0] || m.nom;
+    const cls     = (CLASS_EN[clsFr] || clsFr).padEnd(14);
     const rio     = m.rio ? m.rio : '?';
     const keyStr  = (m.cle_donjon && m.cle_niveau)
       ? `+${m.cle_niveau} ${DUNGEON_LBL[m.cle_donjon] || m.cle_donjon}`
