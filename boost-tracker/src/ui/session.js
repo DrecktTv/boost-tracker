@@ -88,28 +88,28 @@ function memberRowHtml(m, inputType, inputClass, dataKey, checked, disabled) {
   </label>`;
 }
 
-// ── Row condensé pour les ALTs (type + ilvl + key) ────────────────────────────
+// ── Row condensé : type + ilvl + key (alts, manual, team members) ─────────────
 
-function altRowHtml(m, checked) {
-  const color   = speColor(m.classe || '');
-  const role    = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+function condensedBadges(m) {
   const roleTag = m.spe === 'TANK' ? 'Tank' : m.spe === 'Heal' ? 'Heal' : 'DPS';
-  const k       = `m:${m.id}`;
+  const ilvlStr = m.ilvl ? `<span class="smr-badge">${m.ilvl}</span>` : '';
   const keyStr  = (m.cle_donjon && m.cle_niveau)
     ? `<span class="smr-badge smr-badge-key">+${m.cle_niveau} ${DUNGEON_LBL[m.cle_donjon] || m.cle_donjon}</span>`
     : '';
-  const ilvlStr = m.ilvl ? `<span class="smr-badge">${m.ilvl}</span>` : '';
+  return `<span class="smr-badge smr-badge-role">${roleTag}</span>${ilvlStr}${keyStr}`;
+}
 
+function condensedRowHtml(m, inputClass, dataKey, checked, disabled = false) {
+  const color = speColor(m.classe || '');
+  const role  = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
   return `
-  <label class="smr${checked ? ' smr-selected' : ''}">
-    <input type="checkbox" class="setup-alt-cb" data-key="${escHtml(k)}" ${checked ? 'checked' : ''}>
+  <label class="smr${checked ? ' smr-selected' : ''}${disabled ? ' smr-disabled' : ''}">
+    <input type="checkbox" class="${inputClass}" data-key="${escHtml(dataKey)}"
+      ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
     <span class="smr-bar" style="background:${color}"></span>
     ${roleImg(role, 18)}
     <span class="smr-name">${escHtml(m.nom)}</span>
-    <div class="smr-right">
-      <span class="smr-badge smr-badge-role">${roleTag}</span>
-      ${ilvlStr}${keyStr}
-    </div>
+    <div class="smr-right">${condensedBadges(m)}</div>
   </label>`;
 }
 
@@ -132,13 +132,12 @@ function renderStep1(body) {
     const memberRows = tMembers.map(m => {
       const color = speColor(m.classe || '');
       const role  = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
-      const cls   = m.classe?.split(' ')[0] || '';
       return `
       <div class="stc-member">
         <span class="stc-member-bar" style="background:${color}"></span>
         ${roleImg(role, 16)}
         <span class="stc-member-name">${escHtml(m.nom)}</span>
-        <span class="stc-member-cls">${escHtml(cls)}</span>
+        <div class="stc-member-right">${condensedBadges(m)}</div>
       </div>`;
     }).join('');
 
@@ -161,7 +160,7 @@ function renderStep1(body) {
     const k        = `m:${m.id}`;
     const checked  = _manualKeys.has(k);
     const disabled = !checked && manualCount >= 4;
-    return memberRowHtml(m, 'checkbox', 'setup-manual-cb', k, checked, disabled);
+    return condensedRowHtml(m, 'setup-manual-cb', k, checked, disabled);
   }).join('');
 
   body.innerHTML = `
@@ -247,7 +246,7 @@ function renderStep2(body) {
   _altKeys.forEach(k => { if (mainIds.has(k.replace('m:', ''))) _altKeys.delete(k); });
 
   const altItems = available.length
-    ? available.map(m => altRowHtml(m, _altKeys.has(`m:${m.id}`))).join('')
+    ? available.map(m => condensedRowHtml(m, 'setup-alt-cb', `m:${m.id}`, _altKeys.has(`m:${m.id}`))).join('')
     : '<p class="setup-empty">Tous les personnages sont déjà dans le roster principal.</p>';
 
   body.innerHTML = `
