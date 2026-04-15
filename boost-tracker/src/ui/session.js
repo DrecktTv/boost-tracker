@@ -12,12 +12,38 @@ let _selectedTeamId  = null;    // ID de la team choisie
 let _manualKeys  = new Set();   // m:{id} pour composition manuelle
 let _altKeys     = new Set();   // m:{id} pour les ALTs potentiels (étape 2)
 
+const SESSION_LS = 'kc_session_state';
+
+function saveSessionState() {
+  try {
+    localStorage.setItem(SESSION_LS, JSON.stringify({
+      mode:   _mode,
+      teamId: _selectedTeamId,
+      manual: [..._manualKeys],
+      alts:   [..._altKeys],
+    }));
+  } catch { /* ignore */ }
+}
+
+function loadSessionState() {
+  try {
+    const raw = localStorage.getItem(SESSION_LS);
+    if (!raw) return;
+    const s   = JSON.parse(raw);
+    _mode           = s.mode   || 'team';
+    _selectedTeamId = s.teamId || null;
+    _manualKeys     = new Set(s.manual || []);
+    _altKeys        = new Set(s.alts   || []);
+  } catch { /* ignore */ }
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────────
 
 export function initSession() {
   const wrap = document.getElementById('session-btn-wrap');
   if (!wrap || !isMember()) return;
   wrap.style.display = '';
+  loadSessionState();
   document.getElementById('btn-setup-session')?.addEventListener('click', openSetupModal);
 }
 
@@ -239,6 +265,7 @@ function applySelection() {
   } else {
     setSelection([..._manualKeys, ..._altKeys]);
   }
+  saveSessionState();
   renderSignWidget();
 }
 
