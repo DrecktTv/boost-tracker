@@ -407,13 +407,31 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   animation:sk-shimmer 1.4s ease-in-out infinite;
 }
 
-/* ── TRADE SLOT PICKER ── */
-.trade-slots        { display:grid; grid-template-columns:repeat(4,1fr); gap:4px }
-.trade-slot         { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6px 2px; border-radius:6px; border:1px solid var(--border); background:var(--bg3); cursor:pointer; transition:border-color .12s, background .12s; user-select:none }
-.trade-slot:hover   { border-color:var(--bd2) }
-.trade-slot.ts-active { border-color:var(--gold2); background:rgba(212,160,23,.13) }
-.ts-lbl             { font-size:10px; font-weight:500; color:var(--text3); text-align:center; line-height:1.2 }
-.trade-slot.ts-active .ts-lbl { color:var(--gold2) }
+/* ── TRADE SLOT PICKER (Armory) ── */
+.armory-panel        { display:flex; gap:6px; align-items:stretch }
+.armory-col          { display:flex; flex-direction:column; gap:4px; flex-shrink:0 }
+.armory-center       { flex:1; display:flex; align-items:center; justify-content:center; background:var(--bg3); border:1px solid var(--border); border-radius:var(--rad2); padding:10px; min-height:280px }
+.armory-body-svg     { width:90px }
+.armory-bottom       { display:flex; gap:4px; margin-top:4px; justify-content:center }
+.armory-slot         { width:58px; height:54px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:6px; border:2px solid var(--border); background:var(--bg3); cursor:pointer; transition:border-color .12s,background .12s,box-shadow .12s; gap:2px; flex-shrink:0; padding:2px }
+.armory-slot:hover   { border-color:var(--bd2); background:var(--bg2) }
+.armory-slot.ts-active { border-color:var(--gold2); background:rgba(212,160,23,.14); box-shadow:0 0 8px rgba(234,188,58,.2) }
+.armory-slot-icon    { font-size:20px; line-height:1 }
+.armory-slot-lbl     { font-size:8.5px; font-weight:500; color:var(--text3); text-align:center; line-height:1.1; max-width:54px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.armory-slot.ts-active .armory-slot-lbl { color:var(--gold2) }
+/* Smizz armory animations (classes pour ne pas confliter avec l'easter egg) */
+.as-body  { animation:as-bob .9s infinite ease-in-out; transform-origin:40px 40px }
+.as-leg1  { animation:as-leg-f .9s infinite ease-in-out; transform-origin:40px 46px }
+.as-leg2  { animation:as-leg-b .9s infinite ease-in-out; transform-origin:40px 46px }
+.as-arm1  { animation:as-arm-f .9s infinite ease-in-out; transform-origin:40px 32px }
+.as-arm2  { animation:as-arm-b .9s infinite ease-in-out; transform-origin:40px 32px }
+.as-bag   { animation:as-bag  .9s infinite ease-in-out; transform-origin:55px 32px }
+@keyframes as-bob   { 0%,100%{transform:translateY(0)}   50%{transform:translateY(-3px)} }
+@keyframes as-leg-f { 0%,100%{transform:rotate(-25deg)} 50%{transform:rotate(25deg)} }
+@keyframes as-leg-b { 0%,100%{transform:rotate(25deg)}  50%{transform:rotate(-25deg)} }
+@keyframes as-arm-f { 0%,100%{transform:rotate(15deg)}  50%{transform:rotate(-15deg)} }
+@keyframes as-arm-b { 0%,100%{transform:rotate(-15deg)} 50%{transform:rotate(15deg)} }
+@keyframes as-bag   { 0%,100%{transform:rotate(-6deg)}  50%{transform:rotate(6deg)} }
 
 /* ── SIGN WIDGET (sidebar) ── */
 .sign-widget        { padding:10px 12px }
