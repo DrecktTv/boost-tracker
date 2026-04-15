@@ -2,6 +2,7 @@ import { getSetupData, getAllMembres, setSelection } from './coverage.js';
 import { escHtml }  from '../lib/utils.js';
 import { isMember } from '../lib/state.js';
 import { oov, cov } from './modal.js';
+import { speColor, roleImg } from './components.js';
 
 // ── State wizard ───────────────────────────────────────────────────────────────
 let _step        = 1;           // 1 | 2
@@ -36,6 +37,30 @@ function renderStep() {
   if (_step === 2) renderStep2(body);
 }
 
+// ── Helper membre row ──────────────────────────────────────────────────────────
+
+function memberRowHtml(m, inputType, inputClass, dataKey, checked, disabled) {
+  const color = speColor(m.classe || '');
+  const role  = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+  const cls   = m.classe?.split(' ')[0] || '';
+  const stats = [];
+  if (m.ilvl) stats.push(`<span class="smr-badge">${m.ilvl} ilvl</span>`);
+  if (m.rio)  stats.push(`<span class="smr-badge smr-badge-rio">${m.rio} rio</span>`);
+
+  return `
+  <label class="smr${checked ? ' smr-selected' : ''}${disabled ? ' smr-disabled' : ''}">
+    <input type="${inputType}" class="${inputClass}" data-key="${escHtml(dataKey)}"
+      ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
+    <span class="smr-bar" style="background:${color}"></span>
+    ${roleImg(role, 18)}
+    <span class="smr-name">${escHtml(m.nom)}</span>
+    <div class="smr-right">
+      <span class="smr-cls">${escHtml(cls)}</span>
+      ${stats.join('')}
+    </div>
+  </label>`;
+}
+
 // ── Étape 1 : Team principale ou Composition manuelle ─────────────────────────
 
 function renderStep1(body) {
@@ -47,40 +72,44 @@ function renderStep1(body) {
     return ids.map(id => allM.find(m => m.id === id)).filter(Boolean);
   };
 
-  // Sélecteur : une team OU composition manuelle
+  // Cards team
   const teamOptions = teams.map(t => {
     const tMembers = teamMembers(t.id);
-    const memberPills = tMembers.map(m => {
-      const icon = m.spe === 'TANK' ? '🛡' : m.spe === 'Heal' ? '💚' : '⚔';
-      const cls  = m.classe?.split(' ')[0] || '';
-      return `<span class="setup-team-member">${icon} ${escHtml(m.nom)} <span class="setup-team-cls">${escHtml(cls)}</span></span>`;
+    const isSelected = _mode === 'team' && _selectedTeamId === t.id;
+
+    const memberRows = tMembers.map(m => {
+      const color = speColor(m.classe || '');
+      const role  = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+      const cls   = m.classe?.split(' ')[0] || '';
+      return `
+      <div class="stc-member">
+        <span class="stc-member-bar" style="background:${color}"></span>
+        ${roleImg(role, 16)}
+        <span class="stc-member-name">${escHtml(m.nom)}</span>
+        <span class="stc-member-cls">${escHtml(cls)}</span>
+      </div>`;
     }).join('');
+
     return `
-    <label class="setup-item setup-item-team${_mode === 'team' && _selectedTeamId === t.id ? ' setup-item-selected' : ''}">
+    <label class="stc${isSelected ? ' stc-selected' : ''}">
       <input type="radio" name="setup-team" class="setup-radio" value="${escHtml(t.id)}"
-        ${_mode === 'team' && _selectedTeamId === t.id ? 'checked' : ''}>
-      <div class="setup-team-info">
-        <span class="setup-item-name">🐗 ${escHtml(t.nom)}</span>
-        <div class="setup-team-members">${memberPills}</div>
+        ${isSelected ? 'checked' : ''} style="display:none">
+      <div class="stc-head">
+        <span class="stc-icon">🐗</span>
+        <span class="stc-name">${escHtml(t.nom)}</span>
+        <span class="stc-count">${tMembers.length} membre${tMembers.length > 1 ? 's' : ''}</span>
       </div>
+      <div class="stc-members">${memberRows || '<span class="stc-empty">Aucun membre</span>'}</div>
     </label>`;
   }).join('');
 
+  // Rows composition manuelle
   const manualCount = _manualKeys.size;
   const manualItems = allM.map(m => {
     const k        = `m:${m.id}`;
     const checked  = _manualKeys.has(k);
     const disabled = !checked && manualCount >= 4;
-    const icon     = m.spe === 'TANK' ? '🛡' : m.spe === 'Heal' ? '💚' : '⚔';
-    const cls      = m.classe?.split(' ')[0] || '';
-    const stats    = [m.ilvl ? `${m.ilvl} ilvl` : '', m.rio ? `${m.rio} rio` : ''].filter(Boolean).join(' · ');
-    return `<label class="setup-item${disabled ? ' setup-item-disabled' : ''}${checked ? ' setup-item-selected' : ''}">
-      <input type="checkbox" class="setup-manual-cb" data-key="${escHtml(k)}"
-        ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
-      <span class="setup-item-name">${icon} ${escHtml(m.nom)}</span>
-      <span class="setup-item-cls">${escHtml(cls)}</span>
-      ${stats ? `<span class="setup-item-stats">${stats}</span>` : ''}
-    </label>`;
+    return memberRowHtml(m, 'checkbox', 'setup-manual-cb', k, checked, disabled);
   }).join('');
 
   body.innerHTML = `
@@ -96,10 +125,10 @@ function renderStep1(body) {
 
     <div id="setup-mode-content">
       ${_mode === 'team' ? `
-        <div class="setup-items">${teamOptions || '<p class="setup-empty">Aucune team enregistrée.</p>'}</div>
+        <div class="setup-team-grid">${teamOptions || '<p class="setup-empty">Aucune team enregistrée.</p>'}</div>
       ` : `
         <p class="setup-hint"><strong>${manualCount}/4</strong> personnages sélectionnés</p>
-        <div class="setup-items">${manualItems}</div>
+        <div class="setup-smr-list">${manualItems}</div>
       `}
     </div>
 
@@ -118,7 +147,14 @@ function renderStep1(body) {
 
   // Radio teams
   body.querySelectorAll('.setup-radio').forEach(radio => {
-    radio.addEventListener('change', () => { _selectedTeamId = radio.value; });
+    radio.addEventListener('change', () => { _selectedTeamId = radio.value; renderStep1(body); });
+  });
+  // Clic sur la card entière
+  body.querySelectorAll('.stc').forEach(card => {
+    card.addEventListener('click', () => {
+      const radio = card.querySelector('.setup-radio');
+      if (radio) { _selectedTeamId = radio.value; renderStep1(body); }
+    });
   });
 
   // Checkboxes composition manuelle
@@ -158,19 +194,13 @@ function renderStep2(body) {
   // Retirer de _altKeys les membres qui sont maintenant dans le roster principal
   _altKeys.forEach(k => { if (mainIds.has(k.replace('m:', ''))) _altKeys.delete(k); });
 
-  const altItems = available.length ? available.map(m => {
-    const k       = `m:${m.id}`;
-    const checked = _altKeys.has(k);
-    const icon    = m.spe === 'TANK' ? '🛡' : m.spe === 'Heal' ? '💚' : '⚔';
-    const cls     = m.classe?.split(' ')[0] || '';
-    const stats   = [m.ilvl ? `${m.ilvl} ilvl` : '', m.rio ? `${m.rio} rio` : ''].filter(Boolean).join(' · ');
-    return `<label class="setup-item${checked ? ' setup-item-selected' : ''}">
-      <input type="checkbox" class="setup-alt-cb" data-key="${escHtml(k)}" ${checked ? 'checked' : ''}>
-      <span class="setup-item-name">${icon} ${escHtml(m.nom)}</span>
-      <span class="setup-item-cls">${escHtml(cls)}</span>
-      ${stats ? `<span class="setup-item-stats">${stats}</span>` : ''}
-    </label>`;
-  }).join('') : '<p class="setup-empty">Tous les personnages sont déjà dans le roster principal.</p>';
+  const altItems = available.length
+    ? available.map(m => {
+        const k       = `m:${m.id}`;
+        const checked = _altKeys.has(k);
+        return memberRowHtml(m, 'checkbox', 'setup-alt-cb', k, checked, false);
+      }).join('')
+    : '<p class="setup-empty">Tous les personnages sont déjà dans le roster principal.</p>';
 
   body.innerHTML = `
     <div class="setup-wizard-head">
@@ -178,7 +208,7 @@ function renderStep2(body) {
       <span class="setup-step-title">ALTs potentiels</span>
     </div>
     <p class="setup-hint">Personnages susceptibles de rejoindre la session en remplacement.</p>
-    <div class="setup-items">${altItems}</div>
+    <div class="setup-smr-list">${altItems}</div>
     <div class="setup-foot">
       <button class="btn btn-ghost" id="setup-back">← Retour</button>
       <button class="btn btn-primary" id="setup-validate">Valider</button>
@@ -188,8 +218,7 @@ function renderStep2(body) {
     cb.addEventListener('change', () => {
       if (cb.checked) _altKeys.add(cb.dataset.key);
       else _altKeys.delete(cb.dataset.key);
-      // Highlight sans re-render
-      cb.closest('.setup-item')?.classList.toggle('setup-item-selected', cb.checked);
+      cb.closest('.smr')?.classList.toggle('smr-selected', cb.checked);
     });
   });
 
