@@ -34,14 +34,20 @@ function loadState() {
     const raw = localStorage.getItem(SESSION_LS);
     if (!raw) return;
     const s = JSON.parse(raw);
-    _mode           = s.mode   || 'team';
     _selectedTeamId = s.teamId || null;
     _manualKeys     = new Set(s.manual || []);
     _altKeys        = new Set(s.alts   || []);
     _swaps          = new Map(Array.isArray(s.swaps) ? s.swaps : []);
-    // Si une session était déjà validée, on repart sur le roster
-    const hasConfig = (_mode === 'team' && _selectedTeamId) || _manualKeys.size > 0;
-    _step = (s.step === 'roster' && hasConfig) ? 'roster' : 1;
+    // Si une session était validée → on repart sur le roster avec le mode sauvé
+    const hasConfig = (s.mode === 'team' && _selectedTeamId) || _manualKeys.size > 0;
+    if (s.step === 'roster' && hasConfig) {
+      _step = 'roster';
+      _mode = s.mode || 'team';
+    } else {
+      // Sinon on repart toujours en étape 1, mode team par défaut
+      _step = 1;
+      _mode = 'team';
+    }
   } catch { /* ignore */ }
 }
 
@@ -243,12 +249,28 @@ function renderStep1(page) {
   }).join('');
 
   const manualCount = _manualKeys.size;
-  const manualItems = allM.map(m => {
-    const k       = `m:${m.id}`;
-    const checked  = _manualKeys.has(k);
-    const disabled = !checked && manualCount >= 4;
-    return condensedRowHtml(m, 'sess-manual-cb', k, checked, disabled);
-  }).join('');
+  const roleGroup = role => allM
+    .filter(m => role === 'TANK' ? m.spe === 'TANK' : role === 'Heal' ? m.spe === 'Heal' : (m.spe !== 'TANK' && m.spe !== 'Heal'))
+    .map(m => {
+      const k       = `m:${m.id}`;
+      const checked  = _manualKeys.has(k);
+      const disabled = !checked && manualCount >= 4;
+      return condensedRowHtml(m, 'sess-manual-cb', k, checked, disabled);
+    }).join('');
+
+  const manualItems = `
+    <div class="sess-role-group">
+      <div class="sess-role-lbl">🛡 Tank</div>
+      <div class="setup-smr-list">${roleGroup('TANK') || '<p class="setup-empty">Aucun tank</p>'}</div>
+    </div>
+    <div class="sess-role-group">
+      <div class="sess-role-lbl">💚 Heal</div>
+      <div class="setup-smr-list">${roleGroup('Heal') || '<p class="setup-empty">Aucun heal</p>'}</div>
+    </div>
+    <div class="sess-role-group">
+      <div class="sess-role-lbl">⚔ DPS</div>
+      <div class="setup-smr-list">${roleGroup('DPS') || '<p class="setup-empty">Aucun DPS</p>'}</div>
+    </div>`;
 
   page.innerHTML = `
     <div class="page-head"><span class="page-title">Session</span></div>
@@ -267,7 +289,7 @@ function renderStep1(page) {
           </div>
         ` : `
           <p class="setup-hint"><strong>${manualCount}/4</strong> personnages sélectionnés</p>
-          <div class="setup-smr-list">${manualItems}</div>
+          ${manualItems}
         `}
       </div>
 
