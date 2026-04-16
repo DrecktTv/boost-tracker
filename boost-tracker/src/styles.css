@@ -179,6 +179,8 @@ select option { background:var(--bg2) }
 .run-paid:hover { filter:brightness(1.15) }
 .run-del { width:26px; height:26px; border-radius:7px; border:1px solid var(--border); background:transparent; color:var(--text3); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; transition:all .15s; flex-shrink:0 }
 .run-del:hover { background:rgba(224,85,85,.1); border-color:rgba(224,85,85,.3); color:var(--red) }
+.run-archive-btn { width:26px; height:26px; border-radius:7px; padding:0; font-size:13px; border-color:rgba(76,175,120,.3); color:var(--green); background:rgba(76,175,120,.08); flex-shrink:0 }
+.run-archive-btn:hover { background:rgba(76,175,120,.18); border-color:var(--green) }
 .run-members { display:flex; flex-wrap:wrap; gap:6px; padding:9px 16px; flex:1; align-content:center }
 .run-member { display:flex; align-items:center; gap:7px; padding:6px 11px; border-radius:8px; background:var(--bg2); border:1px solid var(--border) }
 .run-member-name { font-size:13px; font-weight:600; color:var(--text) }

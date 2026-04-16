@@ -3,6 +3,7 @@ import { safeQuery } from '../lib/errors.js';
 import { escHtml, gold, g, setLoading, formatDate } from '../lib/utils.js';
 import { toast } from '../ui/toast.js';
 import { isMember, getMainMembreId } from '../lib/state.js';
+import { doArchiveRun } from './reset.js';
 import { roleImg, speColor } from '../ui/components.js';
 import { DONJONS } from '../constants.js';
 
@@ -75,13 +76,6 @@ function updateStats(runs) {
   const ratio = g('s-ratio'); if (ratio) ratio.style.width = pct + '%';
   const lbl = g('s-ratio-lbl'); if (lbl) lbl.textContent = `${paid} / ${runs.length}`;
 
-  // Bouton "Archiver les payés" — visible si au moins un run a tous ses membres payés
-  const hasFullyPaid = runs.some(r => {
-    const { paid: p, total: t } = paidSlots(r.membres);
-    return t > 0 && p === t;
-  });
-  const archBtn = g('btn-archive-paid');
-  if (archBtn) archBtn.style.display = hasFullyPaid ? '' : 'none';
 }
 
 // ── Rendu ─────────────────────────────────────────────────────────────────────
@@ -168,6 +162,7 @@ export async function renderTracker() {
             <div class="run-top-right">
               <div class="run-gold">🪙 ${gold(run.prix || 0)}<span>/p</span></div>
               <span class="run-paid ${cls}" data-open-panel="${escHtml(run.id)}">${label}</span>
+              ${pSlots === tSlots && tSlots > 0 ? `<button class="btn btn-sm run-archive-btn" data-archive-run="${escHtml(run.id)}" title="Archiver ce run">📦</button>` : ''}
               <button class="run-del" data-del-run="${escHtml(run.id)}">✕</button>
             </div>
           </div>
@@ -180,9 +175,10 @@ export async function renderTracker() {
     }).join('');
 
     rl.onclick = async e => {
-      const memberBtn = e.target.closest('[data-member-paid]');
-      const openPanel = e.target.closest('[data-open-panel]');
-      const delBtn    = e.target.closest('.run-del[data-del-run]');
+      const memberBtn  = e.target.closest('[data-member-paid]');
+      const openPanel  = e.target.closest('[data-open-panel]');
+      const delBtn     = e.target.closest('.run-del[data-del-run]');
+      const archiveBtn = e.target.closest('[data-archive-run]');
 
       if (memberBtn && !memberBtn.disabled) {
         await toggleMemberPaid(memberBtn.dataset.memberPaid, parseInt(memberBtn.dataset.idx), memberBtn.dataset.paid === 'true');
@@ -190,6 +186,11 @@ export async function renderTracker() {
         togglePaymentPanel(openPanel.dataset.openPanel);
       }
       if (delBtn && !delBtn.disabled) await delRun(delBtn.dataset.delRun, delBtn);
+      if (archiveBtn && !archiveBtn.disabled) {
+        archiveBtn.disabled = true;
+        await doArchiveRun(archiveBtn.dataset.archiveRun);
+        archiveBtn.disabled = false;
+      }
     };
 
   } finally {

@@ -120,43 +120,33 @@ export async function doReset() {
   await renderTracker();
 }
 
-// ── Archiver uniquement les runs entièrement payés ─────────────────────────────
+// ── Archiver un run individuel ─────────────────────────────────────────────────
 
-export async function doArchivePaid() {
+export async function doArchiveRun(runId) {
   if (!isMember()) { toast('Accès refusé', 'err'); return; }
 
-  const [runs, membres] = await Promise.all([
-    safeQuery('doArchivePaid:runs',    supabase.from('runs').select('*')),
-    safeQuery('doArchivePaid:membres', supabase.from('membres').select('*')),
+  const [runResult, membres] = await Promise.all([
+    supabase.from('runs').select('*').eq('id', runId).single(),
+    safeQuery('doArchiveRun:membres', supabase.from('membres').select('*')),
   ]);
-  if (runs === null) return;
-
-  // Filtrer les runs dont tous les membres sont payés
-  const paidRuns = (runs || []).filter(r => {
-    const slots = (r.membres || []).filter(m => (m.membre_id || m.nom_wcl) && m.role !== 'Client');
-    return slots.length > 0 && slots.every(m => m.paid);
-  });
-
-  if (!paidRuns.length) { toast('Aucun run entièrement payé', 'err'); return; }
-  if (!confirm(`Archiver ${paidRuns.length} run(s) entièrement payé(s) ?`)) return;
+  const run = runResult.data;
+  if (!run) { toast('Run introuvable', 'err'); return; }
 
   const byId = Object.fromEntries(membres.map(x => [x.id, x]));
 
-  // Calcul des gains par membre pour ces runs uniquement
+  // Calcul des gains pour ce run
   const sessionGold = {};
-  paidRuns.forEach(run => {
-    (run.membres || []).forEach(m => {
-      if (!m.membre_id || m.role === 'Client') return;
-      const mb = byId[m.membre_id];
-      if (!mb) return;
-      const targetId = mb.main_id && byId[mb.main_id] ? mb.main_id : m.membre_id;
-      const target   = byId[targetId] || mb;
-      if (!sessionGold[targetId]) {
-        sessionGold[targetId] = { nom: target.nom, spe: target.spe, classe: target.classe, earned: 0, runs: 0 };
-      }
-      sessionGold[targetId].earned += (m.tarif || 0);
-      sessionGold[targetId].runs++;
-    });
+  (run.membres || []).forEach(m => {
+    if (!m.membre_id || m.role === 'Client') return;
+    const mb = byId[m.membre_id];
+    if (!mb) return;
+    const targetId = mb.main_id && byId[mb.main_id] ? mb.main_id : m.membre_id;
+    const target   = byId[targetId] || mb;
+    if (!sessionGold[targetId]) {
+      sessionGold[targetId] = { nom: target.nom, spe: target.spe, classe: target.classe, earned: 0, runs: 0 };
+    }
+    sessionGold[targetId].earned += (m.tarif || 0);
+    sessionGold[targetId].runs++;
   });
 
   // Upsert alltime
@@ -164,7 +154,7 @@ export async function doArchivePaid() {
   if (entries.length) {
     const existing = await Promise.all(
       entries.map(([membre_id]) =>
-        safeQuery('doArchivePaid:alltime:get',
+        safeQuery('doArchiveRun:alltime:get',
           supabase.from('alltime').select('earned,runs').eq('membre_id', membre_id).maybeSingle()
         )
       )
@@ -173,7 +163,7 @@ export async function doArchivePaid() {
       entries.map(([membre_id, data], i) => {
         const prev = existing[i];
         if (prev) {
-          return safeQuery('doArchivePaid:alltime:update',
+          return safeQuery('doArchiveRun:alltime:update',
             supabase.from('alltime').update({
               earned:     prev.earned + data.earned,
               runs:       prev.runs   + data.runs,
@@ -182,31 +172,16 @@ export async function doArchivePaid() {
             }).eq('membre_id', membre_id)
           );
         }
-        return safeQuery('doArchivePaid:alltime:insert',
+        return safeQuery('doArchiveRun:alltime:insert',
           supabase.from('alltime').insert([{ membre_id, ...data }])
         );
       })
     );
   }
 
-  // Archiver dans historique
-  const total = paidRuns.reduce((s, r) => s + (r.prix || 0), 0);
-  await safeQuery('doArchivePaid:historique', supabase.from('historique_resets').insert([{
-    date:         new Date().toISOString(),
-    note:         `Archivage partiel — ${paidRuns.length} run(s) payé(s)`,
-    total,
-    paid_count:   paidRuns.length,
-    unpaid_count: 0,
-    runs_count:   paidRuns.length,
-    snapshot:     JSON.stringify({ date: new Date().toISOString(), total, session_gold: sessionGold, runs: paidRuns }),
-  }]));
+  // Supprimer le run
+  await safeQuery('doArchiveRun:delete', supabase.from('runs').delete().eq('id', runId));
 
-  // Supprimer uniquement ces runs
-  const ids = paidRuns.map(r => r.id);
-  await safeQuery('doArchivePaid:delete',
-    supabase.from('runs').delete().in('id', ids)
-  );
-
-  toast(`✓ ${paidRuns.length} run(s) archivé(s)`);
+  toast('📦 Run archivé');
   await renderTracker();
 }
