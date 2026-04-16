@@ -339,6 +339,45 @@ function renderStep1(page) {
 
 // ── Step 2 : Alts potentiels ───────────────────────────────────────────────────
 
+function altRowHtml(m) {
+  const k       = `m:${m.id}`;
+  const checked  = _altKeys.has(k);
+  const color    = speColor(m.classe || '');
+  const role     = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+  const roleTag  = m.spe === 'TANK' ? 'Tank' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+  const ilvlStr  = m.ilvl ? `<span class="smr-badge">${m.ilvl}</span>` : '';
+  const keyStr   = (m.cle_donjon && m.cle_niveau)
+    ? `<span class="smr-badge smr-badge-key">+${m.cle_niveau} ${DUNGEON_LBL[m.cle_donjon] || m.cle_donjon}</span>`
+    : '';
+  const tradeStr = tradeBadgeSmr(m.can_trade);
+  return `
+  <label class="smr${checked ? ' smr-selected' : ''}">
+    <input type="checkbox" class="sess-alt-cb" data-key="${escHtml(k)}"
+      ${checked ? 'checked' : ''}>
+    <span class="smr-bar" style="background:${color}"></span>
+    ${roleImg(role, 18)}
+    <span class="smr-name">${escHtml(m.nom)}</span>
+    <div class="smr-right">
+      <span class="smr-badge smr-badge-role">${roleTag}</span>
+      ${ilvlStr}${keyStr}${tradeStr}
+    </div>
+  </label>`;
+}
+
+function tradeBadgeSmr(canTrade) {
+  try {
+    if (!canTrade) return '';
+    let tradable = new Set(), na = new Set();
+    const p = JSON.parse(canTrade);
+    if (Array.isArray(p)) tradable = new Set(p);
+    else { tradable = new Set(p.t || []); na = new Set(p.na || []); }
+    const cant = TRADE_SLOTS.filter(s => !tradable.has(s.key) && !na.has(s.key));
+    if (!cant.length) return `<span class="smr-badge smr-badge-trade-all">Trade all</span>`;
+    const label = cant.length <= 3 ? `No ${cant.map(s => s.short).join(' ')}` : 'No trade';
+    return `<span class="smr-badge smr-badge-trade-no" title="Can't trade: ${cant.map(s => s.short).join(', ')}">${label}</span>`;
+  } catch { return ''; }
+}
+
 function renderStep2(page) {
   const allMembres = getAllMembres();
   const { slots }  = getSetupData();
@@ -350,12 +389,27 @@ function renderStep2(page) {
     _manualKeys.forEach(k => mainIds.add(k.replace('m:', '')));
   }
 
-  // Retirer les alts qui sont passés en main
   _altKeys.forEach(k => { if (mainIds.has(k.replace('m:', ''))) _altKeys.delete(k); });
 
   const available = allMembres.filter(m => !mainIds.has(m.id));
-  const altItems  = available.length
-    ? available.map(m => condensedRowHtml(m, 'sess-alt-cb', `m:${m.id}`, _altKeys.has(`m:${m.id}`))).join('')
+
+  const roleGroup2 = role => available
+    .filter(m => role === 'TANK' ? m.spe === 'TANK' : role === 'Heal' ? m.spe === 'Heal' : (m.spe !== 'TANK' && m.spe !== 'Heal'))
+    .map(altRowHtml).join('');
+
+  const altItems = available.length ? `
+    <div class="sess-role-group">
+      <div class="sess-role-lbl">🛡 Tank</div>
+      <div class="setup-smr-list">${roleGroup2('TANK') || '<p class="setup-empty">Aucun tank</p>'}</div>
+    </div>
+    <div class="sess-role-group">
+      <div class="sess-role-lbl">💚 Heal</div>
+      <div class="setup-smr-list">${roleGroup2('Heal') || '<p class="setup-empty">Aucun heal</p>'}</div>
+    </div>
+    <div class="sess-role-group">
+      <div class="sess-role-lbl">⚔ DPS</div>
+      <div class="setup-smr-list">${roleGroup2('DPS') || '<p class="setup-empty">Aucun DPS</p>'}</div>
+    </div>`
     : '<p class="setup-empty">Tous les personnages sont dans le roster principal.</p>';
 
   page.innerHTML = `
@@ -363,9 +417,7 @@ function renderStep2(page) {
     <div class="sess-container">
       ${stepIndicator(2)}
       <p class="setup-hint">Personnages susceptibles de remplacer un membre principal.</p>
-      <div class="sess-step-body">
-        <div class="setup-smr-list">${altItems}</div>
-      </div>
+      <div class="sess-step-body">${altItems}</div>
       <div class="sess-foot">
         <button class="btn btn-ghost" id="sess-back">← Retour</button>
         <button class="btn btn-primary" id="sess-validate">Valider la session</button>

@@ -591,6 +591,8 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .smr-badge-rio       { color:var(--blue2); border-color:rgba(74,144,226,.25) }
 .smr-badge-key       { color:var(--green); border-color:rgba(76,175,120,.25) }
 .smr-badge-role      { color:var(--text3); font-size:9px; text-transform:uppercase; letter-spacing:.04em }
+.smr-badge-trade-all { color:var(--green); border-color:rgba(76,175,120,.25) }
+.smr-badge-trade-no  { color:#f87171; border-color:rgba(239,68,68,.25) }
 
 /* ── KEY COVERAGE WIDGET ── */
 #key-coverage { padding:10px 12px 8px; border-top:1px solid var(--border) }
