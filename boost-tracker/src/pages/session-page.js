@@ -6,18 +6,20 @@ import { DUNGEON_LBL, TRADE_SLOTS, CLASS_EN } from '../constants.js';
 
 // ── State ──────────────────────────────────────────────────────────────────────
 
-let _mode           = 'team';
+let _step           = 1;        // 1 | 2 | 'roster'
+let _mode           = 'team';   // 'team' | 'manual'
 let _selectedTeamId = null;
-let _manualKeys     = new Set();   // m:{id}
-let _altKeys        = new Set();   // m:{id}
-let _swaps          = new Map();   // mainId → altId
-let _swapOpen       = null;        // mainId dont le picker est ouvert
+let _manualKeys     = new Set();
+let _altKeys        = new Set();
+let _swaps          = new Map(); // mainId → altId
+let _swapOpen       = null;      // mainId dont le picker est ouvert
 
 const SESSION_LS = 'kc_session_state';
 
 function saveState() {
   try {
     localStorage.setItem(SESSION_LS, JSON.stringify({
+      step:   _step,
       mode:   _mode,
       teamId: _selectedTeamId,
       manual: [..._manualKeys],
@@ -31,12 +33,15 @@ function loadState() {
   try {
     const raw = localStorage.getItem(SESSION_LS);
     if (!raw) return;
-    const s     = JSON.parse(raw);
+    const s = JSON.parse(raw);
     _mode           = s.mode   || 'team';
     _selectedTeamId = s.teamId || null;
     _manualKeys     = new Set(s.manual || []);
     _altKeys        = new Set(s.alts   || []);
     _swaps          = new Map(Array.isArray(s.swaps) ? s.swaps : []);
+    // Si une session était déjà validée, on repart sur le roster
+    const hasConfig = (_mode === 'team' && _selectedTeamId) || _manualKeys.size > 0;
+    _step = (s.step === 'roster' && hasConfig) ? 'roster' : 1;
   } catch { /* ignore */ }
 }
 
@@ -59,7 +64,6 @@ function getAltMembers() {
   return membres.filter(m => altIds.has(m.id));
 }
 
-/** Roster effectif : swaps appliqués, _original = membre remplacé */
 function getEffectiveRoster() {
   const { membres } = getSetupData();
   return getMainMembers().map(m => {
@@ -70,7 +74,6 @@ function getEffectiveRoster() {
   });
 }
 
-/** Alts disponibles pour swapper un slot (exclut ceux déjà utilisés ailleurs) */
 function getAvailableAltsForSwap(mainId) {
   const { membres } = getSetupData();
   const altIds     = new Set([..._altKeys].map(k => k.replace('m:', '')));
@@ -88,7 +91,7 @@ function formatTrade(canTrade) {
     let tradable = new Set(), na = new Set();
     if (canTrade) {
       const p = JSON.parse(canTrade);
-      if (Array.isArray(p)) { tradable = new Set(p); }
+      if (Array.isArray(p)) tradable = new Set(p);
       else { tradable = new Set(p.t || []); na = new Set(p.na || []); }
     }
     const cant = TRADE_SLOTS.filter(s => !tradable.has(s.key) && !na.has(s.key));
@@ -134,7 +137,7 @@ function generateSignText() {
   return (isFull ? 'TT\n' : '') + lines.join('\n');
 }
 
-// ── Badges helpers ─────────────────────────────────────────────────────────────
+// ── Badge helpers ──────────────────────────────────────────────────────────────
 
 function keyBadge(m) {
   if (!m.cle_donjon || !m.cle_niveau)
@@ -155,12 +158,14 @@ function tradeBadge(canTrade) {
     else { tradable = new Set(p.t || []); na = new Set(p.na || []); }
     const cant = TRADE_SLOTS.filter(s => !tradable.has(s.key) && !na.has(s.key));
     if (!cant.length) return `<span class="sess-badge sess-badge-trade-all">Trade all</span>`;
-    if (cant.length <= 3) return `<span class="sess-badge sess-badge-trade-no" title="Can't trade: ${cant.map(s => s.short).join(', ')}">No ${cant.map(s => s.short).join(' ')}</span>`;
-    return `<span class="sess-badge sess-badge-trade-no" title="Can't trade: ${cant.map(s => s.short).join(', ')}">No trade</span>`;
+    const label = cant.length <= 3
+      ? `No ${cant.map(s => s.short).join(' ')}`
+      : 'No trade';
+    return `<span class="sess-badge sess-badge-trade-no" title="Can't trade: ${cant.map(s => s.short).join(', ')}">${label}</span>`;
   } catch { return ''; }
 }
 
-// ── Condensed row helpers (partagés avec config) ───────────────────────────────
+// ── Condensed row (config steps) ──────────────────────────────────────────────
 
 function condensedBadges(m) {
   const roleTag = m.spe === 'TANK' ? 'Tank' : m.spe === 'Heal' ? 'Heal' : 'DPS';
@@ -185,26 +190,193 @@ function condensedRowHtml(m, inputClass, dataKey, checked, disabled = false) {
   </label>`;
 }
 
-// ── Render roster panel ────────────────────────────────────────────────────────
+// ── Step indicator ─────────────────────────────────────────────────────────────
 
-function renderRosterPanel() {
-  const effective = getEffectiveRoster();
+function stepIndicator(current) {
+  const steps = [
+    { n: 1, lbl: 'Roster principal' },
+    { n: 2, lbl: 'Alts potentiels'  },
+  ];
+  return `<div class="sess-steps">
+    ${steps.map(s => `
+      <div class="sess-step${s.n === current ? ' active' : s.n < current ? ' done' : ''}">
+        <span class="sess-step-n">${s.n < current ? '✓' : s.n}</span>
+        <span class="sess-step-lbl">${s.lbl}</span>
+      </div>
+      ${s.n < steps.length ? '<div class="sess-step-line"></div>' : ''}
+    `).join('')}
+  </div>`;
+}
 
-  if (!effective.length) {
-    return `<section class="sess-panel sess-roster-panel">
-      <div class="sess-panel-head">
-        <span class="sess-panel-title">Roster actif</span>
+// ── Step 1 : Roster principal ──────────────────────────────────────────────────
+
+function renderStep1(page) {
+  const { teams, slots, membres: allM } = getSetupData();
+
+  const teamCards = teams.map(t => {
+    const tMembres = slots.filter(s => s.team_id === t.id)
+      .map(s => allM.find(m => m.id === s.membre_id)).filter(Boolean);
+    const isSelected = _mode === 'team' && _selectedTeamId === t.id;
+
+    const memberRows = tMembres.map(m => {
+      const color = speColor(m.classe || '');
+      const role  = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+      return `<div class="stc-member">
+        <span class="stc-member-bar" style="background:${color}"></span>
+        ${roleImg(role, 14)}
+        <span class="stc-member-name">${escHtml(m.nom)}</span>
+        <div class="stc-member-right">${condensedBadges(m)}</div>
+      </div>`;
+    }).join('');
+
+    return `<label class="stc${isSelected ? ' stc-selected' : ''}">
+      <input type="radio" name="sess-team" class="sess-team-radio" value="${escHtml(t.id)}"
+        ${isSelected ? 'checked' : ''} style="display:none">
+      <div class="stc-head">
+        <span class="stc-icon">🐗</span>
+        <span class="stc-name">${escHtml(t.nom)}</span>
+        <span class="stc-count">${tMembres.length} membre${tMembres.length !== 1 ? 's' : ''}</span>
       </div>
-      <div class="sess-empty-state">
-        <div class="sess-empty-icon">⚡</div>
-        <p>Aucune session configurée.<br>Choisis ton roster ci-dessous et clique sur <strong>Appliquer</strong>.</p>
+      <div class="stc-members">${memberRows || '<span class="stc-empty">Aucun membre</span>'}</div>
+    </label>`;
+  }).join('');
+
+  const manualCount = _manualKeys.size;
+  const manualItems = allM.map(m => {
+    const k       = `m:${m.id}`;
+    const checked  = _manualKeys.has(k);
+    const disabled = !checked && manualCount >= 4;
+    return condensedRowHtml(m, 'sess-manual-cb', k, checked, disabled);
+  }).join('');
+
+  page.innerHTML = `
+    <div class="page-head"><span class="page-title">Session</span></div>
+    <div class="sess-container">
+      ${stepIndicator(1)}
+
+      <div class="setup-mode-tabs">
+        <button class="setup-mode-tab${_mode === 'team'   ? ' active' : ''}" data-mode="team">Team</button>
+        <button class="setup-mode-tab${_mode === 'manual' ? ' active' : ''}" data-mode="manual">Composition manuelle</button>
       </div>
-    </section>`;
+
+      <div class="sess-step-body">
+        ${_mode === 'team' ? `
+          <div class="setup-team-grid">
+            ${teamCards || '<p class="setup-empty">Aucune team enregistrée.</p>'}
+          </div>
+        ` : `
+          <p class="setup-hint"><strong>${manualCount}/4</strong> personnages sélectionnés</p>
+          <div class="setup-smr-list">${manualItems}</div>
+        `}
+      </div>
+
+      <div class="sess-foot">
+        <span></span>
+        <button class="btn btn-primary" id="sess-next">Suivant →</button>
+      </div>
+    </div>`;
+
+  // Mode tabs
+  page.querySelectorAll('.setup-mode-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _mode = btn.dataset.mode;
+      if (_mode === 'team') _manualKeys = new Set();
+      renderStep1(page);
+    });
+  });
+
+  // Team radio / card click
+  page.querySelectorAll('.sess-team-radio').forEach(r => {
+    r.addEventListener('change', () => { _selectedTeamId = r.value; renderStep1(page); });
+  });
+  page.querySelectorAll('.stc').forEach(card => {
+    card.addEventListener('click', () => {
+      const r = card.querySelector('.sess-team-radio');
+      if (r && _mode === 'team') { _selectedTeamId = r.value; renderStep1(page); }
+    });
+  });
+
+  // Manual checkboxes
+  page.querySelectorAll('.sess-manual-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) _manualKeys.add(cb.dataset.key);
+      else _manualKeys.delete(cb.dataset.key);
+      renderStep1(page);
+    });
+  });
+
+  // Suivant
+  page.querySelector('#sess-next')?.addEventListener('click', () => {
+    if (_mode === 'team' && !_selectedTeamId) return;
+    if (_mode === 'manual' && _manualKeys.size === 0) return;
+    _step = 2;
+    renderStep2(page);
+  });
+}
+
+// ── Step 2 : Alts potentiels ───────────────────────────────────────────────────
+
+function renderStep2(page) {
+  const allMembres = getAllMembres();
+  const { slots }  = getSetupData();
+
+  const mainIds = new Set();
+  if (_mode === 'team' && _selectedTeamId) {
+    slots.filter(s => s.team_id === _selectedTeamId).forEach(s => mainIds.add(s.membre_id));
+  } else {
+    _manualKeys.forEach(k => mainIds.add(k.replace('m:', '')));
   }
 
-  const usedAltIds    = new Set(_swaps.values());
-  const remainingAlts = getAltMembers().filter(m => !usedAltIds.has(m.id));
-  const sorted        = [...effective].sort((a, b) => (ROLE_ORDER[a.spe] ?? 2) - (ROLE_ORDER[b.spe] ?? 2));
+  // Retirer les alts qui sont passés en main
+  _altKeys.forEach(k => { if (mainIds.has(k.replace('m:', ''))) _altKeys.delete(k); });
+
+  const available = allMembres.filter(m => !mainIds.has(m.id));
+  const altItems  = available.length
+    ? available.map(m => condensedRowHtml(m, 'sess-alt-cb', `m:${m.id}`, _altKeys.has(`m:${m.id}`))).join('')
+    : '<p class="setup-empty">Tous les personnages sont dans le roster principal.</p>';
+
+  page.innerHTML = `
+    <div class="page-head"><span class="page-title">Session</span></div>
+    <div class="sess-container">
+      ${stepIndicator(2)}
+      <p class="setup-hint">Personnages susceptibles de remplacer un membre principal.</p>
+      <div class="sess-step-body">
+        <div class="setup-smr-list">${altItems}</div>
+      </div>
+      <div class="sess-foot">
+        <button class="btn btn-ghost" id="sess-back">← Retour</button>
+        <button class="btn btn-primary" id="sess-validate">Valider la session</button>
+      </div>
+    </div>`;
+
+  page.querySelectorAll('.sess-alt-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) _altKeys.add(cb.dataset.key);
+      else _altKeys.delete(cb.dataset.key);
+      cb.closest('.smr')?.classList.toggle('smr-selected', cb.checked);
+    });
+  });
+
+  page.querySelector('#sess-back')?.addEventListener('click', () => {
+    _step = 1;
+    renderStep1(page);
+  });
+
+  page.querySelector('#sess-validate')?.addEventListener('click', () => {
+    _step  = 'roster';
+    _swaps = new Map();
+    applyAndSave();
+    renderRoster(page);
+  });
+}
+
+// ── Roster : vue session active ────────────────────────────────────────────────
+
+function renderRoster(page) {
+  const effective  = getEffectiveRoster();
+  const usedAltIds = new Set(_swaps.values());
+  const alts       = getAltMembers().filter(m => !usedAltIds.has(m.id));
+  const sorted     = [...effective].sort((a, b) => (ROLE_ORDER[a.spe] ?? 2) - (ROLE_ORDER[b.spe] ?? 2));
 
   const memberRows = sorted.map(m => {
     const color    = speColor(m.classe || '');
@@ -237,15 +409,13 @@ function renderRosterPanel() {
         ${m.classe ? `<span class="sess-member-cls">${escHtml(m.classe.split(' ')[0])}</span>` : ''}
         ${isSwap ? `<span class="sess-swap-lbl">remplace ${escHtml(m._original.nom)}</span>` : ''}
       </div>
-      <div class="sess-member-badges">
-        ${ilvlBadge(m)}${keyBadge(m)}${tradeBadge(m.can_trade)}
-      </div>
-      <button class="sess-swap-btn${isOpen ? ' active' : ''}" data-swap-id="${escHtml(pickerId)}" title="Swapper ce joueur">↕</button>
+      <div class="sess-member-badges">${ilvlBadge(m)}${keyBadge(m)}${tradeBadge(m.can_trade)}</div>
+      <button class="sess-swap-btn${isOpen ? ' active' : ''}" data-swap-id="${escHtml(pickerId)}" title="Swapper">↕</button>
       ${pickerHtml}
     </div>`;
   }).join('');
 
-  const altRows = remainingAlts.length ? remainingAlts.map(m => {
+  const altRows = alts.map(m => {
     const color = speColor(m.classe || '');
     const role  = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
     return `<div class="sess-alt-row">
@@ -254,178 +424,40 @@ function renderRosterPanel() {
       <span class="sess-alt-name">${escHtml(m.nom)}</span>
       <div class="sess-member-badges">${ilvlBadge(m)}${keyBadge(m)}${tradeBadge(m.can_trade)}</div>
     </div>`;
-  }).join('') : '';
-
-  return `<section class="sess-panel sess-roster-panel">
-    <div class="sess-panel-head">
-      <span class="sess-panel-title">Roster actif</span>
-      <button class="sess-copy-btn" id="sess-copy-btn">📋 Copier le texte</button>
-    </div>
-    <div class="sess-main-list">${memberRows}</div>
-    ${altRows ? `<div class="sess-alts-section">
-      <div class="sess-section-lbl">Alts disponibles</div>
-      <div class="sess-alts-list">${altRows}</div>
-    </div>` : ''}
-  </section>`;
-}
-
-// ── Render config panel ────────────────────────────────────────────────────────
-
-function renderConfigPanel() {
-  const { teams, slots, membres: allM } = getSetupData();
-
-  // Team cards
-  const teamCards = teams.map(t => {
-    const tMembres  = slots.filter(s => s.team_id === t.id)
-      .map(s => allM.find(m => m.id === s.membre_id)).filter(Boolean);
-    const isSelected = _mode === 'team' && _selectedTeamId === t.id;
-
-    const memberRows = tMembres.map(m => {
-      const color = speColor(m.classe || '');
-      const role  = m.spe === 'TANK' ? 'TANK' : m.spe === 'Heal' ? 'Heal' : 'DPS';
-      return `<div class="stc-member">
-        <span class="stc-member-bar" style="background:${color}"></span>
-        ${roleImg(role, 14)}
-        <span class="stc-member-name">${escHtml(m.nom)}</span>
-        <div class="stc-member-right">${condensedBadges(m)}</div>
-      </div>`;
-    }).join('');
-
-    return `<label class="stc${isSelected ? ' stc-selected' : ''}">
-      <input type="radio" name="sess-team" class="sess-team-radio" value="${escHtml(t.id)}"
-        ${isSelected ? 'checked' : ''} style="display:none">
-      <div class="stc-head">
-        <span class="stc-icon">🐗</span>
-        <span class="stc-name">${escHtml(t.nom)}</span>
-        <span class="stc-count">${tMembres.length} membre${tMembres.length !== 1 ? 's' : ''}</span>
-      </div>
-      <div class="stc-members">${memberRows || '<span class="stc-empty">Aucun membre</span>'}</div>
-    </label>`;
   }).join('');
-
-  // Manual list
-  const manualCount = _manualKeys.size;
-  const manualItems = allM.map(m => {
-    const k       = `m:${m.id}`;
-    const checked  = _manualKeys.has(k);
-    const disabled = !checked && manualCount >= 4;
-    return condensedRowHtml(m, 'sess-manual-cb', k, checked, disabled);
-  }).join('');
-
-  // Alts config — membres hors roster principal
-  const mainIds = new Set();
-  if (_mode === 'team' && _selectedTeamId) {
-    slots.filter(s => s.team_id === _selectedTeamId).forEach(s => mainIds.add(s.membre_id));
-  } else {
-    _manualKeys.forEach(k => mainIds.add(k.replace('m:', '')));
-  }
-  const availForAlts = allM.filter(m => !mainIds.has(m.id));
-  const altItems = availForAlts.map(m => {
-    const k = `m:${m.id}`;
-    return condensedRowHtml(m, 'sess-alt-cb', k, _altKeys.has(k));
-  }).join('');
-
-  return `<section class="sess-panel sess-config-panel">
-    <div class="sess-panel-head">
-      <span class="sess-panel-title">Configuration</span>
-    </div>
-
-    <div class="setup-mode-tabs">
-      <button class="setup-mode-tab${_mode === 'team'   ? ' active' : ''}" data-mode="team">Team</button>
-      <button class="setup-mode-tab${_mode === 'manual' ? ' active' : ''}" data-mode="manual">Composition manuelle</button>
-    </div>
-
-    <div class="sess-config-body">
-      ${_mode === 'team'
-        ? `<div class="setup-team-grid">${teamCards || '<p class="setup-empty">Aucune team enregistrée.</p>'}</div>`
-        : `<p class="setup-hint"><strong>${manualCount}/4</strong> sélectionnés</p>
-           <div class="setup-smr-list">${manualItems}</div>`
-      }
-    </div>
-
-    ${availForAlts.length ? `
-    <div class="sess-alts-config">
-      <div class="sess-section-lbl">Alts potentiels</div>
-      <div class="setup-smr-list">${altItems}</div>
-    </div>` : ''}
-
-    <div class="sess-config-foot">
-      <button class="btn btn-primary" id="sess-apply-btn">⚡ Appliquer la session</button>
-    </div>
-  </section>`;
-}
-
-// ── Page entry point ───────────────────────────────────────────────────────────
-
-export function renderSession() {
-  const page = document.getElementById('page-session');
-  if (!page) return;
-  if (!isMember()) {
-    page.innerHTML = '<div class="empty"><div class="empty-icon">🔒</div><p>Accès réservé aux membres.</p></div>';
-    return;
-  }
-
-  loadState();
 
   page.innerHTML = `
-    <div class="page-head"><span class="page-title">Session</span></div>
-    <div class="sess-layout">
-      ${renderRosterPanel()}
-      ${renderConfigPanel()}
+    <div class="page-head">
+      <span class="page-title">Session active</span>
+      <button class="btn btn-ghost btn-sm" id="sess-edit-btn" style="font-size:12px">✏️ Modifier</button>
+    </div>
+
+    <div class="sess-container">
+      <div class="sess-panel">
+        <div class="sess-panel-head">
+          <span class="sess-panel-title">Roster</span>
+          <button class="sess-copy-btn" id="sess-copy-btn">📋 Copier le texte</button>
+        </div>
+        <div class="sess-main-list">${memberRows}</div>
+        ${alts.length ? `
+          <div class="sess-alts-section">
+            <div class="sess-section-lbl">Alts disponibles</div>
+            <div class="sess-alts-list">${altRows}</div>
+          </div>` : ''}
+      </div>
     </div>`;
 
-  wireListeners(page);
+  wireRosterListeners(page);
 }
 
-// ── Event wiring ───────────────────────────────────────────────────────────────
-
-function wireListeners(page) {
-  // Mode tabs
-  page.querySelectorAll('.setup-mode-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      _mode = btn.dataset.mode;
-      if (_mode === 'team') _manualKeys = new Set();
-      renderSession();
-    });
+function wireRosterListeners(page) {
+  // Modifier → retour étape 1
+  page.querySelector('#sess-edit-btn')?.addEventListener('click', () => {
+    _step = 1;
+    renderStep1(page);
   });
 
-  // Team radio / card click
-  page.querySelectorAll('.sess-team-radio').forEach(radio => {
-    radio.addEventListener('change', () => { _selectedTeamId = radio.value; renderSession(); });
-  });
-  page.querySelectorAll('.stc').forEach(card => {
-    card.addEventListener('click', () => {
-      const radio = card.querySelector('.sess-team-radio');
-      if (radio && _mode === 'team') { _selectedTeamId = radio.value; renderSession(); }
-    });
-  });
-
-  // Manual checkboxes
-  page.querySelectorAll('.sess-manual-cb').forEach(cb => {
-    cb.addEventListener('change', () => {
-      if (cb.checked) _manualKeys.add(cb.dataset.key);
-      else _manualKeys.delete(cb.dataset.key);
-      renderSession();
-    });
-  });
-
-  // Alt checkboxes (config)
-  page.querySelectorAll('.sess-alt-cb').forEach(cb => {
-    cb.addEventListener('change', () => {
-      if (cb.checked) _altKeys.add(cb.dataset.key);
-      else _altKeys.delete(cb.dataset.key);
-      cb.closest('.smr')?.classList.toggle('smr-selected', cb.checked);
-    });
-  });
-
-  // Apply
-  page.querySelector('#sess-apply-btn')?.addEventListener('click', () => {
-    _swaps = new Map();
-    applyAndSave();
-    renderSession();
-  });
-
-  // Copy sign text
+  // Copier
   page.querySelector('#sess-copy-btn')?.addEventListener('click', async () => {
     const btn = page.querySelector('#sess-copy-btn');
     try {
@@ -439,44 +471,65 @@ function wireListeners(page) {
     } catch { /* ignore */ }
   });
 
-  // Swap button (toggle picker)
+  // Swap bouton → toggle picker
   page.querySelectorAll('.sess-swap-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       const id = btn.dataset.swapId;
       _swapOpen = _swapOpen === id ? null : id;
-      renderSession();
+      renderRoster(page);
     });
   });
 
-  // Alt pick (inside picker)
+  // Choisir un alt dans le picker
   page.querySelectorAll('.sess-alt-pick').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       _swaps.set(btn.dataset.mainId, btn.dataset.altId);
       _swapOpen = null;
       applyAndSave();
-      renderSession();
+      renderRoster(page);
     });
   });
 
-  // Cancel swap
+  // Annuler un swap
   page.querySelectorAll('.sess-cancel-swap').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       _swaps.delete(btn.dataset.mainId);
       _swapOpen = null;
       applyAndSave();
-      renderSession();
+      renderRoster(page);
     });
   });
 
-  // Close picker on click outside
+  // Fermer le picker si clic en dehors
   if (_swapOpen) {
-    const onOutside = () => { _swapOpen = null; renderSession(); };
-    document.addEventListener('click', onOutside, { once: true });
+    document.addEventListener('click', () => {
+      _swapOpen = null;
+      renderRoster(page);
+    }, { once: true });
   }
 }
+
+// ── Entry point ────────────────────────────────────────────────────────────────
+
+export function renderSession() {
+  const page = document.getElementById('page-session');
+  if (!page) return;
+  if (!isMember()) {
+    page.innerHTML = '<div class="empty"><div class="empty-icon">🔒</div><p>Accès réservé aux membres.</p></div>';
+    return;
+  }
+
+  loadState();
+
+  if (_step === 'roster') renderRoster(page);
+  else if (_step === 2)   renderStep2(page);
+  else                    renderStep1(page);
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
 function applyAndSave() {
   if (_mode === 'team' && _selectedTeamId) {
