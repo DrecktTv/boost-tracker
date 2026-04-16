@@ -16,12 +16,13 @@ import { initRealtime }   from './lib/realtime.js';
 import { debounce }       from './lib/utils.js';
 import { renderCles }     from './pages/cles.js';
 import { initCoverage } from './ui/coverage.js';
-import { initSession, renderSignWidget }  from './ui/session.js';
+import { renderSession } from './pages/session-page.js';
 import { initWclImport, openWclImport } from './pages/wcl-import.js';
 
 // ── Enregistrement des pages ───────────────────────────────────────────────────
 
 registerPage('tracker',    renderTracker);
+registerPage('session',    renderSession);
 registerPage('membres',    renderMembres);
 registerPage('teams',      renderTeams);
 registerPage('cles',       renderCles);
@@ -84,8 +85,6 @@ document.addEventListener('app:ready', () => {
   initWednesdayBanner(); // reprend la page du hash URL, sinon tracker
   initSmizz();
   initCoverage();
-  initSession();
-  document.addEventListener('coverage:changed', renderSignWidget);
   initWclImport();
 
   // Realtime — toutes les tables surveillées
