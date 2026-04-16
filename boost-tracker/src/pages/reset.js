@@ -179,6 +179,22 @@ export async function doArchiveRun(runId) {
     );
   }
 
+  // Archiver dans historique
+  await safeQuery('doArchiveRun:historique', supabase.from('historique_resets').insert([{
+    date:         new Date().toISOString(),
+    note:         `Run archivé — ${run.cle || '?'}`,
+    total:        run.prix || 0,
+    paid_count:   1,
+    unpaid_count: 0,
+    runs_count:   1,
+    snapshot:     JSON.stringify({
+      date: new Date().toISOString(),
+      total: run.prix || 0,
+      session_gold: sessionGold,
+      runs: [run],
+    }),
+  }]));
+
   // Supprimer le run
   await safeQuery('doArchiveRun:delete', supabase.from('runs').delete().eq('id', runId));
 
