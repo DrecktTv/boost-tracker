@@ -501,18 +501,33 @@ function renderRoster(page) {
     </div>`;
   }).join('');
 
-  page.innerHTML = `
-    <div class="page-head">
-      <span class="page-title">Session active</span>
-      <button class="btn btn-ghost btn-sm" id="sess-edit-btn" style="font-size:12px">✏️ Modifier</button>
-    </div>
+  // Warnings : membres avec infos manquantes
+  const allVisible = [...sorted, ...alts];
+  const warnings = allVisible.map(m => {
+    const missing = [];
+    if (!m.ilvl)                          missing.push('stuff');
+    if (!m.cle_donjon || !m.cle_niveau)   missing.push('clé');
+    if (!m.can_trade)                     missing.push('tradable');
+    if (!missing.length) return '';
+    const isAlt = alts.some(a => a.id === m.id);
+    return `<div class="sess-warn-row">
+      <span class="sess-warn-icon">⚠</span>
+      <span><strong>${escHtml(m.nom)}</strong>${isAlt ? ' (alt)' : ''} — ${missing.join(', ')} non renseigné${missing.length > 1 ? 's' : ''}</span>
+    </div>`;
+  }).filter(Boolean).join('');
 
+  page.innerHTML = `
+    <div class="page-head"><span class="page-title">Session</span></div>
     <div class="sess-container">
       <div class="sess-panel">
         <div class="sess-panel-head">
-          <span class="sess-panel-title">Roster</span>
-          <button class="sess-copy-btn" id="sess-copy-btn">📋 Copier le texte</button>
+          <span class="sess-panel-title">Session active</span>
+          <div class="sess-panel-actions">
+            <button class="btn btn-ghost btn-sm" id="sess-edit-btn">✏️ Modifier</button>
+            <button class="sess-copy-btn" id="sess-copy-btn">📋 Copier le texte</button>
+          </div>
         </div>
+        ${warnings ? `<div class="sess-warnings">${warnings}</div>` : ''}
         <div class="sess-main-list">${memberRows}</div>
         ${alts.length ? `
           <div class="sess-alts-section">

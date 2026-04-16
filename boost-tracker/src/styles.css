@@ -476,8 +476,15 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .sess-role-group    { display:flex; flex-direction:column; gap:0; margin-bottom:8px }
 .sess-role-lbl      { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; padding:10px 0 6px }
 .sess-panel         { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden }
-.sess-panel-head    { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); background:var(--bg3) }
+.sess-panel-head    { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px; border-bottom:1px solid var(--border); background:var(--bg3); flex-wrap:wrap }
 .sess-panel-title   { font-size:14px; font-weight:700; color:var(--text); letter-spacing:.03em }
+.sess-panel-actions { display:flex; align-items:center; gap:8px }
+
+/* Warnings */
+.sess-warnings      { border-bottom:1px solid var(--border); background:rgba(251,191,36,.06) }
+.sess-warn-row      { display:flex; align-items:center; gap:8px; padding:7px 16px; border-bottom:1px solid rgba(251,191,36,.1); font-size:12px; color:var(--text2) }
+.sess-warn-row:last-child { border-bottom:none }
+.sess-warn-icon     { font-size:13px; flex-shrink:0 }
 .sess-section-lbl   { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; padding:10px 18px 6px }
 
 /* Empty state */
