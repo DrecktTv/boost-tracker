@@ -759,3 +759,82 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   60%  { opacity:1; transform:translateY(-18px) scale(1.2); }
   100% { opacity:0; transform:translateY(-32px) scale(.9); }
 }
+
+/* ── WHACK-A-SMIZZ easter egg ───────────────────────────────────────────────── */
+#whack-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .25s;
+}
+#whack-overlay.whack-show { opacity:1 }
+
+.wh-modal {
+  background:var(--bg2); border:1px solid var(--border); border-radius:16px;
+  padding:28px 32px; width:min(520px,96vw); display:flex; flex-direction:column; gap:20px;
+  position:relative; box-shadow:0 24px 80px rgba(0,0,0,.6);
+}
+.wh-close {
+  position:absolute; top:14px; right:14px; background:none; border:1px solid var(--border);
+  color:var(--text2); width:30px; height:30px; border-radius:6px; cursor:pointer; font-size:15px;
+  display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.wh-close:hover { border-color:var(--blue); color:var(--blue) }
+
+.wh-head { text-align:center }
+.wh-title { font-size:18px; font-weight:700; color:var(--text) }
+.wh-sub   { font-size:13px; color:var(--text2); margin-top:4px }
+
+/* HUD */
+.wh-hud { display:flex; align-items:center; gap:16px; justify-content:space-between }
+.wh-stat { display:flex; flex-direction:column; align-items:center; gap:2px; min-width:56px }
+.wh-val  { font-size:24px; font-weight:800; color:var(--blue2) }
+.wh-lbl  { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.05em }
+
+.wh-timer-wrap  { flex:1; display:flex; align-items:center; gap:10px }
+.wh-timer-track { flex:1; height:8px; background:var(--bg3); border-radius:4px; overflow:hidden }
+.wh-timer-bar   { height:100%; background:var(--blue); border-radius:4px; transition:width .9s linear, background .3s }
+.wh-bar-red     { background:var(--red) !important }
+.wh-timer-num   { font-size:15px; font-weight:700; color:var(--text2); min-width:22px; text-align:right }
+
+/* Grid */
+.wh-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+}
+
+/* Hole */
+.wh-hole {
+  display:flex; flex-direction:column; align-items:center; gap:0;
+  position:relative; height:90px; overflow:hidden; cursor:default;
+}
+.wh-tube {
+  width:70px; height:60px; position:absolute; bottom:28px;
+  overflow:hidden; display:flex; align-items:flex-end; justify-content:center;
+}
+.wh-smizz {
+  font-size:36px; line-height:1; transform:translateY(100%);
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+  cursor:pointer; user-select:none; will-change:transform;
+}
+.wh-hole.wh-up .wh-smizz { transform:translateY(0) }
+.wh-hole.wh-hit .wh-smizz { animation:wh-hit-flash .3s ease forwards }
+
+.wh-dirt {
+  position:absolute; bottom:0; width:72px; height:28px;
+  background:radial-gradient(ellipse 80% 55% at 50% 55%, #5c3d1e 60%, #3a2510 100%);
+  border-radius:50%; z-index:2;
+}
+
+@keyframes wh-hit-flash {
+  0%   { transform:translateY(0) scale(1) }
+  30%  { transform:translateY(-8px) scale(1.3) rotate(-8deg); filter:brightness(2) }
+  100% { transform:translateY(100%) scale(.8); filter:brightness(1) }
+}
+
+/* End screen */
+.wh-end { display:flex; flex-direction:column; align-items:center; gap:12px; padding:8px 0 }
+.wh-end-smizz  { font-size:64px; line-height:1 }
+.wh-end-stars  { font-size:32px; letter-spacing:6px; color:var(--gold2) }
+.wh-end-score  { font-size:52px; font-weight:900; color:var(--blue2) }
+.wh-end-lbl    { font-size:13px; color:var(--text2) }
+.wh-end-msg    { font-size:15px; color:var(--text); text-align:center }
+.wh-end-btns   { display:flex; gap:12px; margin-top:4px }
