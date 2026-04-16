@@ -139,9 +139,12 @@ function generateSignText() {
     lines.push(`\nAlt Keys: ${altList}`);
   }
 
-  // Mentions Discord des joueurs actifs (main ou alt swappé)
+  // Mentions Discord — si c'est un alt swappé, on prend le tag du main
   const discordMentions = sorted
-    .map(m => m.discord_tag ? `@${m.discord_tag}` : null)
+    .map(m => {
+      const tag = m._original?.discord_tag || m.discord_tag;
+      return tag ? `@${tag}` : null;
+    })
     .filter(Boolean)
     .join(' ');
 
