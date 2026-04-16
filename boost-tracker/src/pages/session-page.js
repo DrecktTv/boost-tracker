@@ -139,8 +139,15 @@ function generateSignText() {
     lines.push(`\nAlt Keys: ${altList}`);
   }
 
+  // Mentions Discord des joueurs actifs (main ou alt swappé)
+  const discordMentions = sorted
+    .map(m => m.discord_tag ? `@${m.discord_tag}` : null)
+    .filter(Boolean)
+    .join(' ');
+
   const isFull = (_mode === 'team' && _selectedTeamId) || _manualKeys.size >= 4;
-  return (isFull ? 'TT\n' : '') + lines.join('\n');
+  const body   = (isFull ? 'TT\n' : '') + lines.join('\n');
+  return discordMentions ? `${body}\n\n${discordMentions}` : body;
 }
 
 // ── Badge helpers ──────────────────────────────────────────────────────────────
