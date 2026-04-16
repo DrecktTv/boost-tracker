@@ -517,7 +517,6 @@ function renderRoster(page) {
   }).filter(Boolean).join('');
 
   page.innerHTML = `
-    <div class="page-head"><span class="page-title">Session</span></div>
     <div class="sess-container">
       <div class="sess-panel">
         <div class="sess-panel-head">
