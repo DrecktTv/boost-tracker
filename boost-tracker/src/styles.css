@@ -811,9 +811,10 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   overflow:hidden; display:flex; align-items:flex-end; justify-content:center;
 }
 .wh-smizz {
-  font-size:36px; line-height:1; transform:translateY(100%);
+  width:56px; height:56px; transform:translateY(100%);
   transition:transform .2s cubic-bezier(.34,1.56,.64,1);
   cursor:pointer; user-select:none; will-change:transform;
+  display:flex; align-items:center; justify-content:center;
 }
 .wh-hole.wh-up .wh-smizz { transform:translateY(0) }
 .wh-hole.wh-hit .wh-smizz { animation:wh-hit-flash .3s ease forwards }
@@ -832,7 +833,7 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 
 /* End screen */
 .wh-end { display:flex; flex-direction:column; align-items:center; gap:12px; padding:8px 0 }
-.wh-end-smizz  { font-size:64px; line-height:1 }
+.wh-end-smizz  { width:80px; height:80px; margin:0 auto }
 .wh-end-stars  { font-size:32px; letter-spacing:6px; color:var(--gold2) }
 .wh-end-score  { font-size:52px; font-weight:900; color:var(--blue2) }
 .wh-end-lbl    { font-size:13px; color:var(--text2) }
