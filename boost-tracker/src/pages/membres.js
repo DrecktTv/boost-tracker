@@ -137,7 +137,7 @@ function renderTradeSlots(data = { tradable: new Set(), na: new Set() }) {
 // ── Rendu ──────────────────────────────────────────────────────────────────────
 
 export async function renderMembres() {
-  g('m-body').innerHTML = `<tr><td colspan="7"><div class="sk-wrap-table"><div class="sk-row-sm"></div><div class="sk-row-sm"></div><div class="sk-row-sm"></div></div></td></tr>`;
+  g('m-body').innerHTML = `<tr><td colspan="8"><div class="sk-wrap-table"><div class="sk-row-sm"></div><div class="sk-row-sm"></div><div class="sk-row-sm"></div></div></td></tr>`;
   const membres = await safeQuery('renderMembres', supabase.from('membres').select('*').order('nom'));
   if (membres === null) return;
 
@@ -148,7 +148,7 @@ export async function renderMembres() {
   const tbody = g('m-body');
 
   if (!membres.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">⚔</div><p>Aucun membre</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">⚔</div><p>Aucun membre</p></div></td></tr>`;
     return;
   }
 
@@ -178,6 +178,7 @@ export async function renderMembres() {
     <td style="color:var(--text2)">${escHtml(m.classe || '—')}</td>
     <td style="color:var(--blue2);font-weight:600">${m.ilvl || '—'}</td>
     <td style="color:var(--gold2);font-weight:600">${m.rio || '—'}</td>
+    <td style="color:var(--text2);font-size:12px">${m.discord_tag ? `<span style="background:var(--bg3);padding:2px 7px;border-radius:4px">${escHtml(m.discord_tag)}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
     <td>${statutBadge}</td>
     <td>
       <div style="display:flex;gap:5px">
@@ -223,7 +224,7 @@ export async function openAddM() {
   try {
     g('m-id').value = '';
     g('m-title').textContent = 'Ajouter un membre';
-    ['mn', 'mi', 'mr'].forEach(id => { g(id).value = ''; });
+    ['mn', 'mi', 'mr', 'm-discord'].forEach(id => { g(id).value = ''; });
     g('ms').selectedIndex = 0;
     g('mc').innerHTML = '<option value="">— Choisir un rôle —</option>';
     renderTradeSlots({ tradable: new Set(), na: new Set() });
@@ -254,7 +255,8 @@ async function editM(id) {
   updateSpeList();
   g('mc').value     = m.classe || '';
   g('mi').value     = m.ilvl || '';
-  g('mr').value     = m.rio || '';
+  g('mr').value          = m.rio || '';
+  g('m-discord').value   = m.discord_tag || '';
   renderTradeSlots(parseTradeData(m.can_trade));
 
   // Populate main select (exclude self so a member can't be its own main)
@@ -301,13 +303,14 @@ export async function saveM() {
   try {
     const payload = {
       nom,
-      spe:     g('ms').value || null,
-      classe:  g('mc').value || null,
-      ilvl:      parseInt(g('mi').value) || null,
-      rio:       parseInt(g('mr').value) || null,
-      can_trade: g('m-trade').value || null,
-      main_id:   g('m-main-id').value || null,
-      owner_id: getUser()?.id,
+      spe:          g('ms').value || null,
+      classe:       g('mc').value || null,
+      ilvl:         parseInt(g('mi').value) || null,
+      rio:          parseInt(g('mr').value) || null,
+      can_trade:    g('m-trade').value || null,
+      main_id:      g('m-main-id').value || null,
+      discord_tag:  g('m-discord').value.trim() || null,
+      owner_id:     getUser()?.id,
     };
 
     if (editId) {
