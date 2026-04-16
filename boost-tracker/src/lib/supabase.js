@@ -7,3 +7,6 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants.js';
  * Remplace window.sbAuth de l'ancienne version.
  */
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Accès console pour scripts de migration (tous environnements)
+window._sb = supabase;
