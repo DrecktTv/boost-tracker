@@ -26,7 +26,7 @@ export function maybeShowWhackSmizz() {
 // ── Dev helpers ────────────────────────────────────────────────────────────────
 // Ctrl+Shift+W → force le jeu (bypass proba + cooldown)
 document.addEventListener('keydown', e => {
-  if (e.ctrlKey && e.shiftKey && e.key === 'W') {
+  if (e.ctrlKey && e.altKey && e.key === 'w') {
     localStorage.removeItem('whack_last');
     showGame();
   }
