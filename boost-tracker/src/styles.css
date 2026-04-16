@@ -454,7 +454,7 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .sign-copy-ok       { background:rgba(76,175,120,.15) !important; border-color:var(--green) !important; color:var(--green) !important }
 
 /* ── SESSION PAGE ── */
-.sess-container     { max-width:700px; display:flex; flex-direction:column; gap:20px }
+.sess-container     { width:100%; max-width:960px; display:flex; flex-direction:column; gap:20px }
 .sess-layout        { display:flex; flex-direction:column; gap:20px; max-width:900px }
 
 /* Step indicator */
@@ -553,16 +553,19 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .setup-foot          { display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:14px; border-top:1px solid var(--border) }
 
 /* Team cards grid (step 1 – team mode) */
-.setup-team-grid     { display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto; padding-right:2px }
-.stc                 { background:var(--bg2); border:1px solid var(--border); border-radius:var(--rad2); padding:12px 14px; cursor:pointer; transition:border-color .15s, transform .15s, box-shadow .15s }
-.stc:hover           { border-color:var(--bd2); transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.4) }
-.stc-selected        { border-color:rgba(74,144,226,.55); background:rgba(74,144,226,.07); box-shadow:0 0 0 2px rgba(74,144,226,.15) }
-.stc-head            { display:flex; align-items:center; gap:8px; margin-bottom:10px }
-.stc-icon            { font-size:16px }
-.stc-name            { font-size:14px; font-weight:700; color:var(--text); flex:1 }
+.setup-team-grid     { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:12px }
+.stc                 { background:var(--bg2); border:2px solid var(--border); border-radius:var(--rad2); padding:14px 16px; cursor:pointer; transition:border-color .15s, box-shadow .15s; position:relative }
+.stc:hover           { border-color:var(--bd2); box-shadow:0 4px 16px rgba(0,0,0,.35) }
+.stc-selected        { border-color:var(--blue); background:rgba(59,130,246,.07); box-shadow:0 0 0 1px rgba(59,130,246,.25) }
+.stc-head            { display:flex; align-items:center; gap:10px; margin-bottom:12px }
+.stc-icon            { font-size:18px }
+.stc-name            { font-size:15px; font-weight:700; color:var(--text); flex:1 }
 .stc-count           { font-size:11px; color:var(--text3); background:var(--bg3); padding:2px 8px; border-radius:20px; border:1px solid var(--border) }
-.stc-members         { display:flex; flex-direction:column; gap:4px }
-.stc-member          { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; background:rgba(255,255,255,.03) }
+/* Radio indicator in top-right */
+.stc-sel-dot         { width:18px; height:18px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; transition:all .15s; background:var(--bg3) }
+.stc-selected .stc-sel-dot { border-color:var(--blue); background:var(--blue); box-shadow:inset 0 0 0 3px var(--bg2) }
+.stc-members         { display:flex; flex-direction:column; gap:5px }
+.stc-member          { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:7px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.04) }
 .stc-member-bar      { width:3px; height:18px; border-radius:2px; flex-shrink:0 }
 .stc-member-name     { font-size:12px; font-weight:600; color:var(--text); flex:1 }
 .stc-member-cls      { font-size:11px; color:var(--text3) }

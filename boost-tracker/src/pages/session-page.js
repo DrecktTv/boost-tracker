@@ -236,6 +236,7 @@ function renderStep1(page) {
         <span class="stc-icon">🐗</span>
         <span class="stc-name">${escHtml(t.nom)}</span>
         <span class="stc-count">${tMembres.length} membre${tMembres.length !== 1 ? 's' : ''}</span>
+        <span class="stc-sel-dot"></span>
       </div>
       <div class="stc-members">${memberRows || '<span class="stc-empty">Aucun membre</span>'}</div>
     </label>`;
