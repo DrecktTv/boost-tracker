@@ -250,15 +250,10 @@ function endGame(overlay) {
       <div class="wh-end-lbl">Smizz tapés en ${GAME_SECS}s</div>
       <div class="wh-end-msg">${msg}</div>
       <div class="wh-end-btns">
-        <button class="btn btn-primary" id="wh-retry">Rejouer</button>
-        <button class="btn btn-ghost"   id="wh-quit">Fermer</button>
+        <button class="btn btn-ghost" id="wh-quit">Fermer</button>
       </div>
     </div>`;
 
-  modal.querySelector('#wh-retry')?.addEventListener('click', () => {
-    overlay.innerHTML = buildModalHtml();
-    startRound(overlay);
-  });
   modal.querySelector('#wh-quit')?.addEventListener('click', () => closeGame(overlay));
 }
 
