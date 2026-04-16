@@ -474,6 +474,8 @@ async function doImport(selectedFights) {
   if (btn) { btn.disabled = true; btn.textContent = 'Import en cours…'; }
 
   let ok = 0, fail = 0;
+  // Tous les runs de ce batch partagent le même group_id
+  const groupId = crypto.randomUUID();
 
   for (const f of selectedFights) {
     if (!f.cleKey) { fail++; continue; } // donjon non sélectionné
@@ -483,14 +485,15 @@ async function doImport(selectedFights) {
     const runMembres = buildRunMembres(f.players, f.team, prix);
 
     const res = await safeQuery('wcl:insert', supabase.from('runs').insert([{
-      team_id: f.team?.id ?? null,
-      cle:     f.cleKey,
-      cles:    [f.cleKey],
-      note:    '',
+      team_id:  f.team?.id ?? null,
+      cle:      f.cleKey,
+      cles:     [f.cleKey],
+      note:     '',
       prix,
-      membres: runMembres,
-      paye:    false,
-      date:    new Date(f.absStart).toISOString(),
+      membres:  runMembres,
+      paye:     false,
+      date:     new Date(f.absStart).toISOString(),
+      group_id: groupId,
     }]));
 
     if (res === null) fail++; else ok++;

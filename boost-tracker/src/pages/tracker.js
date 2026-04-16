@@ -78,6 +78,111 @@ function updateStats(runs) {
 
 }
 
+// ── Helpers rendu ─────────────────────────────────────────────────────────────
+
+function membersHTML(membres) {
+  return (membres || [])
+    .filter(m => m.role !== 'Client')
+    .sort((a, b) => (ROLE_ORDER[a.role] ?? 9) - (ROLE_ORDER[b.role] ?? 9))
+    .map(m => {
+      const mb    = _membresCache.find(x => x.id === m.membre_id);
+      const color = speColor(mb?.classe || '');
+      return `<div class="run-member">
+        ${roleImg(m.role, 14)}
+        <span class="class-dot" style="background:${color}"></span>
+        <span class="run-member-name">${escHtml(mb?.nom || '—')}</span>
+        ${mb?.classe ? `<span class="run-member-spe">${escHtml(mb.classe.split(' ')[0])}</span>` : ''}
+      </div>`;
+    }).join('');
+}
+
+function renderSingleRunCard(run, ri, teams) {
+  const team   = (teams || []).find(t => t.id === run.team_id);
+  const donjon = DONJONS[run.cle] || null;
+  const imgUrl = donjon?.img || '';
+  const { cls, label } = payBtnState(run.membres, run.paye);
+  const { paid: pSlots, total: tSlots } = paidSlots(run.membres);
+  const barPct   = tSlots ? Math.round(pSlots / tSlots * 100) : (run.paye ? 100 : 0);
+  const dateStr  = run.date ? formatDate(run.date, { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+  const clientEntry = (run.membres || []).find(m => m.role === 'Client');
+  const clientHTML  = clientEntry?.nom_wcl ? `<div class="run-client">👤 <span>${escHtml(clientEntry.nom_wcl)}</span></div>` : '';
+
+  return `<div class="run-card" data-run-id="${escHtml(run.id)}">
+    <div class="run-img" ${imgUrl ? `style="background-image:url(${escHtml(imgUrl)})"` : ''}>
+      <div class="run-img-overlay"></div>
+      <div class="run-num">${ri + 1}</div>
+    </div>
+    <div class="run-content">
+      <div class="run-top">
+        <span class="run-cle">${escHtml(run.cle || '—')}</span>
+        <span class="run-donjon">${donjon ? escHtml(donjon.fr) : escHtml(run.cle || '—')}</span>
+        ${team ? `<span class="run-team">${escHtml(team.nom)}</span>` : '<span class="run-notag">Sans team</span>'}
+        ${run.note ? `<span class="run-date" style="font-style:italic">${escHtml(run.note)}</span>` : ''}
+        ${dateStr ? `<span class="run-date">🕐 ${escHtml(dateStr)}</span>` : ''}
+        <div class="run-top-right">
+          <div class="run-gold">🪙 ${gold(run.prix || 0)}<span>/p</span></div>
+          <span class="run-paid ${cls}" data-open-panel="${escHtml(run.id)}">${label}</span>
+          ${pSlots === tSlots && tSlots > 0 ? `<button class="btn btn-sm run-archive-btn" data-archive-run="${escHtml(run.id)}" title="Archiver">📦</button>` : ''}
+          <button class="run-del" data-del-run="${escHtml(run.id)}">✕</button>
+        </div>
+      </div>
+      <div class="run-members">${membersHTML(run.membres)}</div>
+      ${clientHTML}
+      <div class="run-bar"><div class="run-bar-fill ${cls}" style="width:${barPct}%"></div></div>
+      <div class="run-payment-panel" style="display:none;border-top:1px solid var(--border)"></div>
+    </div>
+  </div>`;
+}
+
+function renderGroupCard({ groupId, runs }, teams) {
+  const first   = runs[0];
+  const team    = (teams || []).find(t => t.id === first.team_id);
+  const total   = runs.reduce((s, r) => s + (r.prix || 0), 0);
+  const dateStr = first.date ? formatDate(first.date, { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+
+  let totalPaid = 0, totalSlots = 0;
+  runs.forEach(r => { const { paid, total: t } = paidSlots(r.membres); totalPaid += paid; totalSlots += t; });
+  const barPct     = totalSlots ? Math.round(totalPaid / totalSlots * 100) : 0;
+  const overallCls = totalSlots > 0 && totalPaid === totalSlots ? 'ok' : totalPaid > 0 ? 'partial' : 'no';
+
+  const keysHTML = runs.map(run => {
+    const donjon = DONJONS[run.cle] || null;
+    const imgUrl = donjon?.img || '';
+    const { cls, label } = payBtnState(run.membres, run.paye);
+    const { paid: pSlots, total: tSlots } = paidSlots(run.membres);
+    const clientEntry = (run.membres || []).find(m => m.role === 'Client');
+    return `<div class="rg-key-row" data-run-id="${escHtml(run.id)}">
+      <div class="rg-key-thumb" ${imgUrl ? `style="background-image:url(${escHtml(imgUrl)})"` : ''}></div>
+      <span class="run-cle">${escHtml(run.cle || '—')}</span>
+      <span class="run-donjon">${donjon ? escHtml(donjon.fr) : escHtml(run.cle || '—')}</span>
+      ${clientEntry?.nom_wcl ? `<span class="run-client-inline">👤 ${escHtml(clientEntry.nom_wcl)}</span>` : ''}
+      <div class="rg-key-right">
+        <div class="run-gold">🪙 ${gold(run.prix || 0)}<span>/p</span></div>
+        <span class="run-paid ${cls}" data-open-panel="${escHtml(run.id)}">${label}</span>
+        ${pSlots === tSlots && tSlots > 0 ? `<button class="btn btn-sm run-archive-btn" data-archive-run="${escHtml(run.id)}" title="Archiver">📦</button>` : ''}
+        <button class="run-del" data-del-run="${escHtml(run.id)}">✕</button>
+      </div>
+      <div class="run-payment-panel" style="display:none;border-top:1px solid var(--border);grid-column:1/-1"></div>
+    </div>`;
+  }).join('');
+
+  return `<div class="run-card run-group-card" data-group-id="${escHtml(groupId)}">
+    <div class="run-content">
+      <div class="run-top">
+        ${team ? `<span class="run-team">${escHtml(team.nom)}</span>` : '<span class="run-notag">Sans team</span>'}
+        <span class="rg-badge">${runs.length} clé${runs.length > 1 ? 's' : ''}</span>
+        ${dateStr ? `<span class="run-date">🕐 ${escHtml(dateStr)}</span>` : ''}
+        <div class="run-top-right">
+          <div class="run-gold">🪙 ${gold(total)}<span>/p</span></div>
+        </div>
+      </div>
+      <div class="run-members">${membersHTML(first.membres)}</div>
+      <div class="rg-keys-list">${keysHTML}</div>
+      <div class="run-bar"><div class="run-bar-fill ${overallCls}" style="width:${barPct}%"></div></div>
+    </div>
+  </div>`;
+}
+
 // ── Rendu ─────────────────────────────────────────────────────────────────────
 
 export async function renderTracker() {
@@ -115,64 +220,23 @@ export async function renderTracker() {
       return;
     }
 
-    rl.innerHTML = runs.map((run, ri) => {
-      const team   = (teams || []).find(t => t.id === run.team_id);
-      const donjon = DONJONS[run.cle] || null;
-      const imgUrl = donjon?.img || '';
-      const { cls, label } = payBtnState(run.membres, run.paye);
+    // Grouper les runs par group_id
+    const orderedItems = [];
+    const seenGroups = new Set();
+    for (const run of runs) {
+      if (!run.group_id) {
+        orderedItems.push({ type: 'single', run });
+      } else if (!seenGroups.has(run.group_id)) {
+        seenGroups.add(run.group_id);
+        orderedItems.push({ type: 'group', groupId: run.group_id, runs: runs.filter(r => r.group_id === run.group_id) });
+      }
+    }
 
-      // Barre de progression
-      const { paid: pSlots, total: tSlots } = paidSlots(run.membres);
-      const barPct = tSlots ? Math.round(pSlots / tSlots * 100) : (run.paye ? 100 : 0);
-
-      const runMembers = (run.membres || [])
-        .filter(m => m.role !== 'Client')
-        .sort((a, b) => (ROLE_ORDER[a.role] ?? 9) - (ROLE_ORDER[b.role] ?? 9));
-
-      const membersHTML = runMembers.map(m => {
-        const mb    = _membresCache.find(mb2 => mb2.id === m.membre_id);
-        const color = speColor(mb?.classe || '');
-        return `<div class="run-member">
-          ${roleImg(m.role, 14)}
-          <span class="class-dot" style="background:${color}"></span>
-          <span class="run-member-name">${escHtml(mb?.nom || '—')}</span>
-          ${mb?.classe ? `<span class="run-member-spe">${escHtml(mb.classe.split(' ')[0])}</span>` : ''}
-        </div>`;
-      }).join('');
-
-      const clientEntry = (run.membres || []).find(m => m.role === 'Client');
-      const clientHTML  = clientEntry?.nom_wcl
-        ? `<div class="run-client">👤 <span>${escHtml(clientEntry.nom_wcl)}</span></div>`
-        : '';
-
-      const dateStr = run.date ? formatDate(run.date, { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
-
-      return `<div class="run-card" data-run-id="${escHtml(run.id)}">
-        <div class="run-img" ${imgUrl ? `style="background-image:url(${escHtml(imgUrl)})"` : ''}>
-          <div class="run-img-overlay"></div>
-          <div class="run-num">${ri + 1}</div>
-        </div>
-        <div class="run-content">
-          <div class="run-top">
-            <span class="run-cle">${escHtml(run.cle || '—')}</span>
-            <span class="run-donjon">${donjon ? escHtml(donjon.fr) : escHtml(run.cle || '—')}</span>
-            ${team ? `<span class="run-team">${escHtml(team.nom)}</span>` : '<span class="run-notag">Sans team</span>'}
-            ${run.note ? `<span class="run-date" style="font-style:italic">${escHtml(run.note)}</span>` : ''}
-            ${dateStr ? `<span class="run-date">🕐 ${escHtml(dateStr)}</span>` : ''}
-            <div class="run-top-right">
-              <div class="run-gold">🪙 ${gold(run.prix || 0)}<span>/p</span></div>
-              <span class="run-paid ${cls}" data-open-panel="${escHtml(run.id)}">${label}</span>
-              ${pSlots === tSlots && tSlots > 0 ? `<button class="btn btn-sm run-archive-btn" data-archive-run="${escHtml(run.id)}" title="Archiver ce run">📦</button>` : ''}
-              <button class="run-del" data-del-run="${escHtml(run.id)}">✕</button>
-            </div>
-          </div>
-          <div class="run-members">${membersHTML}</div>
-          ${clientHTML}
-          <div class="run-bar"><div class="run-bar-fill ${cls}" style="width:${barPct}%"></div></div>
-          <div class="run-payment-panel" style="display:none;border-top:1px solid var(--border)"></div>
-        </div>
-      </div>`;
-    }).join('');
+    rl.innerHTML = orderedItems.map((item, i) =>
+      item.type === 'group'
+        ? renderGroupCard(item, teams)
+        : renderSingleRunCard(item.run, i, teams)
+    ).join('');
 
     rl.onclick = async e => {
       const memberBtn  = e.target.closest('[data-member-paid]');
@@ -201,9 +265,10 @@ export async function renderTracker() {
 // ── Panel paiement ────────────────────────────────────────────────────────────
 
 function togglePaymentPanel(runId) {
-  const card = document.querySelector(`.run-card[data-run-id="${runId}"]`);
-  if (!card) return;
-  const panel = card.querySelector('.run-payment-panel');
+  // fonctionne pour les standalone (.run-card[data-run-id]) et les groupes (.rg-key-row[data-run-id])
+  const container = document.querySelector(`[data-run-id="${runId}"]`);
+  if (!container) return;
+  const panel = container.querySelector('.run-payment-panel');
   if (!panel) return;
   if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
   const run = _runsCache.get(runId);
@@ -235,12 +300,12 @@ async function toggleMemberPaid(runId, idx, currentPaid) {
   const updated = { ...run, membres: newMembres, paye: allPaid };
   _runsCache.set(runId, updated);
 
-  // Mise à jour inline — pas de re-render complet
-  const card = document.querySelector(`.run-card[data-run-id="${runId}"]`);
-  if (card) {
-    const panel = card.querySelector('.run-payment-panel');
+  // Mise à jour inline — fonctionne pour standalone et grouped
+  const container = document.querySelector(`[data-run-id="${runId}"]`);
+  if (container) {
+    const panel = container.querySelector('.run-payment-panel');
     if (panel && panel.style.display !== 'none') panel.innerHTML = renderPaymentPanel(updated);
-    const payBtn = card.querySelector('[data-open-panel]');
+    const payBtn = container.querySelector('[data-open-panel]');
     if (payBtn) {
       const { cls, label } = payBtnState(newMembres, allPaid);
       payBtn.className = `run-paid ${cls}`;
