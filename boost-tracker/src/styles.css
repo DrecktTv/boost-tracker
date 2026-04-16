@@ -834,6 +834,13 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 /* End screen */
 .wh-end { display:flex; flex-direction:column; align-items:center; gap:12px; padding:8px 0 }
 .wh-end-smizz  { width:80px; height:80px; margin:0 auto }
+
+/* Intro screen */
+.wh-intro        { align-items:center; text-align:center; gap:16px }
+.wh-intro-smizz  { width:90px; height:90px; margin:0 auto }
+.wh-intro-rules  { display:flex; flex-direction:column; gap:8px; text-align:left; background:var(--bg3); border-radius:8px; padding:14px 18px; width:100% }
+.wh-rule         { font-size:13px; color:var(--text2) }
+.wh-start-btn    { width:100%; padding:12px; font-size:16px; font-weight:700; margin-top:4px }
 .wh-end-stars  { font-size:32px; letter-spacing:6px; color:var(--gold2) }
 .wh-end-score  { font-size:52px; font-weight:900; color:var(--blue2) }
 .wh-end-lbl    { font-size:13px; color:var(--text2) }

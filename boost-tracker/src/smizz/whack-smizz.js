@@ -3,21 +3,21 @@
 const HOLES     = 9;
 const GAME_SECS = 30;
 
-// Durée d'affichage : varie selon le temps restant (accélère en fin de partie)
+// Durée d'affichage : démarre court, devient brutal en fin de partie
 function showDur(timeLeft) {
-  const progress = 1 - timeLeft / GAME_SECS;          // 0 → 1 au fil du temps
-  const base     = 950 - progress * 450;               // 950ms → 500ms
+  const progress = 1 - timeLeft / GAME_SECS;          // 0 → 1
+  const base     = 620 - progress * 370;               // 620ms → 250ms
   const rng      = Math.random();
-  // 15% chance éclair (très court), 15% chance long (faux espoir)
-  if (rng < 0.15) return base * 0.45 + Math.random() * 80;
-  if (rng < 0.30) return base * 1.5  + Math.random() * 150;
-  return base * (0.75 + Math.random() * 0.5);
+  // 20% chance éclair (dangereux), 10% chance long (faux espoir)
+  if (rng < 0.20) return base * 0.40 + Math.random() * 60;   // ~80-310ms
+  if (rng < 0.30) return base * 1.6  + Math.random() * 100;  // ~500-1100ms
+  return base * (0.8 + Math.random() * 0.4);
 }
 
-// Délai entre deux apparitions : aussi plus court en fin de partie
+// Délai entre deux apparitions : rapide dès le début, frénétique à la fin
 function spawnDelay(timeLeft) {
   const progress = 1 - timeLeft / GAME_SECS;
-  return 350 - progress * 180 + Math.random() * 300;  // 350-650ms → 170-470ms
+  return 260 - progress * 160 + Math.random() * 200;  // 260-460ms → 100-300ms
 }
 
 const SMIZZ_SVG = `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
@@ -85,10 +85,36 @@ function showGame() {
   if (document.getElementById('whack-overlay')) return; // déjà ouvert
   const overlay = document.createElement('div');
   overlay.id    = 'whack-overlay';
-  overlay.innerHTML = buildModalHtml();
+  overlay.innerHTML = buildIntroHtml();
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('whack-show'));
-  startRound(overlay);
+
+  overlay.querySelector('#wh-start')
+    ?.addEventListener('click', () => {
+      overlay.innerHTML = buildModalHtml();
+      startRound(overlay);
+    });
+  overlay.querySelector('#wh-intro-close')
+    ?.addEventListener('click', () => closeGame(overlay));
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeGame(overlay);
+  });
+}
+
+function buildIntroHtml() {
+  return `
+    <div class="wh-modal wh-intro">
+      <button class="wh-close" id="wh-intro-close">✕</button>
+      <div class="wh-intro-smizz">${SMIZZ_SVG}</div>
+      <div class="wh-title">⚡ Tu as été sélectionné !</div>
+      <div class="wh-intro-rules">
+        <div class="wh-rule">🖱️ Clique sur le Smizz avant qu'il disparaisse</div>
+        <div class="wh-rule">⏱️ ${GAME_SECS} secondes — fais le meilleur score</div>
+        <div class="wh-rule">⚡ Il accélère au fil du temps</div>
+        <div class="wh-rule">👻 Attention aux fausses fenêtres !</div>
+      </div>
+      <button class="btn btn-primary wh-start-btn" id="wh-start">Commencer</button>
+    </div>`;
 }
 
 function buildModalHtml() {
