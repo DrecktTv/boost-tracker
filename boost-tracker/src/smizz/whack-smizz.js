@@ -1,4 +1,6 @@
 // ── Whack-a-Smizz — easter egg ─────────────────────────────────────────────────
+import { supabase } from '../lib/supabase.js';
+import { getUser }  from '../lib/state.js';
 
 const HOLES     = 9;
 const GAME_SECS = 30;
@@ -231,10 +233,20 @@ function startTimer(overlay) {
 
 // ── End screen ─────────────────────────────────────────────────────────────────
 
-function endGame(overlay) {
+async function endGame(overlay) {
   clearAll();
   const modal = overlay.querySelector('.wh-modal');
   if (!modal) return;
+
+  // Sauvegarde le score en DB (colonne whack_score)
+  const user = getUser();
+  if (user && _score > 0) {
+    supabase.from('smizz_catches').insert([{
+      date:        new Date().toISOString(),
+      caught_by:   user.id,
+      whack_score: _score,
+    }]).then(() => {});  // fire & forget
+  }
 
   const stars = _score >= 20 ? '★★★' : _score >= 12 ? '★★☆' : _score >= 6 ? '★☆☆' : '☆☆☆';
   const msg   = _score >= 20 ? 'Légendaire — le Smizz te craint.'

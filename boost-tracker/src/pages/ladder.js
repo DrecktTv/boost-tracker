@@ -86,7 +86,7 @@ export async function renderSmizzLadder() {
   setLoading('lv-smizz');
 
   const [catches, usersData] = await Promise.all([
-    safeQuery('renderSmizzLadder:catches', supabase.from('smizz_catches').select('*').order('date', { ascending: false })),
+    safeQuery('renderSmizzLadder:catches', supabase.from('smizz_catches').select('*').is('whack_score', null).order('date', { ascending: false })),
     safeQuery('renderSmizzLadder:users',   supabase.from('user_roles').select('id,discord_name,discord_avatar')),
   ]);
 
@@ -166,6 +166,70 @@ export async function renderSmizzLadder() {
   </div>`;
 
   cont.querySelector('#btn-reset-smizz')?.addEventListener('click', resetSmizzLadder);
+}
+
+// ── Whack Ladder ──────────────────────────────────────────────────────────────
+
+export async function renderWhackLadder() {
+  const cont = g('lv-whack');
+  setLoading('lv-whack');
+
+  const [rows, usersData] = await Promise.all([
+    safeQuery('renderWhackLadder:rows',  supabase.from('smizz_catches').select('*').not('whack_score', 'is', null).order('whack_score', { ascending: false })),
+    safeQuery('renderWhackLadder:users', supabase.from('user_roles').select('id,discord_name,discord_avatar')),
+  ]);
+
+  const usersMap = {};
+  (usersData || []).forEach(u => { usersMap[u.id] = u; });
+
+  // Meilleur score par joueur
+  const best = {};
+  (rows || []).forEach(r => {
+    if (!r.caught_by) return;
+    const nom = usersMap[r.caught_by]?.discord_name || 'Inconnu';
+    if (!best[r.caught_by] || r.whack_score > best[r.caught_by].score) {
+      best[r.caught_by] = { nom, score: r.whack_score, games: 0 };
+    }
+    best[r.caught_by].games++;
+  });
+
+  const sorted = Object.values(best).sort((a, b) => b.score - a.score);
+  const medals = ['🥇', '🥈', '🥉'];
+
+  const rowsHTML = sorted.length
+    ? sorted.map((p, i) => `
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid rgba(255,255,255,.04)">
+          <span style="font-size:18px;width:28px;text-align:center">${medals[i] || '#' + (i + 1)}</span>
+          <span style="flex:1;font-size:14px;font-weight:600;color:var(--text)">${escHtml(p.nom)}</span>
+          <span style="font-size:12px;color:var(--text3);margin-right:8px">${p.games} partie${p.games > 1 ? 's' : ''}</span>
+          <span style="font-size:15px;font-weight:700;color:var(--gold2)">🔨 ${p.score}</span>
+        </div>`).join('')
+    : '<div style="padding:16px 18px;color:var(--text3);font-size:13px">Aucun score enregistré — attrape le pop-up !</div>';
+
+  const totalGames = (rows || []).length;
+  const topScore   = sorted[0]?.score ?? 0;
+
+  cont.innerHTML = `<div style="display:flex;flex-direction:column;gap:16px">
+    <div style="background:var(--bg1);border:1px solid rgba(212,160,23,.3);border-radius:var(--rad2);padding:28px;text-align:center">
+      <div style="font-size:52px;margin-bottom:8px">🔨</div>
+      <div style="font-family:Cinzel,serif;font-size:44px;font-weight:900;color:#e8d44d;line-height:1">${topScore}</div>
+      <div style="font-size:15px;color:var(--text2);margin-top:8px">Record absolu</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+      <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);padding:14px;text-align:center">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Parties jouées</div>
+        <div style="font-size:26px;font-weight:700;color:var(--gold2)">${totalGames}</div>
+      </div>
+      <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);padding:14px;text-align:center">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Joueurs</div>
+        <div style="font-size:26px;font-weight:700;color:var(--gold2)">${sorted.length}</div>
+      </div>
+    </div>
+    <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--rad2);overflow:hidden">
+      <div style="background:var(--bg2);padding:11px 18px;font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)">🏆 Meilleurs scores</div>
+      ${rowsHTML}
+    </div>
+  </div>`;
 }
 
 async function resetSmizzLadder() {

@@ -7,7 +7,7 @@ import { renderMembres, openAddM, saveM, updateSpeList } from './pages/membres.j
 import { renderTeams, addTeam }   from './pages/teams.js';
 import { renderBlacklist, filterBL, openAddBL, saveBL } from './pages/blacklist.js';
 import { renderHist }     from './pages/historique.js';
-import { renderLadder, renderLadderSession, renderLadderAlltime, renderSmizzLadder } from './pages/ladder.js';
+import { renderLadder, renderLadderSession, renderLadderAlltime, renderSmizzLadder, renderWhackLadder } from './pages/ladder.js';
 import { loadUsers }      from './pages/users.js';
 import { openAddRun, openAddRunSolo, saveRun, addCleInput, addParticipantInput } from './pages/runs-modal.js';
 import { openReset, doReset } from './pages/reset.js';
@@ -37,7 +37,7 @@ registerPage('users',      loadUsers);
 document.addEventListener('DOMContentLoaded', () => {
   initModals();
   initRouter();
-  initLadderTabs(renderLadderSession, renderLadderAlltime, renderSmizzLadder);
+  initLadderTabs(renderLadderSession, renderLadderAlltime, renderSmizzLadder, renderWhackLadder);
   wireButtons();
   initAuth();   // dispatch 'app:ready' une fois authentifié
 });
@@ -99,6 +99,7 @@ document.addEventListener('app:ready', () => {
     teams:         renderTeams,
     blacklist:     renderBlacklist,
     smizz:         renderSmizzLadder,
+    whack:         renderWhackLadder,
   });
 });
 

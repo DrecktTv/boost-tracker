@@ -13,7 +13,7 @@ function isActive(page) {
  * Ne s'exécute qu'une seule fois (guard _initialized).
  * Les callbacks ne se déclenchent que si la page concernée est active.
  */
-export function initRealtime({ tracker, ladderSession, ladderAlltime, membres, cles, teams, blacklist, smizz }) {
+export function initRealtime({ tracker, ladderSession, ladderAlltime, membres, cles, teams, blacklist, smizz, whack }) {
   if (_initialized) return;
   _initialized = true;
 
@@ -61,10 +61,10 @@ export function initRealtime({ tracker, ladderSession, ladderAlltime, membres, c
     })
     .subscribe();
 
-  // Smizz catches → Ladder smizz
+  // Smizz catches → Ladder smizz + whack
   supabase.channel('rt-smizz')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'smizz_catches' }, () => {
-      if (isActive('ladder')) smizz?.();
+      if (isActive('ladder')) { smizz?.(); whack?.(); }
     })
     .subscribe();
 }

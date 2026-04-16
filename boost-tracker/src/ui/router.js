@@ -39,8 +39,8 @@ export function initRouter() {
 }
 
 /** Attache les listeners sur les onglets ladder */
-export function initLadderTabs(renderSession, renderAlltime, renderSmizz) {
-  const renders = { session: renderSession, alltime: renderAlltime, smizz: renderSmizz };
+export function initLadderTabs(renderSession, renderAlltime, renderSmizz, renderWhack) {
+  const renders = { session: renderSession, alltime: renderAlltime, smizz: renderSmizz, whack: renderWhack };
 
   document.querySelectorAll('.ltab').forEach(tab => {
     tab.addEventListener('click', e => {
