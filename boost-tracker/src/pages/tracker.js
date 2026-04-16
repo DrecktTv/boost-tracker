@@ -74,6 +74,14 @@ function updateStats(runs) {
   const pct = runs.length ? Math.round(paid / runs.length * 100) : 0;
   const ratio = g('s-ratio'); if (ratio) ratio.style.width = pct + '%';
   const lbl = g('s-ratio-lbl'); if (lbl) lbl.textContent = `${paid} / ${runs.length}`;
+
+  // Bouton "Archiver les payés" — visible si au moins un run a tous ses membres payés
+  const hasFullyPaid = runs.some(r => {
+    const { paid: p, total: t } = paidSlots(r.membres);
+    return t > 0 && p === t;
+  });
+  const archBtn = g('btn-archive-paid');
+  if (archBtn) archBtn.style.display = hasFullyPaid ? '' : 'none';
 }
 
 // ── Rendu ─────────────────────────────────────────────────────────────────────

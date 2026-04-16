@@ -10,7 +10,7 @@ import { renderHist }     from './pages/historique.js';
 import { renderLadder, renderLadderSession, renderLadderAlltime, renderSmizzLadder, renderWhackLadder } from './pages/ladder.js';
 import { loadUsers }      from './pages/users.js';
 import { openAddRun, openAddRunSolo, saveRun, addCleInput, addParticipantInput } from './pages/runs-modal.js';
-import { openReset, doReset } from './pages/reset.js';
+import { openReset, doReset, doArchivePaid } from './pages/reset.js';
 import { initSmizz }      from './smizz/smizz.js';
 import { maybeShowWhackSmizz } from './smizz/whack-smizz.js';
 import { initRealtime }   from './lib/realtime.js';
@@ -110,6 +110,7 @@ function wireButtons() {
   on('btn-wcl-import',   () => openWclImport());
   on('btn-add-run',      () => openAddRun());
   on('btn-add-run-solo', () => openAddRunSolo());
+  on('btn-archive-paid', () => doArchivePaid());
   on('btn-open-reset', () => openReset());
 
   // Modal Run
