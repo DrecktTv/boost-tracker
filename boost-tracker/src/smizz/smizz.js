@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase.js';
 import { getUser } from '../lib/state.js';
 import { renderSmizzLadder } from '../pages/ladder.js';
+import { maybeTriggerInvasion } from './smizz-invasion.js';
 
 // ── Easter egg : Le Smizz ─────────────────────────────────────────────────────
 // Personnage stickman animé qui traverse l'écran.
@@ -19,6 +20,12 @@ export function initSmizz() {
 
   function appear() {
     if (caught) return;
+    // 1% de chance : au lieu du Smizz classique, on lance une invasion
+    if (maybeTriggerInvasion()) {
+      // Reporter la prochaine apparition classique après l'invasion
+      setTimeout(scheduleAppear, 35000);
+      return;
+    }
     const fromLeft = Math.random() > 0.5;
     x = fromLeft ? -90 : window.innerWidth + 10;
 
