@@ -51,14 +51,14 @@ export async function renderTeams() {
     const healFilled = !!ts.find(s => s.slot_index === 3)?.membre_id;
 
     const chipDps  = dpsCount > 0
-      ? `<span class="tc-chip chip-dps">⚔️ ${dpsCount} DPS</span>`
-      : `<span class="tc-chip chip-empty">⚔️ —</span>`;
+      ? `<span class="tc-chip chip-dps">${dpsCount} DPS</span>`
+      : `<span class="tc-chip chip-empty">DPS —</span>`;
     const chipTank = tankFilled
-      ? `<span class="tc-chip chip-tank">🛡 Tank</span>`
-      : `<span class="tc-chip chip-empty">🛡 —</span>`;
+      ? `<span class="tc-chip chip-tank">Tank</span>`
+      : `<span class="tc-chip chip-empty">Tank —</span>`;
     const chipHeal = healFilled
-      ? `<span class="tc-chip chip-heal">🍃 Heal</span>`
-      : `<span class="tc-chip chip-empty">🍃 —</span>`;
+      ? `<span class="tc-chip chip-heal">Heal</span>`
+      : `<span class="tc-chip chip-empty">Heal —</span>`;
 
     // Rows des slots dans l'ordre Tank, Heal, DPS1, DPS2
     const dotClass = { DPS: 'dot-dps', TANK: 'dot-tank', Heal: 'dot-heal' };
