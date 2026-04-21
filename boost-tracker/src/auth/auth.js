@@ -19,27 +19,37 @@ function hideLogin() {
 }
 
 function showUserBar(session, role) {
-  const bar    = g('user-bar');
-  const avatar = g('user-avatar');
-  const name   = g('user-name');
-  const badge  = g('user-role-badge');
+  const bar      = g('user-bar');
+  const avatar   = g('user-avatar');
+  const fallback = g('user-av-fallback');
+  const name     = g('user-name');
+  const badge    = g('user-role-badge');
   if (!bar) return;
 
   bar.style.display = 'flex';
-  const d = session.user.user_metadata;
-  if (avatar && d?.avatar_url) { avatar.src = d.avatar_url; avatar.style.display = 'block'; }
-  if (name) name.textContent = d?.full_name || d?.name || '';
+  const d      = session.user.user_metadata;
+  const userNm = d?.full_name || d?.name || '';
+  if (avatar && d?.avatar_url) {
+    avatar.src = d.avatar_url;
+    avatar.style.display = 'block';
+    if (fallback) fallback.style.display = 'none';
+  } else if (fallback) {
+    fallback.textContent = (userNm[0] || 'B').toUpperCase();
+    fallback.style.display = 'flex';
+  }
+  if (name) name.textContent = userNm;
 
   const styles = {
-    admin:  { bg: 'rgba(212,160,23,.2)',  color: '#e8d44d', text: 'ADMIN'   },
-    member: { bg: 'rgba(74,144,226,.2)',  color: '#6ba5e8', text: 'MEMBRE'  },
-    viewer: { bg: 'rgba(100,100,100,.2)', color: '#8890aa', text: 'LECTEUR' },
+    admin:  { bg: 'rgba(234,188,58,.12)',  color: 'var(--gold2)', border: 'rgba(234,188,58,.22)', text: 'Admin'   },
+    member: { bg: 'rgba(74,144,226,.12)',  color: 'var(--blue2)', border: 'rgba(74,144,226,.22)', text: 'Membre'  },
+    viewer: { bg: 'rgba(136,144,170,.12)', color: 'var(--text2)', border: 'var(--border)',        text: 'Lecteur' },
   };
   const s = styles[role] || styles.viewer;
   if (badge) {
     badge.textContent = s.text;
-    badge.style.background = s.bg;
-    badge.style.color = s.color;
+    badge.style.background   = s.bg;
+    badge.style.color        = s.color;
+    badge.style.borderColor  = s.border;
   }
 }
 

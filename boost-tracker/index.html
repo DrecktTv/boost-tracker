@@ -4,7 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Boosterinos</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@700;900&display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@700;900&family=Fraunces:ital,wght@0,400;0,500;1,400&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
   <script type="module" src="/src/main.js"></script>
 </head>
 <body>
@@ -32,30 +34,40 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-brand"><div class="brand-dot"></div>Boosterinos</div>
-    <nav class="sidebar-nav">
-      <div class="stab" data-p="tracker">  <span class="stab-icon">🎯</span><span class="stab-label">Tracker</span></div>
-      <div class="stab" data-p="session">  <span class="stab-icon">⚡</span><span class="stab-label">Session</span></div>
-      <div class="stab" data-p="membres">  <span class="stab-icon">⚔</span> <span class="stab-label">Membres</span></div>
-      <div class="stab" data-p="teams">    <span class="stab-icon">🐗</span><span class="stab-label">Teams</span></div>
-      <div class="stab" data-p="cles">      <span class="stab-icon">🗝️</span><span class="stab-label">Clés</span></div>
-      <div class="stab" data-p="historique"><span class="stab-icon">🪙</span><span class="stab-label">Historique</span></div>
-      <div class="stab" data-p="blacklist"><span class="stab-icon">🚫</span><span class="stab-label">Blacklist</span></div>
-      <div class="stab" data-p="ladder">   <span class="stab-icon">🏆</span><span class="stab-label">Ladder</span></div>
-      <div class="stab admin-only" data-p="users" style="display:none"><span class="stab-icon">👥</span><span class="stab-label">Utilisateurs</span></div>
+    <div class="sb-brand">
+      <div class="bmark">B</div>
+      <div class="bname"><b>Boosterinos</b><span>M+ · Gold Tracker</span></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="nav-h">Session</div>
+      <div class="stab active" data-p="tracker"><span class="tab-ico">🎯</span><span class="tab-lbl">Tracker</span></div>
+      <div class="stab" data-p="session"><span class="tab-ico">⚡</span><span class="tab-lbl">Session</span></div>
+      <div class="stab" data-p="teams"><span class="tab-ico">🐗</span><span class="tab-lbl">Teams</span></div>
+      <div class="stab" data-p="cles"><span class="tab-ico">🗝</span><span class="tab-lbl">Clés</span></div>
+
+      <div class="nav-h">Registre</div>
+      <div class="stab" data-p="membres"><span class="tab-ico">⚔</span><span class="tab-lbl">Membres</span></div>
+      <div class="stab" data-p="ladder"><span class="tab-ico">♛</span><span class="tab-lbl">Ladder</span></div>
+      <div class="stab" data-p="historique"><span class="tab-ico">🪙</span><span class="tab-lbl">Historique</span></div>
+      <div class="stab" data-p="blacklist"><span class="tab-ico">⊘</span><span class="tab-lbl">Blacklist</span></div>
+
+      <div class="nav-h admin-only" style="display:none">Admin</div>
+      <div class="stab admin-only" data-p="users" style="display:none"><span class="tab-ico">◈</span><span class="tab-lbl">Utilisateurs</span></div>
     </nav>
+
     <div id="key-coverage" style="display:none"></div>
 
-    <div id="user-bar" style="display:none;padding:12px 14px;border-top:1px solid var(--border);align-items:center;gap:10px">
-      <img id="user-avatar" src="" width="32" height="32" style="border-radius:50%;border:2px solid var(--border);display:none;flex-shrink:0"/>
-      <div style="flex:1;min-width:0">
-        <div id="user-name" style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap">
-          <span id="user-role-badge" style="font-size:10px;padding:1px 7px;border-radius:8px;font-weight:700;font-family:'Cinzel',serif;display:inline-block"></span>
-          <span id="user-main-perso" style="display:none;font-size:10px;color:var(--text2);background:var(--bg3);padding:1px 7px;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px"></span>
+    <div id="user-bar" class="sb-foot" style="display:none">
+      <img id="user-avatar" src="" class="u-av-img" style="display:none"/>
+      <div class="u-av" id="user-av-fallback">B</div>
+      <div class="u-meta">
+        <div id="user-name" class="u-name"></div>
+        <div class="u-sub">
+          <span id="user-role-badge" class="u-role"></span>
+          <span id="user-main-perso" class="u-perso" style="display:none"></span>
         </div>
       </div>
-      <button id="btn-logout" title="Se déconnecter" style="background:transparent;border:1px solid var(--border);color:var(--text3);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s">⏻</button>
+      <button id="btn-logout" class="u-out" title="Se déconnecter">⏻</button>
     </div>
   </aside>
 
