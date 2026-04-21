@@ -1,4 +1,4 @@
-import { getSetupData, getAllMembres, setSelection } from '../ui/coverage.js';
+import { getSetupData, getAllMembres, setSelection, refreshCoverage } from '../ui/coverage.js';
 import { escHtml } from '../lib/utils.js';
 import { isMember } from '../lib/state.js';
 import { speColor, roleImg } from '../ui/components.js';
@@ -582,10 +582,11 @@ function wireRosterListeners(page) {
     renderStep1(page);
   });
 
-  // Copier
+  // Copier — force un refresh des données membres avant de générer le texte
   page.querySelector('#sess-copy-btn')?.addEventListener('click', async () => {
     const btn = page.querySelector('#sess-copy-btn');
     try {
+      await refreshCoverage();              // récupère les dernières infos depuis Supabase
       await navigator.clipboard.writeText(generateSignText());
       if (btn) {
         const orig = btn.textContent;
@@ -648,10 +649,24 @@ export function renderSession() {
   }
 
   loadState();
+  renderCurrent(page);
+}
 
+function renderCurrent(page) {
   if (_step === 'roster') renderRoster(page);
   else if (_step === 2)   renderStep2(page);
   else                    renderStep1(page);
+}
+
+// Re-render automatique quand les membres sont mis à jour ailleurs (Membres, Clés, autre onglet)
+let _coverageListenerAttached = false;
+if (!_coverageListenerAttached) {
+  _coverageListenerAttached = true;
+  document.addEventListener('coverage:changed', () => {
+    const page = document.getElementById('page-session');
+    if (!page || !page.classList.contains('active')) return;
+    renderCurrent(page);
+  });
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
