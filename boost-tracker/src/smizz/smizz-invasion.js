@@ -128,9 +128,9 @@ function spawnSmizz(container, onCatch) {
   const rSpd = () => (1.2 + Math.random() * 3.5) * (Math.random() < 0.5 ? -1 : 1);
   let vx = rSpd(), vy = rSpd();
 
-  const EVASION_RADIUS = 110;  // détection du curseur
-  const EVASION_FORCE  = 0.8;  // push appliqué par frame quand proche
-  const MAX_SPEED      = 9;
+  const EVASION_RADIUS = 60;   // détection du curseur (plus petit = plus proche avant de fuir)
+  const EVASION_FORCE  = 0.4;  // push moins violent
+  const MAX_SPEED      = 7;
   const FRICTION       = 0.985;
 
   el.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:${size}px;height:${size}px;cursor:pointer;pointer-events:auto;transition:opacity .15s`;
@@ -179,22 +179,10 @@ function spawnSmizz(container, onCatch) {
   }
   requestAnimationFrame(tick);
 
-  // Petite chance de téléporter quand survolé (avant le click) → feinte
-  el.addEventListener('mouseenter', () => {
-    if (!alive || caught) return;
-    if (Math.random() < 0.35) {
-      x = Math.random() * (W - size);
-      y = Math.random() * (H - size);
-      vx = rSpd() * 1.3; vy = rSpd() * 1.3;
-      el.style.left = x + 'px';
-      el.style.top  = y + 'px';
-      el.classList.add('inv-teleport');
-      setTimeout(() => el.classList.remove('inv-teleport'), 300);
-    }
-  });
-
-  el.addEventListener('click', async () => {
+  // Catch via pointerdown (plus fiable que click : se déclenche au premier contact)
+  el.addEventListener('pointerdown', async e => {
     if (caught) return;
+    e.stopPropagation();
     caught = true; alive = false;
     el.classList.add('inv-caught');
     setTimeout(() => el.remove(), 400);

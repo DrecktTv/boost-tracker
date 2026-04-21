@@ -2198,11 +2198,12 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   /* Wrapper transparent — les smizz sont pointer-events:auto individuellement */
 }
 .inv-smizz {
-  user-select:none;
+  user-select:none; touch-action:manipulation;
   will-change:transform, left, top;
   filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));
   animation:inv-appear .5s cubic-bezier(.34,1.56,.64,1) both;
 }
+.inv-smizz svg { pointer-events:none }
 .inv-smizz:hover { filter:drop-shadow(0 0 10px rgba(255,200,60,.6)) brightness(1.15) }
 @keyframes inv-appear {
   from { opacity:0; transform:scale(.2) rotate(-180deg) }
