@@ -75,43 +75,86 @@ function startInvasion() {
   container.id = 'smizz-invasion';
   document.body.appendChild(container);
 
+  // Backdrop bloquant les clics (transparent)
+  const backdrop = document.createElement('div');
+  backdrop.className = 'inv-backdrop';
+  container.appendChild(backdrop);
+
   // Track mouse pour évitement
   const onMove = e => { _mouseX = e.clientX; _mouseY = e.clientY; };
   window.addEventListener('mousemove', onMove);
 
-  // Banner "Invasion !"
-  const banner = document.createElement('div');
-  banner.className = 'inv-banner';
-  banner.innerHTML = `
-    <span class="inv-b-icon">⚠</span>
-    <div class="inv-b-text">
-      <div class="inv-b-title">Invasion de Smizz !</div>
-      <div class="inv-b-sub" id="inv-counter">0 / ${SMIZZ_COUNT} attrapés</div>
-    </div>`;
-  container.appendChild(banner);
+  let caught     = 0;
+  let endedEarly = false;
+  let endTimer   = null;
 
-  let caught = 0;
-  const updateCounter = () => {
-    const el = document.getElementById('inv-counter');
-    if (el) el.textContent = `${caught} / ${SMIZZ_COUNT} attrapés`;
-  };
-
-  for (let i = 0; i < SMIZZ_COUNT; i++) {
-    spawnSmizz(container, () => { caught++; updateCounter(); });
-  }
-
-  // Fin d'invasion
-  setTimeout(() => {
+  const endInvasion = () => {
+    if (endedEarly) return;
+    endedEarly = true;
+    clearTimeout(endTimer);
     container.querySelectorAll('.inv-smizz').forEach(el => el.classList.add('inv-flee'));
-    banner.classList.add('inv-banner-fade');
+    banner?.classList.add('inv-banner-fade');
+    closeBtn?.classList.add('inv-banner-fade');
+    backdrop.classList.add('inv-backdrop-fade');
     setTimeout(() => {
       container.remove();
       window.removeEventListener('mousemove', onMove);
       _active = false;
-      if (caught >= SMIZZ_COUNT) toast(`🏆 Tous les Smizz attrapés !`, 'ok');
+      if (caught >= SMIZZ_COUNT) toast('🏆 Tous les Smizz attrapés !', 'ok');
       else if (caught > 0)       toast(`${caught}/${SMIZZ_COUNT} Smizz attrapés`);
     }, 900);
-  }, DURATION_MS);
+  };
+
+  // Intro animation : "INVASION DE SMIZZ !"
+  const intro = document.createElement('div');
+  intro.className = 'inv-intro';
+  intro.innerHTML = `
+    <div class="inv-intro-icon">⚠</div>
+    <div class="inv-intro-title">Invasion</div>
+    <div class="inv-intro-sub">de Smizz !</div>
+    <div class="inv-intro-hint">Attrapes-en un maximum — ils se défendent !</div>`;
+  container.appendChild(intro);
+
+  let banner   = null;
+  let closeBtn = null;
+
+  // Après l'intro (2s), on lance la partie
+  setTimeout(() => {
+    intro.classList.add('inv-intro-out');
+    setTimeout(() => intro.remove(), 500);
+
+    // Banner + compteur
+    banner = document.createElement('div');
+    banner.className = 'inv-banner';
+    banner.innerHTML = `
+      <span class="inv-b-icon">⚠</span>
+      <div class="inv-b-text">
+        <div class="inv-b-title">Invasion de Smizz !</div>
+        <div class="inv-b-sub" id="inv-counter">0 / ${SMIZZ_COUNT} attrapés</div>
+      </div>`;
+    container.appendChild(banner);
+
+    // Bouton fermer
+    closeBtn = document.createElement('button');
+    closeBtn.className = 'inv-close';
+    closeBtn.innerHTML = '✕';
+    closeBtn.title = 'Fermer l\'invasion';
+    closeBtn.addEventListener('click', endInvasion);
+    container.appendChild(closeBtn);
+
+    // Spawn smizz
+    for (let i = 0; i < SMIZZ_COUNT; i++) {
+      spawnSmizz(container, () => {
+        caught++;
+        const el = document.getElementById('inv-counter');
+        if (el) el.textContent = `${caught} / ${SMIZZ_COUNT} attrapés`;
+        if (caught >= SMIZZ_COUNT) endInvasion();
+      });
+    }
+
+    // Fin auto après DURATION_MS
+    endTimer = setTimeout(endInvasion, DURATION_MS);
+  }, 1800);
 }
 
 function spawnSmizz(container, onCatch) {

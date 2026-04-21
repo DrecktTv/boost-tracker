@@ -2194,14 +2194,87 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 
 /* ── SMIZZ INVASION (easter egg ultra rare) ──────────────────────────────── */
 #smizz-invasion {
-  position:fixed; inset:0; pointer-events:none; z-index:9996;
-  /* Wrapper transparent — les smizz sont pointer-events:auto individuellement */
+  position:fixed; inset:0; z-index:9996;
+}
+/* Backdrop : bloque les clics sur l'app pendant l'invasion */
+.inv-backdrop {
+  position:absolute; inset:0;
+  background:rgba(7,9,15,.35);
+  backdrop-filter:blur(1.5px);
+  pointer-events:auto;
+  animation:inv-backdrop-in .4s ease both;
+  z-index:0;
+}
+@keyframes inv-backdrop-in { from { opacity:0 } to { opacity:1 } }
+.inv-backdrop.inv-backdrop-fade { animation:inv-backdrop-out .6s ease forwards }
+@keyframes inv-backdrop-out { to { opacity:0 } }
+
+/* Intro animation */
+.inv-intro {
+  position:absolute; inset:0; z-index:20;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; pointer-events:none;
+  animation:inv-intro-in .5s cubic-bezier(.34,1.56,.64,1) both;
+  text-align:center;
+}
+.inv-intro.inv-intro-out { animation:inv-intro-out .5s ease forwards }
+@keyframes inv-intro-in {
+  from { opacity:0; transform:scale(.85) }
+  to   { opacity:1; transform:scale(1) }
+}
+@keyframes inv-intro-out {
+  to { opacity:0; transform:scale(1.15) }
+}
+.inv-intro-icon {
+  font-size:56px; color:#ff6b7c;
+  filter:drop-shadow(0 0 24px rgba(255,107,124,.6));
+  animation:inv-icon-pulse 1.2s ease-in-out infinite;
+  margin-bottom:4px;
+}
+.inv-intro-title {
+  font-family:'Bricolage Grotesque', sans-serif;
+  font-size:72px; font-weight:700;
+  color:#ff9aa6; letter-spacing:-.03em; line-height:.9;
+  text-shadow:0 0 40px rgba(255,107,124,.5);
+}
+.inv-intro-sub {
+  font-family:'Bricolage Grotesque', sans-serif;
+  font-size:44px; font-weight:600;
+  color:#ffdf8a; letter-spacing:-.02em; line-height:1;
+  text-shadow:0 0 30px rgba(240,201,96,.4);
+}
+.inv-intro-hint {
+  margin-top:14px; font-size:13px;
+  color:rgba(255,255,255,.7); letter-spacing:.06em;
+  font-weight:500;
+}
+
+/* Close button */
+.inv-close {
+  position:absolute; top:24px; right:24px;
+  width:40px; height:40px; border-radius:10px;
+  background:rgba(21,26,43,.85);
+  border:1px solid rgba(255,107,124,.4);
+  color:#ff9aa6;
+  font-size:16px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:auto; z-index:15;
+  backdrop-filter:blur(8px);
+  box-shadow:0 4px 14px rgba(0,0,0,.4);
+  transition:all .2s cubic-bezier(.2,.8,.2,1);
+  animation:inv-banner-in .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.inv-close:hover {
+  background:rgba(255,107,124,.25); color:#fff;
+  border-color:rgba(255,107,124,.7);
+  transform:scale(1.05);
 }
 .inv-smizz {
   user-select:none; touch-action:manipulation;
   will-change:transform, left, top;
   filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));
   animation:inv-appear .5s cubic-bezier(.34,1.56,.64,1) both;
+  z-index:5;
 }
 .inv-smizz svg { pointer-events:none }
 .inv-smizz:hover { filter:drop-shadow(0 0 10px rgba(255,200,60,.6)) brightness(1.15) }
