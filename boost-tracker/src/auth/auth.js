@@ -39,17 +39,11 @@ function showUserBar(session, role) {
   }
   if (name) name.textContent = userNm;
 
-  const styles = {
-    admin:  { bg: 'rgba(234,188,58,.12)',  color: 'var(--gold2)', border: 'rgba(234,188,58,.22)', text: 'Admin'   },
-    member: { bg: 'rgba(74,144,226,.12)',  color: 'var(--blue2)', border: 'rgba(74,144,226,.22)', text: 'Membre'  },
-    viewer: { bg: 'rgba(136,144,170,.12)', color: 'var(--text2)', border: 'var(--border)',        text: 'Lecteur' },
-  };
-  const s = styles[role] || styles.viewer;
+  const roleText = { admin: 'Admin', member: 'Membre', viewer: 'Lecteur' };
+  const roleColor = { admin: '#ffdf8a', member: '#8aa5ff', viewer: '#a0a8c2' };
   if (badge) {
-    badge.textContent = s.text;
-    badge.style.background   = s.bg;
-    badge.style.color        = s.color;
-    badge.style.borderColor  = s.border;
+    badge.textContent = roleText[role] || roleText.viewer;
+    badge.style.color = roleColor[role] || roleColor.viewer;
   }
 }
 
