@@ -59,12 +59,33 @@ let _hideTO   = null;
 
 // ── Trigger ────────────────────────────────────────────────────────────────────
 
-export function maybeShowWhackSmizz() {
-  if (Math.random() > 0.03) return;          // 3% de chance
+const ROLL_CHANCE    = 0.05;            // 5% par tirage
+const COOLDOWN_MS    = 4 * 3600_000;    // max 1 fois toutes les 4h
+const RECHECK_MS     = 15 * 60_000;     // re-tirage toutes les 15 min
+
+let _rollInterval = null;
+
+function tryRoll() {
+  // Déjà joué récemment ?
   const last = localStorage.getItem('whack_last');
-  if (last && Date.now() - +last < 4 * 3600_000) return; // max 1x / 4h
+  if (last && Date.now() - +last < COOLDOWN_MS) return;
+  // Tirage
+  if (Math.random() > ROLL_CHANCE) return;
+  // Un jeu déjà ouvert ?
+  if (document.getElementById('whack-overlay')) return;
   localStorage.setItem('whack_last', String(Date.now()));
   setTimeout(showGame, 1800);
+}
+
+export function maybeShowWhackSmizz() {
+  // Premier tirage (à l'ouverture / app:ready)
+  tryRoll();
+  // Puis re-tirage périodique tant que l'onglet est ouvert
+  if (_rollInterval) return;
+  _rollInterval = setInterval(() => {
+    if (document.hidden) return;        // pas de tirage en arrière-plan
+    tryRoll();
+  }, RECHECK_MS);
 }
 
 // ── Dev helpers ────────────────────────────────────────────────────────────────
