@@ -11,6 +11,25 @@ import { SPES, TRADE_SLOTS } from '../constants.js';
 const SPE_LBL = { 'DPS.C': 'DPS C·C', 'DPS.D': 'DPS Dist.', 'TANK': 'Tank', 'Heal': 'Heal' };
 const SPE_CLS = { 'DPS.C': 'b-dps',   'DPS.D': 'b-dps',     'TANK': 'b-tank', 'Heal': 'b-heal' };
 let _openingModal = false;
+let _currentTab   = 'mine';  // 'mine' | 'others'
+let _membresCache = [];
+let _tabsWired    = false;
+
+function wireTabs() {
+  _tabsWired = true;
+  document.querySelectorAll('#page-membres .m-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _currentTab = btn.dataset.mtab;
+      renderMembres();
+    });
+  });
+}
+
+function syncTabsUI() {
+  document.querySelectorAll('#page-membres .m-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mtab === _currentTab);
+  });
+}
 
 // ── Trade slot picker (armory style) ──────────────────────────────────────────
 
@@ -143,21 +162,50 @@ export async function renderMembres() {
 
   // Mettre à jour le cache state pour les autres pages (teams, runs)
   setState('membres', membres);
+  _membresCache = membres;
 
-  g('m-count').textContent = membres.length + ' membre' + (membres.length > 1 ? 's' : '');
-  const tbody = g('m-body');
+  // Calcul "Mes personnages" : main + alts liés
+  const myMainId = getMainMembreId();
+  const mineIds  = new Set();
+  if (myMainId) {
+    mineIds.add(myMainId);
+    membres.filter(m => m.main_id === myMainId).forEach(m => mineIds.add(m.id));
+  }
+  const mine   = membres.filter(m => mineIds.has(m.id));
+  const others = membres.filter(m => !mineIds.has(m.id));
 
-  if (!membres.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">⚔</div><p>Aucun membre</p></div></td></tr>`;
+  // Mise à jour des compteurs
+  g('m-count').textContent       = membres.length + ' membre' + (membres.length > 1 ? 's' : '');
+  g('m-count-mine').textContent   = String(mine.length);
+  g('m-count-others').textContent = String(others.length);
+
+  // Hint si pas de main perso
+  const hint = g('m-no-main-hint');
+  if (hint) hint.style.display = myMainId ? 'none' : '';
+
+  // Wire tabs (une seule fois)
+  if (!_tabsWired) wireTabs();
+
+  // Si pas de main, forcer "others" par défaut
+  if (!myMainId && _currentTab === 'mine') _currentTab = 'others';
+  syncTabsUI();
+
+  const listToShow = _currentTab === 'mine' ? mine : others;
+  const tbody      = g('m-body');
+
+  if (!listToShow.length) {
+    const msg = _currentTab === 'mine'
+      ? (myMainId ? 'Aucun alt lié à ton main.' : 'Définis ton personnage principal pour voir tes persos ici.')
+      : 'Aucun autre membre.';
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">⚔</div><p>${msg}</p></div></td></tr>`;
     return;
   }
 
   // Index pour résoudre les noms de main
   const byId = Object.fromEntries(membres.map(m => [m.id, m]));
-  // Ensemble des ids qui sont main d'au moins un alt
   const mainIds = new Set(membres.filter(m => m.main_id).map(m => m.main_id));
 
-  tbody.innerHTML = membres.map(m => {
+  tbody.innerHTML = listToShow.map(m => {
     let statutBadge;
     if (m.main_id && byId[m.main_id]) {
       statutBadge = `<span class="badge" style="background:var(--bg3);color:var(--text2);font-size:10px">ALT → ${escHtml(byId[m.main_id].nom)}</span>`;

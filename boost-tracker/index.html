@@ -159,10 +159,35 @@
 
     <!-- ═══ MEMBRES ═══ -->
     <div class="page" id="page-membres">
-      <div class="toolbar">
-        <div class="toolbar-left"><span class="page-title">Membres</span><span class="pill" id="m-count">0</span></div>
-        <button class="btn btn-primary" id="btn-add-membre">+ Ajouter</button>
+      <div class="membres-hero">
+        <div class="mh-inner">
+          <div class="mh-left">
+            <div class="mh-eyebrow">Registre · Personnages</div>
+            <h1 class="mh-title">Tes <em>personnages</em> &amp; les autres</h1>
+            <p class="mh-sub">Gère ton roster (main + alts) ou consulte les personnages des autres membres. Clique sur un nom pour le modifier ou supprimer.</p>
+          </div>
+          <div class="mh-right">
+            <span class="pill" id="m-count">0 membre</span>
+            <button class="btn btn-primary" id="btn-add-membre">+ Ajouter</button>
+          </div>
+        </div>
       </div>
+
+      <div class="m-tabs">
+        <button class="m-tab active" data-mtab="mine">
+          <span class="m-tab-lbl">Mes personnages</span>
+          <span class="m-tab-count" id="m-count-mine">0</span>
+        </button>
+        <button class="m-tab" data-mtab="others">
+          <span class="m-tab-lbl">Les autres</span>
+          <span class="m-tab-count" id="m-count-others">0</span>
+        </button>
+      </div>
+
+      <div id="m-no-main-hint" class="m-hint" style="display:none">
+        Tu n'as pas encore défini ton personnage principal. Définis-en un pour voir uniquement tes persos ici.
+      </div>
+
       <div class="tw">
         <table>
           <thead><tr><th>Nom</th><th>Spé</th><th>Spécialisation</th><th>ilvl</th><th>Rio</th><th>Discord</th><th>Statut</th><th></th></tr></thead>

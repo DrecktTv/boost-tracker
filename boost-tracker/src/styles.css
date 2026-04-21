@@ -827,6 +827,111 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .slot-row { display:grid; grid-template-columns:90px 1fr; align-items:center; gap:10px; padding:12px 18px; border-bottom:1px solid rgba(255,255,255,.04) }
 .slot-row:last-child { border-bottom:none }
 /* ── Teams grid (style game card) ── */
+/* ── MEMBRES PAGE (redesign v2) ── */
+#page-membres {
+  --mm-ink:#e8ecf7; --mm-ink2:#a0a8c2; --mm-ink3:#606a8a; --mm-ink4:#3a4261;
+  --mm-line:#1b2135; --mm-line2:#262e48;
+  --mm-bg1:#0f1320; --mm-bg2:#151a2b; --mm-bg3:#1c2238;
+  --mm-blue:#6b8cff; --mm-blue2:#8aa5ff; --mm-blueb:rgba(107,140,255,.14);
+  --mm-violet:#b389ff; --mm-violetb:rgba(179,137,255,.14);
+  --mm-gold:#f0c960; --mm-gold2:#ffdf8a; --mm-goldb:rgba(240,201,96,.14);
+  --mm-display:'Bricolage Grotesque', 'Inter', sans-serif;
+  --mm-ease:cubic-bezier(.2,.8,.2,1);
+}
+
+/* Hero */
+.membres-hero {
+  position:relative; overflow:hidden;
+  padding:26px 32px 24px;
+  margin-bottom:20px;
+  background:
+    radial-gradient(ellipse 500px 220px at 10% 0%, rgba(107,140,255,.16), transparent 60%),
+    radial-gradient(ellipse 400px 200px at 100% 0%, rgba(179,137,255,.12), transparent 60%),
+    linear-gradient(180deg, rgba(21,26,43,.85), rgba(13,17,28,.5));
+  border:1px solid var(--mm-line);
+  border-radius:18px;
+  color:var(--mm-ink);
+}
+.membres-hero::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size:40px 40px;
+  mask-image:linear-gradient(180deg, black 0%, transparent 70%);
+}
+.mh-inner { position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap }
+.mh-left { flex:1; min-width:0 }
+.mh-eyebrow {
+  font-size:10.5px; font-weight:600;
+  letter-spacing:.2em; color:var(--mm-blue2); text-transform:uppercase;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:4px 11px; border-radius:999px;
+  background:var(--mm-blueb); border:1px solid rgba(107,140,255,.25);
+  margin-bottom:14px;
+}
+.mh-eyebrow::before {
+  content:''; width:6px; height:6px; border-radius:50%; background:var(--mm-blue);
+  box-shadow:0 0 10px var(--mm-blue);
+  animation:hero-pulse 2s ease-in-out infinite;
+}
+.mh-title {
+  font-family:var(--mm-display);
+  font-size:28px; line-height:1.05; letter-spacing:-.02em;
+  color:var(--mm-ink); font-weight:600;
+  margin-bottom:8px; font-optical-sizing:auto;
+}
+.mh-title em { font-style:normal; font-weight:600; color:var(--mm-gold2) }
+.mh-sub { font-size:14px; color:var(--mm-ink2); max-width:62ch; line-height:1.55 }
+.mh-right { display:flex; align-items:center; gap:10px; flex-shrink:0 }
+.mh-right .pill {
+  font-size:10.5px; font-weight:600;
+  background:rgba(255,255,255,.02); border:1px solid var(--mm-line);
+  color:var(--mm-ink3);
+  padding:5px 11px; border-radius:6px;
+  letter-spacing:.14em; text-transform:uppercase;
+}
+
+/* Tabs segmented */
+.m-tabs {
+  display:inline-flex; padding:4px;
+  background:var(--mm-bg2); border:1px solid var(--mm-line);
+  border-radius:12px; margin-bottom:16px;
+  gap:2px;
+}
+.m-tab {
+  display:inline-flex; align-items:center; gap:9px;
+  padding:8px 16px; border-radius:8px;
+  font-size:13px; font-weight:500;
+  color:var(--mm-ink3);
+  background:none; border:none; cursor:pointer;
+  transition:all .2s var(--mm-ease);
+  letter-spacing:-.005em;
+}
+.m-tab:hover { color:var(--mm-ink2) }
+.m-tab.active {
+  color:var(--mm-ink);
+  background:var(--mm-bg3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.m-tab-lbl { white-space:nowrap }
+.m-tab-count {
+  font-size:11px; font-weight:700;
+  background:rgba(255,255,255,.04);
+  color:var(--mm-ink3);
+  padding:1px 7px; border-radius:5px;
+  font-variant-numeric:tabular-nums;
+}
+.m-tab.active .m-tab-count { background:var(--mm-blueb); color:var(--mm-blue2) }
+
+/* Hint pas de main */
+.m-hint {
+  padding:12px 16px;
+  background:var(--mm-goldb); border:1px solid rgba(240,201,96,.22);
+  border-radius:10px; margin-bottom:14px;
+  font-size:13px; color:var(--mm-gold2);
+}
+
 /* ── TEAMS PAGE (redesign v2) ── */
 #page-teams {
   --t-ink:#e8ecf7; --t-ink2:#a0a8c2; --t-ink3:#606a8a; --t-ink4:#3a4261;
