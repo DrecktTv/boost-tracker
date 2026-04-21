@@ -59,26 +59,47 @@ function renderPaymentPanel(run) {
 // ── Stats ─────────────────────────────────────────────────────────────────────
 
 function updateStats(runs) {
-  let myTotal = 0, total = 0, paid = 0, unpaid = 0;
+  const hasMy = _myMembresIds.size > 0;
+
+  // Global (tous les runs)
+  let globalPaid = 0, globalUnpaid = 0, globalTotal = 0;
+  // Perspective utilisateur : uniquement les runs où il participe
+  let myInRuns = 0, myPaid = 0, myUnpaid = 0, myDue = 0;
+
   runs.forEach(r => {
-    if (r.paye) { paid++; return; }
-    unpaid++;
-    total += (r.prix || 0);
-    const myUnpaid = (r.membres || []).some(m => _myMembresIds.has(m.membre_id) && !m.paid);
-    if (myUnpaid) myTotal += (r.prix || 0);
+    if (r.paye) globalPaid++;
+    else { globalUnpaid++; globalTotal += (r.prix || 0); }
+
+    if (!hasMy) return;
+    const mySlots = (r.membres || []).filter(m => _myMembresIds.has(m.membre_id));
+    if (!mySlots.length) return;
+    myInRuns++;
+    const allMyPaid = mySlots.every(m => m.paid);
+    if (allMyPaid) myPaid++;
+    else { myUnpaid++; myDue += (r.prix || 0); }
   });
-  g('s-total').textContent  = gold(_myMembresIds.size > 0 ? myTotal : total);
+
+  // Runs = toujours le total global de la session
+  // Encaissés / En attente / Total dû = perspective utilisateur si main perso défini
+  const showPaid   = hasMy ? myPaid   : globalPaid;
+  const showUnpaid = hasMy ? myUnpaid : globalUnpaid;
+  const showTotal  = hasMy ? myDue    : globalTotal;
+
+  g('s-total').textContent  = gold(showTotal);
   g('s-runs').textContent   = runs.length;
-  g('s-paid').textContent   = paid;
-  g('s-unpaid').textContent = unpaid;
+  g('s-paid').textContent   = showPaid;
+  g('s-unpaid').textContent = showUnpaid;
 
   // Barres — ratios
-  const paidPct   = runs.length ? Math.round(paid   / runs.length * 100) : 0;
-  const unpaidPct = runs.length ? Math.round(unpaid / runs.length * 100) : 0;
-  const barPaid   = g('s-ratio');       if (barPaid)   barPaid.style.width   = paidPct + '%';
-  const barUnpaid = g('s-bar-unpaid');  if (barUnpaid) barUnpaid.style.width = unpaidPct + '%';
-  const barRuns   = g('s-bar-runs');    if (barRuns)   barRuns.style.width   = runs.length ? '100%' : '0%';
-  const lbl = g('s-ratio-lbl'); if (lbl) lbl.textContent = `${paid} / ${runs.length}`;
+  // Base paid/unpaid = nombre de runs où l'utilisateur participe (ou total si pas de main)
+  const base       = hasMy ? (myInRuns || 1) : (runs.length || 1);
+  const paidPct    = Math.round(showPaid   / base * 100);
+  const unpaidPct  = Math.round(showUnpaid / base * 100);
+  // Barre Runs = % de runs où l'utilisateur participe (ou 100% si pas de main perso)
+  const runsPct    = hasMy && runs.length ? Math.round(myInRuns / runs.length * 100) : (runs.length ? 100 : 0);
+  const barPaid    = g('s-ratio');       if (barPaid)   barPaid.style.width   = paidPct + '%';
+  const barUnpaid  = g('s-bar-unpaid');  if (barUnpaid) barUnpaid.style.width = unpaidPct + '%';
+  const barRuns    = g('s-bar-runs');    if (barRuns)   barRuns.style.width   = runsPct + '%';
 
   // Hero — bonjour + sous-titre dynamique
   const u      = getUser();
@@ -88,11 +109,18 @@ function updateStats(runs) {
   const heroSub= g('hero-sub');
   if (heroSub) {
     if (!runs.length) {
-      heroSub.textContent = 'Aucun run pour l\'instant — démarre la session.';
+      heroSub.textContent = "Aucun run pour l'instant — démarre la session.";
+    } else if (hasMy && myInRuns === 0) {
+      heroSub.textContent = `${runs.length} run${runs.length > 1 ? 's' : ''} en session — tu n'en fais partie d'aucun.`;
+    } else if (hasMy) {
+      const parts = [`${myInRuns}/${runs.length} run${runs.length > 1 ? 's' : ''} avec toi`];
+      if (showPaid)   parts.push(`${showPaid} encaissé${showPaid > 1 ? 's' : ''}`);
+      if (showUnpaid) parts.push(`${showUnpaid} en attente`);
+      heroSub.textContent = parts.join(' · ') + '.';
     } else {
       const parts = [`${runs.length} run${runs.length > 1 ? 's' : ''}`];
-      if (paid)   parts.push(`${paid} encaissé${paid > 1 ? 's' : ''}`);
-      if (unpaid) parts.push(`${unpaid} en attente`);
+      if (showPaid)   parts.push(`${showPaid} payé${showPaid > 1 ? 's' : ''}`);
+      if (showUnpaid) parts.push(`${showUnpaid} en attente`);
       heroSub.textContent = parts.join(' · ') + '.';
     }
   }
