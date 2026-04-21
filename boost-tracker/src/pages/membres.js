@@ -223,7 +223,7 @@ export async function openAddM() {
   _openingModal = true;
   try {
     g('m-id').value = '';
-    g('m-title').textContent = 'Ajouter un membre';
+    g('m-title').innerHTML = 'Ajouter un <em>membre</em>';
     ['mn', 'mi', 'mr', 'm-discord'].forEach(id => { g(id).value = ''; });
     g('ms').selectedIndex = 0;
     g('mc').innerHTML = '<option value="">— Choisir un rôle —</option>';
@@ -249,7 +249,7 @@ async function editM(id) {
   if (!m) return;
 
   g('m-id').value   = id;
-  g('m-title').textContent = 'Modifier ' + m.nom;
+  g('m-title').innerHTML = `Modifier <em>${escHtml(m.nom)}</em>`;
   g('mn').value     = m.nom || '';
   g('ms').value     = m.spe || '';
   updateSpeList();

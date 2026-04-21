@@ -41,7 +41,7 @@ function foot()  { return document.getElementById('wcl-modal-foot'); }
 function title() { return document.getElementById('wcl-modal-title'); }
 
 function setStep(t) {
-  title().textContent = t;
+  title().innerHTML = t;
 }
 
 function formatTime(epochMs) {
@@ -168,7 +168,7 @@ function nextStatus(current, hasMembre) {
 // ── Step 0 — URL input ─────────────────────────────────────────────────────────
 
 function renderStep0() {
-  setStep('Import WarcraftLogs');
+  setStep('Import <em>WarcraftLogs</em>');
   body().innerHTML = `
     <div class="wcl-intro">
       <p class="wcl-hint">Colle une URL de report WarcraftLogs. Tous les runs M+ complétés seront détectés automatiquement.</p>
@@ -276,7 +276,7 @@ async function analyzeReport(code) {
 // ── Step 1 — Fight list ────────────────────────────────────────────────────────
 
 function renderStep1() {
-  setStep(`${_fights.length} run${_fights.length > 1 ? 's' : ''} détecté${_fights.length > 1 ? 's' : ''}`);
+  setStep(`<em>${_fights.length}</em> run${_fights.length > 1 ? 's' : ''} détecté${_fights.length > 1 ? 's' : ''}`);
   _selected = new Set(_fights.map(f => f.id)); // tout coché par défaut
 
   const rows = _fights.map(f => {
@@ -392,7 +392,7 @@ function renderPlayerRow(p, fid, pidx) {
 
 function renderStep2() {
   const selectedFights = _fights.filter(f => _selected.has(f.id));
-  setStep(`Review — ${selectedFights.length} run${selectedFights.length > 1 ? 's' : ''}`);
+  setStep(`Review — <em>${selectedFights.length}</em> run${selectedFights.length > 1 ? 's' : ''}`);
 
   const cards = selectedFights.map(f => {
     const dInfo = f.cleKey ? DONJONS[f.cleKey] : null;

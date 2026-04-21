@@ -30,7 +30,7 @@ export async function openAddRun() {
   );
   if (teams === null) return;
 
-  g('run-modal-title').textContent = 'Nouveau run';
+  g('run-modal-title').innerHTML = 'Nouveau <em>run</em>';
   g('run-team-wrap').style.display = '';
   g('run-participants-wrap').style.display = 'none';
 
@@ -53,7 +53,7 @@ export async function openAddRunSolo() {
   );
   if (membres === null) return;
 
-  g('run-modal-title').textContent = 'Run sans team';
+  g('run-modal-title').innerHTML = 'Run <em>sans team</em>';
   g('run-team-wrap').style.display = 'none';
   g('run-participants-wrap').style.display = '';
   g('run-participants-list').innerHTML = '';
