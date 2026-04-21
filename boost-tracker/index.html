@@ -387,11 +387,11 @@
         <div class="fg"><label>Rio</label><input id="mr" type="number" placeholder="3000"/></div>
       </div>
       <div class="fg">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <label style="margin:0">Tradable <span id="m-trade-count" style="color:var(--text3);font-size:11px;font-weight:400"></span></label>
-          <div style="display:flex;gap:4px">
-            <button type="button" class="btn btn-ghost btn-sm" id="m-trade-all" style="font-size:11px;padding:2px 8px">Tout</button>
-            <button type="button" class="btn btn-ghost btn-sm" id="m-trade-none" style="font-size:11px;padding:2px 8px">Aucun</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px">
+          <label style="margin:0">Équipement tradable <span id="m-trade-count" style="color:var(--text3);font-weight:500;text-transform:none;letter-spacing:0"></span></label>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="btn btn-ghost btn-sm" id="m-trade-all" style="font-size:11px;padding:5px 10px">Tout tradable</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="m-trade-none" style="font-size:11px;padding:5px 10px">Tout reset</button>
           </div>
         </div>
         <input type="hidden" id="m-trade"/>

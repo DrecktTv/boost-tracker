@@ -31,56 +31,13 @@ function syncTabsUI() {
   });
 }
 
-// ── Trade slot picker (armory style) ──────────────────────────────────────────
-
-const ARMORY_LEFT   = ['head','neck','shoulder','back','chest','wrist'];
-const ARMORY_RIGHT  = ['hands','waist','legs','feet','ring1','ring2'];
-const ARMORY_BOTTOM = ['trinket1','trinket2','weapon','offhand'];
+// ── Trade slot picker (grille claire) ─────────────────────────────────────────
 
 const SLOT_ICONS = {
   head:'🪖', neck:'📿', shoulder:'🏅', back:'🧥', chest:'🛡', wrist:'⌚',
   hands:'🧤', waist:'🪢', legs:'🦵', feet:'👟',
   ring1:'💍', ring2:'💍', trinket1:'🔮', trinket2:'⚗️', weapon:'⚔️', offhand:'🗡️',
 };
-
-const BODY_SVG = `<svg class="armory-body-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="40" cy="77" rx="18" ry="4" fill="rgba(0,0,0,0.25)"/>
-  <g class="as-body">
-    <circle cx="40" cy="14" r="10" fill="#e8c87a" stroke="#c8a050" stroke-width="1"/>
-    <path d="M30 12 Q40 2 50 12 L50 18 Q40 14 30 18 Z" fill="#1a1a2e"/>
-    <rect x="30" y="14" width="6" height="10" fill="#1a1a2e"/>
-    <rect x="44" y="14" width="6" height="10" fill="#1a1a2e"/>
-    <rect x="32" y="15" width="16" height="5" rx="2" fill="#111" opacity="0.85"/>
-    <ellipse cx="36" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
-    <ellipse cx="44" cy="17" rx="2" ry="1.5" fill="white" opacity="0.9"/>
-    <path d="M36 21 Q40 24 44 21" stroke="#c8a050" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    <line x1="40" y1="24" x2="40" y2="46" stroke="#1a1a2e" stroke-width="5" stroke-linecap="round"/>
-    <path d="M36 26 Q28 36 30 46 L36 42 Z" fill="#2a2a4e" opacity="0.8"/>
-    <g class="as-arm1">
-      <line x1="40" y1="32" x2="22" y2="42" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
-      <circle cx="21" cy="43" r="3.5" fill="#e8c87a"/>
-    </g>
-    <g class="as-arm2">
-      <line x1="40" y1="32" x2="56" y2="28" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
-      <g class="as-bag">
-        <line x1="57" y1="28" x2="62" y2="35" stroke="#c07800" stroke-width="2"/>
-        <circle cx="64" cy="40" r="9" fill="#d49000"/>
-        <circle cx="64" cy="40" r="7" fill="#f0b800"/>
-        <circle cx="62" cy="38" r="3" fill="#ffe060" opacity="0.6"/>
-        <text x="64" y="44" font-size="9" font-family="Arial Black" font-weight="900" fill="#7a4400" text-anchor="middle">$</text>
-        <ellipse cx="64" cy="31" rx="4" ry="2.5" fill="#c07800"/>
-      </g>
-    </g>
-    <g class="as-leg1">
-      <line x1="40" y1="46" x2="28" y2="64" stroke="#1a1a2e" stroke-width="4.5" stroke-linecap="round"/>
-      <ellipse cx="25" cy="67" rx="6" ry="3" fill="#111"/>
-    </g>
-    <g class="as-leg2">
-      <line x1="40" y1="46" x2="52" y2="62" stroke="#2a2a4e" stroke-width="4.5" stroke-linecap="round"/>
-      <ellipse cx="55" cy="65" rx="5" ry="2.5" fill="#222"/>
-    </g>
-  </g>
-</svg>`;
 
 function parseTradeData(val) {
   if (!val) return { tradable: new Set(), na: new Set() };
@@ -97,6 +54,18 @@ function serializeTrade(tradable, na) {
   return JSON.stringify({ t, na: n });
 }
 
+function slotState(key, tradable, na) {
+  if (tradable.has(key)) return 'tradable';
+  if (na.has(key))       return 'na';
+  return 'no';
+}
+
+function stateLabel(state) {
+  return state === 'tradable' ? 'Tradable'
+       : state === 'na'       ? 'Non équipé'
+       :                        'Non tradable';
+}
+
 function renderTradeSlots(data = { tradable: new Set(), na: new Set() }) {
   const { tradable, na } = data;
   const container = document.getElementById('m-trade-slots');
@@ -104,51 +73,55 @@ function renderTradeSlots(data = { tradable: new Set(), na: new Set() }) {
   const count     = document.getElementById('m-trade-count');
   if (!container) return;
 
-  const slotMap = Object.fromEntries(TRADE_SLOTS.map(s => [s.key, s]));
-
-  const mkSlot = key => {
-    const s   = slotMap[key];
-    const cls = tradable.has(key) ? ' ts-active' : na.has(key) ? ' ts-na' : '';
-    return `<button type="button" class="armory-slot${cls}" data-key="${key}" title="${s.fr} — clic: tradable → N/A → rien">
-      <span class="armory-slot-icon">${SLOT_ICONS[key] || '📦'}</span>
-      <span class="armory-slot-lbl">${s.fr}</span>
+  const mkSlot = s => {
+    const state = slotState(s.key, tradable, na);
+    return `<button type="button" class="tg-slot" data-key="${s.key}" data-state="${state}">
+      <span class="tg-slot-icon">${SLOT_ICONS[s.key] || '📦'}</span>
+      <div class="tg-slot-body">
+        <span class="tg-slot-name">${s.fr}</span>
+        <span class="tg-slot-state">${stateLabel(state)}</span>
+      </div>
     </button>`;
   };
 
   container.innerHTML = `
-    <div class="armory-panel">
-      <div class="armory-col armory-left">${ARMORY_LEFT.map(mkSlot).join('')}</div>
-      <div class="armory-center">${BODY_SVG}</div>
-      <div class="armory-col armory-right">${ARMORY_RIGHT.map(mkSlot).join('')}</div>
+    <div class="tg-legend">
+      <span class="tg-lg tg-lg-tradable">Tradable</span>
+      <span class="tg-lg tg-lg-no">Non tradable</span>
+      <span class="tg-lg tg-lg-na">Non équipé</span>
+      <span class="tg-hint">Clic sur une case pour cycler entre les 3 états</span>
     </div>
-    <div class="armory-bottom">${ARMORY_BOTTOM.map(mkSlot).join('')}</div>
-    <p style="font-size:10px;color:var(--text3);margin-top:6px">🟡 Tradable &nbsp;·&nbsp; ⬜ Pas tradable &nbsp;·&nbsp; <span style="opacity:.5">✕ N/A</span> (slot inexistant)</p>`;
+    <div class="tg-grid">${TRADE_SLOTS.map(mkSlot).join('')}</div>`;
 
   const update = () => {
-    const t  = [...container.querySelectorAll('.armory-slot.ts-active')].map(el => el.dataset.key);
-    const n  = [...container.querySelectorAll('.armory-slot.ts-na')].map(el => el.dataset.key);
+    const t = [...container.querySelectorAll('.tg-slot[data-state="tradable"]')].map(el => el.dataset.key);
+    const n = [...container.querySelectorAll('.tg-slot[data-state="na"]')].map(el => el.dataset.key);
     hidden.value = serializeTrade(new Set(t), new Set(n));
-    if (count) count.textContent = t.length ? `${t.length} tradable${t.length > 1 ? 's' : ''}` : '';
+    if (count) count.textContent = t.length ? `· ${t.length} tradable${t.length > 1 ? 's' : ''}` : '';
   };
 
-  // Cycle : rien → tradable → N/A → rien
-  container.querySelectorAll('.armory-slot').forEach(btn => {
+  // Cycle : no → tradable → na → no
+  const NEXT = { no: 'tradable', tradable: 'na', na: 'no' };
+  container.querySelectorAll('.tg-slot').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (!btn.classList.contains('ts-active') && !btn.classList.contains('ts-na')) {
-        btn.classList.add('ts-active');
-      } else if (btn.classList.contains('ts-active')) {
-        btn.classList.replace('ts-active', 'ts-na');
-      } else {
-        btn.classList.remove('ts-na');
-      }
+      const next = NEXT[btn.dataset.state] || 'tradable';
+      btn.dataset.state = next;
+      btn.querySelector('.tg-slot-state').textContent = stateLabel(next);
       update();
     });
   });
 
+  const setAll = (state) => {
+    container.querySelectorAll('.tg-slot').forEach(btn => {
+      btn.dataset.state = state;
+      btn.querySelector('.tg-slot-state').textContent = stateLabel(state);
+    });
+    update();
+  };
   const allBtn  = document.getElementById('m-trade-all');
   const noneBtn = document.getElementById('m-trade-none');
-  if (allBtn)  allBtn.onclick  = () => { container.querySelectorAll('.armory-slot').forEach(b => { b.classList.remove('ts-na'); b.classList.add('ts-active'); }); update(); };
-  if (noneBtn) noneBtn.onclick = () => { container.querySelectorAll('.armory-slot').forEach(b => { b.classList.remove('ts-active','ts-na'); }); update(); };
+  if (allBtn)  allBtn.onclick  = () => setAll('tradable');
+  if (noneBtn) noneBtn.onclick = () => setAll('no');
 
   update();
 }
