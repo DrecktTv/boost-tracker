@@ -1052,153 +1052,409 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 .sign-copy-btn:hover { border-color:var(--blue); color:var(--blue2) }
 .sign-copy-ok       { background:rgba(76,175,120,.15) !important; border-color:var(--green) !important; color:var(--green) !important }
 
-/* ── SESSION PAGE ── */
-.sess-container     { width:100%; max-width:960px; display:flex; flex-direction:column; gap:20px }
-.sess-layout        { display:flex; flex-direction:column; gap:20px; max-width:900px }
+/* ── SESSION PAGE (redesign v2) ── */
+#page-session {
+  --s-ink:#e8ecf7; --s-ink2:#a0a8c2; --s-ink3:#606a8a; --s-ink4:#3a4261;
+  --s-line:#1b2135; --s-line2:#262e48;
+  --s-bg1:#0f1320; --s-bg2:#151a2b; --s-bg3:#1c2238; --s-bgc:#0d111c;
+  --s-blue:#6b8cff; --s-blue2:#8aa5ff; --s-blueb:rgba(107,140,255,.14);
+  --s-violet:#b389ff; --s-violet2:#caa8ff; --s-violetb:rgba(179,137,255,.14);
+  --s-gold:#f0c960; --s-gold2:#ffdf8a; --s-gold-dk:#a07a20; --s-goldb:rgba(240,201,96,.14);
+  --s-green:#5adca0; --s-green2:#82ecbb; --s-greenb:rgba(90,220,160,.12);
+  --s-red:#ff6b7c; --s-red2:#ff9aa6; --s-redb:rgba(255,107,124,.12);
+  --s-serif:'Newsreader', 'Times New Roman', serif;
+  --s-mono:'Geist Mono', ui-monospace, monospace;
+  --s-ease:cubic-bezier(.2,.8,.2,1);
+}
 
-/* Step indicator */
-.sess-steps         { display:flex; align-items:center; gap:0; margin-bottom:4px }
-.sess-step          { display:flex; align-items:center; gap:8px; padding:6px 0; opacity:.4 }
-.sess-step.active   { opacity:1 }
-.sess-step.done     { opacity:.7 }
-.sess-step-n        { width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--text3); flex-shrink:0; background:var(--bg2) }
-.sess-step.active .sess-step-n { border-color:var(--blue); color:var(--blue2); background:rgba(59,130,246,.1) }
-.sess-step.done .sess-step-n   { border-color:var(--green); color:var(--green); background:rgba(76,175,120,.1) }
-.sess-step-lbl      { font-size:13px; font-weight:600; color:var(--text2); white-space:nowrap }
-.sess-step-line     { flex:1; height:1px; background:var(--border); margin:0 12px; min-width:20px }
+.sess-container { width:100%; max-width:1000px; margin:0 auto; display:flex; flex-direction:column; gap:24px }
+
+/* Mini hero (bloc titre explicatif, version compacte du hero tracker) */
+.sess-hero {
+  position:relative; overflow:hidden;
+  padding:26px 32px 24px;
+  background:
+    radial-gradient(ellipse 500px 220px at 10% 0%, rgba(107,140,255,.16), transparent 60%),
+    radial-gradient(ellipse 400px 200px at 100% 0%, rgba(179,137,255,.12), transparent 60%),
+    linear-gradient(180deg, rgba(21,26,43,.85), rgba(13,17,28,.5));
+  border:1px solid var(--s-line);
+  border-radius:18px;
+  color:var(--s-ink);
+}
+.sess-hero::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size:40px 40px;
+  mask-image:linear-gradient(180deg, black 0%, transparent 70%);
+}
+.sess-hero-inner { position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap }
+.sess-hero-left { flex:1; min-width:0 }
+.sess-eyebrow {
+  font-family:var(--s-mono); font-size:11px; font-weight:600;
+  letter-spacing:.2em; color:var(--s-blue2); text-transform:uppercase;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:4px 11px; border-radius:999px;
+  background:var(--s-blueb); border:1px solid rgba(107,140,255,.25);
+  margin-bottom:14px;
+}
+.sess-eyebrow::before {
+  content:''; width:6px; height:6px; border-radius:50%; background:var(--s-blue);
+  box-shadow:0 0 10px var(--s-blue);
+  animation:hero-pulse 2s ease-in-out infinite;
+}
+.sess-h-title {
+  font-family:var(--s-serif); font-size:38px; line-height:1; letter-spacing:-.02em;
+  color:var(--s-ink); font-weight:500;
+  margin-bottom:10px; font-optical-sizing:auto;
+}
+.sess-h-title em { font-style:italic; color:var(--s-gold2) }
+.sess-h-sub { font-size:14px; color:var(--s-ink2); max-width:62ch; line-height:1.55 }
+.sess-h-right { display:flex; align-items:center; gap:10px; flex-shrink:0 }
+
+/* Step indicator : capsules connectées */
+.sess-steps {
+  display:flex; align-items:center; gap:0;
+  padding:4px;
+  background:var(--s-bg2); border:1px solid var(--s-line);
+  border-radius:12px;
+  width:fit-content;
+}
+.sess-step {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px; border-radius:8px;
+  font-family:var(--s-mono); font-size:11px; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase;
+  color:var(--s-ink3);
+  transition:all .2s var(--s-ease);
+}
+.sess-step.active { color:var(--s-ink); background:rgba(107,140,255,.14) }
+.sess-step.done   { color:var(--s-green2) }
+.sess-step-n {
+  width:20px; height:20px; border-radius:50%;
+  border:1px solid var(--s-line2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:10.5px; font-weight:700;
+  background:var(--s-bg3);
+}
+.sess-step.active .sess-step-n { border-color:var(--s-blue); color:var(--s-blue2); background:var(--s-blueb) }
+.sess-step.done   .sess-step-n { border-color:var(--s-green); color:var(--s-green); background:var(--s-greenb) }
+.sess-step-lbl { letter-spacing:.1em }
+.sess-step-line {
+  width:18px; height:1px;
+  background:var(--s-line2);
+  margin:0 2px;
+}
 
 /* Step body + foot */
-.sess-step-body     { display:flex; flex-direction:column; gap:0 }
-.sess-foot          { display:flex; align-items:center; justify-content:space-between; padding-top:4px }
+.sess-step-body { display:flex; flex-direction:column; gap:16px }
+.sess-foot {
+  display:flex; align-items:center; justify-content:space-between;
+  padding-top:4px;
+}
 
 /* Role groups (manual composition) */
-.sess-role-group    { display:flex; flex-direction:column; gap:0; margin-bottom:8px }
-.sess-role-lbl      { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; padding:10px 0 6px }
-.sess-panel         { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden }
-.sess-panel-head    { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px; border-bottom:1px solid var(--border); background:var(--bg3); flex-wrap:wrap }
-.sess-panel-title   { font-size:14px; font-weight:700; color:var(--text); letter-spacing:.03em }
+.sess-role-group { display:flex; flex-direction:column; gap:6px }
+.sess-role-lbl {
+  font-family:var(--s-mono); font-size:10.5px; font-weight:600;
+  color:var(--s-ink3); text-transform:uppercase; letter-spacing:.14em;
+  padding:4px 0 2px;
+  display:flex; align-items:center; gap:10px;
+}
+.sess-role-lbl::after {
+  content:''; flex:1; height:1px;
+  background:linear-gradient(90deg, var(--s-line), transparent);
+}
+
+/* Panel (session active) */
+.sess-panel {
+  background:linear-gradient(180deg, rgba(21,26,43,.85), rgba(15,19,32,.95));
+  border:1px solid var(--s-line);
+  border-radius:16px;
+  overflow:hidden;
+}
+.sess-panel-head {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:18px 22px;
+  border-bottom:1px solid var(--s-line);
+  flex-wrap:wrap;
+}
+.sess-panel-title {
+  font-family:var(--s-serif); font-size:22px; font-weight:500;
+  color:var(--s-ink); letter-spacing:-.01em; font-optical-sizing:auto;
+}
+.sess-panel-title em { font-style:italic; color:var(--s-gold2) }
 .sess-panel-actions { display:flex; align-items:center; gap:8px }
 
 /* Warnings */
-.sess-warnings      { border-bottom:1px solid var(--border); background:rgba(251,191,36,.06) }
-.sess-warn-row      { display:flex; align-items:center; gap:8px; padding:7px 16px; border-bottom:1px solid rgba(251,191,36,.1); font-size:12px; color:var(--text2) }
+.sess-warnings {
+  background:rgba(240,201,96,.06);
+  border-bottom:1px solid var(--s-line);
+}
+.sess-warn-row {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 22px;
+  border-bottom:1px solid rgba(240,201,96,.08);
+  font-family:var(--s-mono); font-size:11px;
+  color:var(--s-gold2); letter-spacing:.04em;
+}
 .sess-warn-row:last-child { border-bottom:none }
-.sess-warn-icon     { font-size:13px; flex-shrink:0 }
-.sess-section-lbl   { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; padding:10px 18px 6px }
-
-/* Empty state */
-.sess-empty-state   { display:flex; flex-direction:column; align-items:center; gap:10px; padding:40px 20px; text-align:center }
-.sess-empty-icon    { font-size:36px; opacity:.4 }
-.sess-empty-state p { font-size:13px; color:var(--text3); line-height:1.6; margin:0 }
-
-/* Roster — member rows */
-.sess-main-list     { display:flex; flex-direction:column }
-.sess-member-row    { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); position:relative; flex-wrap:wrap }
-.sess-member-row:last-child { border-bottom:none }
-.sess-member-row.sess-member-swapped { background:rgba(255,200,50,.04) }
-.sess-member-bar    { width:3px; height:24px; border-radius:2px; flex-shrink:0 }
-.sess-member-info   { display:flex; flex-direction:column; gap:1px; flex:1; min-width:80px }
-.sess-member-name   { font-size:14px; font-weight:700; color:var(--text) }
-.sess-member-cls    { font-size:11px; color:var(--text3) }
-.sess-swap-lbl      { font-size:10px; color:var(--gold2); font-style:italic }
-.sess-member-badges { display:flex; align-items:center; gap:4px; flex-wrap:wrap }
-
-/* Session badges */
-.sess-badge             { font-size:11px; font-weight:600; padding:2px 7px; border-radius:20px; white-space:nowrap }
-.sess-badge-ilvl        { background:var(--bg3); color:var(--text2); border:1px solid var(--border) }
-.sess-badge-key         { background:rgba(59,130,246,.15); color:var(--blue2); border:1px solid rgba(59,130,246,.3) }
-.sess-badge-nokey       { background:var(--bg3); color:var(--text3); border:1px solid var(--border) }
-.sess-badge-trade-all   { background:rgba(76,175,120,.15); color:var(--green); border:1px solid rgba(76,175,120,.3) }
-.sess-badge-trade-no    { background:rgba(239,68,68,.1); color:#f87171; border:1px solid rgba(239,68,68,.25) }
-
-/* Swap button */
-.sess-swap-btn          { flex-shrink:0; width:28px; height:28px; border-radius:6px; border:1px solid var(--border); background:var(--bg3); color:var(--text3); cursor:pointer; font-size:14px; transition:all .15s; display:flex; align-items:center; justify-content:center }
-.sess-swap-btn:hover,
-.sess-swap-btn.active   { border-color:var(--blue); color:var(--blue2); background:rgba(59,130,246,.1) }
-
-/* Swap picker (inline) */
-.sess-swap-picker       { width:100%; margin-top:8px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; overflow:hidden; display:flex; flex-direction:column }
-.sess-alt-pick          { display:flex; align-items:center; gap:8px; padding:8px 12px; background:transparent; border:none; border-bottom:1px solid var(--border); color:var(--text); cursor:pointer; text-align:left; transition:background .1s; width:100% }
-.sess-alt-pick:last-of-type { border-bottom:none }
-.sess-alt-pick:hover    { background:rgba(59,130,246,.08) }
-.sess-pick-dot          { width:8px; height:8px; border-radius:50%; flex-shrink:0 }
-.sess-pick-name         { font-size:13px; font-weight:600; flex:1 }
-.sess-pick-empty        { padding:10px 14px; font-size:12px; color:var(--text3); font-style:italic }
-.sess-cancel-swap       { width:100%; padding:7px 12px; background:transparent; border:none; border-top:1px solid var(--border); color:#f87171; font-size:12px; cursor:pointer; text-align:center; transition:background .1s }
-.sess-cancel-swap:hover { background:rgba(239,68,68,.08) }
-
-/* Alts sub-section (in roster) */
-.sess-alts-section  { border-top:1px solid var(--border); background:rgba(0,0,0,.03) }
-.sess-alts-list     { display:flex; flex-direction:column; padding:0 0 6px }
-.sess-alt-row       { display:flex; align-items:center; gap:8px; padding:7px 16px; border-bottom:1px solid rgba(255,255,255,.04) }
-.sess-alt-row:last-child { border-bottom:none }
-.sess-alt-name      { font-size:13px; font-weight:600; color:var(--text2); flex:1 }
-
-/* Copy button in roster head */
-.sess-copy-btn      { font-size:12px; font-weight:600; padding:6px 14px; border-radius:6px; background:var(--bg2); border:1px solid var(--border); color:var(--text2); cursor:pointer; transition:all .15s }
-.sess-copy-btn:hover { border-color:var(--blue); color:var(--blue2) }
-
-/* Config panel */
-.sess-config-body   { padding:16px 18px }
-.sess-alts-config   { border-top:1px solid var(--border) }
-.sess-config-foot   { padding:14px 18px; border-top:1px solid var(--border); display:flex; justify-content:flex-end }
-
-@media (min-width:860px) {
-  .sess-layout      { flex-direction:row; align-items:flex-start; max-width:none }
-  .sess-roster-panel { flex:1; min-width:0 }
-  .sess-config-panel { width:360px; flex-shrink:0 }
+.sess-warn-icon { font-size:13px; flex-shrink:0; color:var(--s-gold) }
+.sess-section-lbl {
+  font-family:var(--s-mono); font-size:10.5px; font-weight:600;
+  color:var(--s-ink3); text-transform:uppercase; letter-spacing:.14em;
+  padding:14px 22px 6px;
 }
 
-/* ── SETUP SESSION WIZARD ── */
-.setup-wizard-head   { margin-bottom:16px }
-.setup-step-lbl      { display:block; font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px }
-.setup-step-title    { display:block; font-size:16px; font-weight:700; color:var(--text) }
-.setup-mode-tabs     { display:flex; border-bottom:1px solid var(--border); margin-bottom:14px }
-.setup-mode-tab      { flex:1; padding:8px 0; font-size:13px; font-weight:500; color:var(--text3); background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; transition:all .15s; margin-bottom:-1px }
-.setup-mode-tab:hover  { color:var(--text2) }
-.setup-mode-tab.active { color:var(--blue2); border-bottom-color:var(--blue2) }
-.setup-hint          { font-size:12px; color:var(--text3); margin:0 0 12px }
-.setup-hint strong   { color:var(--text2) }
-.setup-empty         { font-size:13px; color:var(--text3); font-style:italic }
-.setup-foot          { display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:14px; border-top:1px solid var(--border) }
+/* Empty state */
+.sess-empty-state { display:flex; flex-direction:column; align-items:center; gap:10px; padding:48px 20px; text-align:center }
+.sess-empty-icon { font-size:36px; opacity:.35; color:var(--s-ink3) }
+.sess-empty-state p { font-size:13px; color:var(--s-ink3); line-height:1.6; margin:0 }
 
-/* Team cards grid (step 1 – team mode) */
-.setup-team-grid     { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:12px }
-.stc                 { background:var(--bg2); border:2px solid var(--border); border-radius:var(--rad2); padding:14px 16px; cursor:pointer; transition:border-color .15s, box-shadow .15s; position:relative }
-.stc:hover           { border-color:var(--bd2); box-shadow:0 4px 16px rgba(0,0,0,.35) }
-.stc-selected        { border-color:var(--blue); background:rgba(59,130,246,.07); box-shadow:0 0 0 1px rgba(59,130,246,.25) }
-.stc-head            { display:flex; align-items:center; gap:10px; margin-bottom:12px }
-.stc-icon            { font-size:18px }
-.stc-name            { font-size:15px; font-weight:700; color:var(--text); flex:1 }
-.stc-count           { font-size:11px; color:var(--text3); background:var(--bg3); padding:2px 8px; border-radius:20px; border:1px solid var(--border) }
-/* Radio indicator in top-right */
-.stc-sel-dot         { width:18px; height:18px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; transition:all .15s; background:var(--bg3) }
-.stc-selected .stc-sel-dot { border-color:var(--blue); background:var(--blue); box-shadow:inset 0 0 0 3px var(--bg2) }
-.stc-members         { display:flex; flex-direction:column; gap:5px }
-.stc-member          { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:7px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.04) }
-.stc-member-bar      { width:3px; height:18px; border-radius:2px; flex-shrink:0 }
-.stc-member-name     { font-size:12px; font-weight:600; color:var(--text); flex:1 }
-.stc-member-cls      { font-size:11px; color:var(--text3) }
-.stc-member-right    { display:flex; align-items:center; gap:4px; flex-shrink:0 }
-.stc-empty           { font-size:12px; color:var(--text3); font-style:italic }
+/* Roster — member rows */
+.sess-main-list { display:flex; flex-direction:column }
+.sess-member-row {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 22px;
+  border-bottom:1px solid var(--s-line);
+  position:relative; flex-wrap:wrap;
+  transition:background .15s;
+}
+.sess-member-row:hover { background:rgba(107,140,255,.03) }
+.sess-member-row:last-child { border-bottom:none }
+.sess-member-row.sess-member-swapped { background:rgba(240,201,96,.04) }
+.sess-member-bar { width:3px; height:28px; border-radius:2px; flex-shrink:0 }
+.sess-member-info { display:flex; flex-direction:column; gap:2px; flex:1; min-width:80px }
+.sess-member-name {
+  font-family:var(--s-serif); font-size:16px; font-weight:500;
+  color:var(--s-ink); letter-spacing:-.005em; font-optical-sizing:auto;
+  line-height:1.15;
+}
+.sess-member-cls {
+  font-family:var(--s-mono); font-size:10.5px;
+  color:var(--s-ink3); letter-spacing:.04em; text-transform:uppercase;
+}
+.sess-swap-lbl {
+  font-family:var(--s-mono); font-size:10px;
+  color:var(--s-gold2); letter-spacing:.06em;
+  margin-top:1px;
+}
+.sess-member-badges { display:flex; align-items:center; gap:5px; flex-wrap:wrap }
+
+/* Session badges (v2 mono pills) */
+.sess-badge {
+  font-family:var(--s-mono); font-size:10.5px; font-weight:600;
+  padding:3px 9px; border-radius:6px;
+  white-space:nowrap; border:1px solid; letter-spacing:.04em;
+}
+.sess-badge-ilvl      { background:rgba(255,255,255,.02); color:var(--s-ink2); border-color:var(--s-line) }
+.sess-badge-key       { background:var(--s-blueb); color:var(--s-blue2); border-color:rgba(107,140,255,.25) }
+.sess-badge-nokey     { background:rgba(255,255,255,.02); color:var(--s-ink4); border-color:var(--s-line) }
+.sess-badge-trade-all { background:var(--s-greenb); color:var(--s-green2); border-color:rgba(90,220,160,.28) }
+.sess-badge-trade-no  { background:var(--s-redb); color:var(--s-red2); border-color:rgba(255,107,124,.25) }
+
+/* Swap button */
+.sess-swap-btn {
+  flex-shrink:0; width:30px; height:30px; border-radius:8px;
+  border:1px solid var(--s-line);
+  background:rgba(255,255,255,.02);
+  color:var(--s-ink3);
+  cursor:pointer; font-size:14px;
+  transition:all .2s var(--s-ease);
+  display:flex; align-items:center; justify-content:center;
+}
+.sess-swap-btn:hover,
+.sess-swap-btn.active {
+  border-color:rgba(107,140,255,.4); color:var(--s-blue2);
+  background:var(--s-blueb);
+}
+
+/* Swap picker (dropdown inline) */
+.sess-swap-picker {
+  width:100%; margin-top:10px;
+  background:var(--s-bg2); border:1px solid var(--s-line);
+  border-radius:10px; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.sess-alt-pick {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px;
+  background:transparent; border:none; border-bottom:1px solid var(--s-line);
+  color:var(--s-ink); cursor:pointer;
+  text-align:left; transition:background .15s;
+  width:100%; font-family:inherit;
+}
+.sess-alt-pick:last-of-type { border-bottom:none }
+.sess-alt-pick:hover { background:var(--s-blueb) }
+.sess-pick-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0 }
+.sess-pick-name { font-size:13.5px; font-weight:500; flex:1; color:var(--s-ink) }
+.sess-pick-empty {
+  padding:12px 14px;
+  font-family:var(--s-mono); font-size:11px;
+  color:var(--s-ink3); letter-spacing:.04em;
+}
+.sess-cancel-swap {
+  width:100%; padding:9px 14px;
+  background:transparent; border:none; border-top:1px solid var(--s-line);
+  color:var(--s-red2); cursor:pointer;
+  font-family:var(--s-mono); font-size:10.5px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase;
+  text-align:center; transition:background .15s;
+}
+.sess-cancel-swap:hover { background:var(--s-redb) }
+
+/* Alts sub-section (roster) */
+.sess-alts-section {
+  border-top:1px solid var(--s-line);
+  background:rgba(7,9,15,.25);
+}
+.sess-alts-list { display:flex; flex-direction:column; padding:0 0 8px }
+.sess-alt-row {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 22px;
+  border-bottom:1px solid rgba(255,255,255,.025);
+  transition:background .15s;
+}
+.sess-alt-row:last-child { border-bottom:none }
+.sess-alt-row:hover { background:rgba(107,140,255,.02) }
+.sess-alt-name { font-size:13px; font-weight:500; color:var(--s-ink2); flex:1 }
+
+/* Copy button in panel head */
+.sess-copy-btn {
+  font-family:var(--s-mono); font-size:10.5px; font-weight:600;
+  letter-spacing:.12em; text-transform:uppercase;
+  padding:8px 14px; border-radius:8px;
+  background:rgba(255,255,255,.02); border:1px solid var(--s-line2);
+  color:var(--s-ink2); cursor:pointer;
+  transition:all .2s var(--s-ease);
+}
+.sess-copy-btn:hover { border-color:var(--s-blue); color:var(--s-blue2); background:var(--s-blueb) }
+.sign-copy-ok {
+  background:var(--s-greenb) !important;
+  border-color:var(--s-green) !important;
+  color:var(--s-green2) !important;
+}
+
+/* Mode tabs (team / manuelle) */
+.setup-mode-tabs {
+  display:inline-flex; padding:4px; margin-bottom:4px;
+  background:var(--s-bg2); border:1px solid var(--s-line);
+  border-radius:10px; width:fit-content;
+}
+.setup-mode-tab {
+  padding:8px 18px; border-radius:7px;
+  font-family:var(--s-mono); font-size:11px; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase;
+  color:var(--s-ink3);
+  background:none; border:none; cursor:pointer;
+  transition:all .2s var(--s-ease);
+}
+.setup-mode-tab:hover { color:var(--s-ink2) }
+.setup-mode-tab.active { color:var(--s-ink); background:var(--s-bg3); box-shadow:inset 0 1px 0 rgba(255,255,255,.05) }
+
+.setup-hint {
+  font-family:var(--s-mono); font-size:11px;
+  color:var(--s-ink3); letter-spacing:.04em; margin:0;
+}
+.setup-hint strong { color:var(--s-blue2); font-weight:600 }
+.setup-empty {
+  font-family:var(--s-mono); font-size:11px;
+  color:var(--s-ink4); letter-spacing:.04em;
+  padding:16px 0;
+}
+
+/* Team cards grid (step 1) */
+.setup-team-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:14px }
+.stc {
+  background:linear-gradient(180deg, rgba(21,26,43,.7), rgba(15,19,32,.9));
+  border:1px solid var(--s-line);
+  border-radius:14px; padding:16px 18px;
+  cursor:pointer; position:relative;
+  transition:all .25s var(--s-ease);
+}
+.stc:hover {
+  border-color:var(--s-line2);
+  transform:translateY(-2px);
+  box-shadow:0 12px 32px rgba(0,0,0,.3);
+}
+.stc-selected {
+  border-color:var(--s-blue);
+  background:linear-gradient(180deg, rgba(107,140,255,.08), rgba(15,19,32,.9));
+  box-shadow:0 0 0 1px rgba(107,140,255,.3), 0 12px 32px rgba(107,140,255,.12);
+}
+.stc-head { display:flex; align-items:center; gap:10px; margin-bottom:14px }
+.stc-icon { font-size:16px; color:var(--s-ink3) }
+.stc-name {
+  font-family:var(--s-serif); font-size:18px; font-weight:500;
+  color:var(--s-ink); flex:1; letter-spacing:-.01em; font-optical-sizing:auto;
+}
+.stc-count {
+  font-family:var(--s-mono); font-size:10px; font-weight:600;
+  color:var(--s-ink3); background:var(--s-bg3);
+  padding:2px 8px; border-radius:5px; border:1px solid var(--s-line);
+  letter-spacing:.1em; text-transform:uppercase;
+}
+.stc-sel-dot {
+  width:18px; height:18px; border-radius:50%;
+  border:2px solid var(--s-line2);
+  flex-shrink:0; background:var(--s-bg3);
+  transition:all .2s var(--s-ease);
+}
+.stc-selected .stc-sel-dot { border-color:var(--s-blue); background:var(--s-blue); box-shadow:inset 0 0 0 3px var(--s-bgc) }
+.stc-members { display:flex; flex-direction:column; gap:5px }
+.stc-member {
+  display:flex; align-items:center; gap:10px;
+  padding:7px 10px; border-radius:8px;
+  background:rgba(255,255,255,.012);
+  border:1px solid rgba(255,255,255,.03);
+}
+.stc-member-bar { width:3px; height:18px; border-radius:2px; flex-shrink:0 }
+.stc-member-name { font-size:12.5px; font-weight:500; color:var(--s-ink); flex:1 }
+.stc-member-cls { font-family:var(--s-mono); font-size:10px; color:var(--s-ink3); letter-spacing:.04em; text-transform:uppercase }
+.stc-member-right { display:flex; align-items:center; gap:4px; flex-shrink:0 }
+.stc-empty {
+  font-family:var(--s-mono); font-size:11px;
+  color:var(--s-ink4); letter-spacing:.04em; padding:12px 0;
+}
 
 /* Member rows (step 1 manual + step 2 alts) */
-.setup-smr-list      { display:flex; flex-direction:column; gap:5px; max-height:320px; overflow-y:auto; padding-right:2px; margin-bottom:4px }
-.smr                 { display:flex; align-items:center; gap:9px; padding:8px 12px; border-radius:8px; background:var(--bg2); border:1px solid var(--border); cursor:pointer; transition:border-color .15s, background .15s, transform .12s }
-.smr:hover           { border-color:var(--bd2); transform:translateY(-1px) }
-.smr-selected        { background:rgba(74,144,226,.08); border-color:rgba(74,144,226,.35) }
-.smr-disabled        { opacity:.35; cursor:not-allowed; pointer-events:none }
-.smr input           { accent-color:var(--blue); cursor:pointer; width:15px; height:15px; flex-shrink:0 }
-.smr-bar             { width:3px; height:22px; border-radius:2px; flex-shrink:0 }
-.smr-name            { font-size:13px; font-weight:600; color:var(--text); flex:1 }
-.smr-right           { display:flex; align-items:center; gap:6px; flex-shrink:0 }
-.smr-cls             { font-size:11px; color:var(--text3) }
-.smr-badge           { font-size:10px; font-weight:600; color:var(--text2); background:var(--bg3); border:1px solid var(--border); padding:1px 6px; border-radius:4px }
-.smr-badge-rio       { color:var(--blue2); border-color:rgba(74,144,226,.25) }
-.smr-badge-key       { color:var(--green); border-color:rgba(76,175,120,.25) }
-.smr-badge-role      { color:var(--text3); font-size:9px; text-transform:uppercase; letter-spacing:.04em }
-.smr-badge-trade-all { color:var(--green); border-color:rgba(76,175,120,.25) }
-.smr-badge-trade-no  { color:#f87171; border-color:rgba(239,68,68,.25) }
+.setup-smr-list { display:flex; flex-direction:column; gap:6px; max-height:360px; overflow-y:auto; padding-right:4px }
+.smr {
+  display:flex; align-items:center; gap:11px;
+  padding:10px 14px; border-radius:10px;
+  background:linear-gradient(180deg, rgba(21,26,43,.65), rgba(15,19,32,.85));
+  border:1px solid var(--s-line);
+  cursor:pointer;
+  transition:all .2s var(--s-ease);
+}
+.smr:hover { border-color:var(--s-line2); transform:translateY(-1px) }
+.smr-selected {
+  background:linear-gradient(180deg, rgba(107,140,255,.1), rgba(15,19,32,.85));
+  border-color:rgba(107,140,255,.4);
+  box-shadow:0 0 0 1px rgba(107,140,255,.2);
+}
+.smr-disabled { opacity:.35; cursor:not-allowed; pointer-events:none }
+.smr input {
+  accent-color:var(--s-blue); cursor:pointer;
+  width:16px; height:16px; flex-shrink:0;
+}
+.smr-bar { width:3px; height:24px; border-radius:2px; flex-shrink:0 }
+.smr-name { font-size:14px; font-weight:500; color:var(--s-ink); flex:1; letter-spacing:-.005em }
+.smr-right { display:flex; align-items:center; gap:6px; flex-shrink:0; flex-wrap:wrap }
+.smr-cls { font-family:var(--s-mono); font-size:10px; color:var(--s-ink3); letter-spacing:.04em; text-transform:uppercase }
+.smr-badge {
+  font-family:var(--s-mono); font-size:10px; font-weight:600;
+  color:var(--s-ink2); background:rgba(255,255,255,.02);
+  border:1px solid var(--s-line);
+  padding:2px 7px; border-radius:5px;
+  letter-spacing:.04em;
+}
+.smr-badge-rio       { color:var(--s-blue2);   border-color:rgba(107,140,255,.22); background:var(--s-blueb) }
+.smr-badge-key       { color:var(--s-green2);  border-color:rgba(90,220,160,.22);  background:var(--s-greenb) }
+.smr-badge-role      { color:var(--s-ink3); font-size:9px; text-transform:uppercase; letter-spacing:.1em }
+.smr-badge-trade-all { color:var(--s-green2);  border-color:rgba(90,220,160,.22);  background:var(--s-greenb) }
+.smr-badge-trade-no  { color:var(--s-red2);    border-color:rgba(255,107,124,.22); background:var(--s-redb) }
 
 /* ── KEY COVERAGE WIDGET ── */
 #key-coverage { padding:10px 12px 8px; border-top:1px solid var(--border) }

@@ -224,6 +224,19 @@ function stepIndicator(current) {
   </div>`;
 }
 
+function sessHero({ eye, title, sub, right = '' }) {
+  return `<div class="sess-hero">
+    <div class="sess-hero-inner">
+      <div class="sess-hero-left">
+        <div class="sess-eyebrow">${eye}</div>
+        <h1 class="sess-h-title">${title}</h1>
+        <p class="sess-h-sub">${sub}</p>
+      </div>
+      ${right ? `<div class="sess-h-right">${right}</div>` : ''}
+    </div>
+  </div>`;
+}
+
 // ── Step 1 : Roster principal ──────────────────────────────────────────────────
 
 function renderStep1(page) {
@@ -270,21 +283,25 @@ function renderStep1(page) {
 
   const manualItems = `
     <div class="sess-role-group">
-      <div class="sess-role-lbl">🛡 Tank</div>
+      <div class="sess-role-lbl">Tank</div>
       <div class="setup-smr-list">${roleGroup('TANK') || '<p class="setup-empty">Aucun tank</p>'}</div>
     </div>
     <div class="sess-role-group">
-      <div class="sess-role-lbl">💚 Heal</div>
+      <div class="sess-role-lbl">Heal</div>
       <div class="setup-smr-list">${roleGroup('Heal') || '<p class="setup-empty">Aucun heal</p>'}</div>
     </div>
     <div class="sess-role-group">
-      <div class="sess-role-lbl">⚔ DPS</div>
+      <div class="sess-role-lbl">DPS</div>
       <div class="setup-smr-list">${roleGroup('DPS') || '<p class="setup-empty">Aucun DPS</p>'}</div>
     </div>`;
 
   page.innerHTML = `
-    <div class="page-head"><span class="page-title">Session</span></div>
     <div class="sess-container">
+      ${sessHero({
+        eye:  'Étape 1 / 3 · Composition',
+        title:'Qui compose la <em>session</em> ?',
+        sub:  "Choisis une team enregistrée ou construis une composition manuelle avec 4 personnages (un tank, un heal, deux DPS).",
+      })}
       ${stepIndicator(1)}
 
       <div class="setup-mode-tabs">
@@ -409,24 +426,27 @@ function renderStep2(page) {
 
   const altItems = available.length ? `
     <div class="sess-role-group">
-      <div class="sess-role-lbl">🛡 Tank</div>
+      <div class="sess-role-lbl">Tank</div>
       <div class="setup-smr-list">${roleGroup2('TANK') || '<p class="setup-empty">Aucun tank</p>'}</div>
     </div>
     <div class="sess-role-group">
-      <div class="sess-role-lbl">💚 Heal</div>
+      <div class="sess-role-lbl">Heal</div>
       <div class="setup-smr-list">${roleGroup2('Heal') || '<p class="setup-empty">Aucun heal</p>'}</div>
     </div>
     <div class="sess-role-group">
-      <div class="sess-role-lbl">⚔ DPS</div>
+      <div class="sess-role-lbl">DPS</div>
       <div class="setup-smr-list">${roleGroup2('DPS') || '<p class="setup-empty">Aucun DPS</p>'}</div>
     </div>`
     : '<p class="setup-empty">Tous les personnages sont dans le roster principal.</p>';
 
   page.innerHTML = `
-    <div class="page-head"><span class="page-title">Session</span></div>
     <div class="sess-container">
+      ${sessHero({
+        eye:  'Étape 2 / 3 · Alts potentiels',
+        title:'Prévois des <em>remplaçants</em>',
+        sub:  "Sélectionne les personnages qui pourront remplacer un membre principal en cours de soirée. Leurs clés et stuff apparaîtront pour un swap rapide.",
+      })}
       ${stepIndicator(2)}
-      <p class="setup-hint">Personnages susceptibles de remplacer un membre principal.</p>
       <div class="sess-step-body">${altItems}</div>
       <div class="sess-foot">
         <button class="btn btn-ghost" id="sess-back">← Retour</button>
@@ -526,16 +546,22 @@ function renderRoster(page) {
     </div>`;
   }).filter(Boolean).join('');
 
+  const teamName = _mode === 'team' && _selectedTeamId
+    ? (getSetupData().teams.find(t => t.id === _selectedTeamId)?.nom || '')
+    : 'Composition manuelle';
+
   page.innerHTML = `
     <div class="sess-container">
+      ${sessHero({
+        eye:  'Session · En cours',
+        title:`Roster <em>${escHtml(teamName)}</em>`,
+        sub:  `${mains.length} personnage${mains.length > 1 ? 's' : ''} principal${mains.length > 1 ? 's' : ''}${alts.length ? ` · ${alts.length} alt${alts.length > 1 ? 's' : ''} en réserve` : ''}. Swap un membre à tout moment, puis copie le texte pour la sign Discord.`,
+        right:`
+          <button class="btn btn-ghost btn-sm" id="sess-edit-btn">Modifier</button>
+          <button class="sess-copy-btn" id="sess-copy-btn">Copier le texte</button>
+        `,
+      })}
       <div class="sess-panel">
-        <div class="sess-panel-head">
-          <span class="sess-panel-title">Session active</span>
-          <div class="sess-panel-actions">
-            <button class="btn btn-ghost btn-sm" id="sess-edit-btn">✏️ Modifier</button>
-            <button class="sess-copy-btn" id="sess-copy-btn">📋 Copier le texte</button>
-          </div>
-        </div>
         ${warnings ? `<div class="sess-warnings">${warnings}</div>` : ''}
         <div class="sess-main-list">${memberRows}</div>
         ${alts.length ? `
