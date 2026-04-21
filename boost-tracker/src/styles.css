@@ -1112,38 +1112,180 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 }
 
 /* ── CLÉS ────────────────────────────────────────────────────────────────── */
-.cles-grid { display:flex; flex-direction:column; gap:24px }
-.cles-section-head { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.07em; padding:4px 2px 8px; border-bottom:1px solid var(--border); margin-bottom:10px }
-.cles-team-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:12px }
-/* Poster card */
-.cle-card {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: var(--rad2); overflow: hidden;
-  display: flex; flex-direction: column;
-  transition: border-color .15s, transform .15s, box-shadow .15s;
+/* ── CLÉS PAGE (redesign v2) ── */
+#page-cles {
+  --k-ink:#e8ecf7; --k-ink2:#a0a8c2; --k-ink3:#606a8a; --k-ink4:#3a4261;
+  --k-line:#1b2135; --k-line2:#262e48;
+  --k-bg1:#0f1320; --k-bg2:#151a2b; --k-bg3:#1c2238; --k-bgc:#0d111c;
+  --k-blue:#6b8cff; --k-blue2:#8aa5ff; --k-blueb:rgba(107,140,255,.14);
+  --k-violet:#b389ff; --k-violetb:rgba(179,137,255,.14);
+  --k-gold:#f0c960; --k-gold2:#ffdf8a; --k-goldb:rgba(240,201,96,.14);
+  --k-green:#5adca0; --k-green2:#82ecbb;
+  --k-display:'Bricolage Grotesque', 'Inter', sans-serif;
+  --k-ease:cubic-bezier(.2,.8,.2,1);
 }
-.cle-card:hover { border-color: var(--bd2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.45) }
-/* Art zone */
-.cle-art { height: 110px; position: relative; overflow: hidden; background: var(--bg3) }
-.cle-art img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s }
-.cle-card:hover .cle-art img { transform: scale(1.04) }
-.cle-art-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 32px; opacity: .2 }
-.cle-art-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 70px; background: linear-gradient(transparent, rgba(13,15,20,.96)); pointer-events: none }
-.cle-art-level { position: absolute; top: 8px; right: 10px; font-size: 22px; font-weight: 900; text-shadow: 0 1px 6px rgba(0,0,0,.9) }
-.cle-art-names { position: absolute; bottom: 8px; left: 10px; right: 10px }
-.cle-art-fr { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.cle-art-en { font-size: 9px; color: rgba(255,255,255,.38); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.cle-art-nokey { color: rgba(255,255,255,.25) !important; font-style: italic }
+
+/* Hero */
+.cles-hero {
+  position:relative; overflow:hidden;
+  padding:26px 32px 24px;
+  margin-bottom:24px;
+  background:
+    radial-gradient(ellipse 500px 220px at 10% 0%, rgba(107,140,255,.16), transparent 60%),
+    radial-gradient(ellipse 400px 200px at 100% 0%, rgba(179,137,255,.12), transparent 60%),
+    linear-gradient(180deg, rgba(21,26,43,.85), rgba(13,17,28,.5));
+  border:1px solid var(--k-line);
+  border-radius:18px;
+  color:var(--k-ink);
+}
+.cles-hero::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size:40px 40px;
+  mask-image:linear-gradient(180deg, black 0%, transparent 70%);
+}
+.ch-inner { position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap }
+.ch-left { flex:1; min-width:0 }
+.ch-eyebrow {
+  font-size:10.5px; font-weight:600;
+  letter-spacing:.2em; color:var(--k-blue2); text-transform:uppercase;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:4px 11px; border-radius:999px;
+  background:var(--k-blueb); border:1px solid rgba(107,140,255,.25);
+  margin-bottom:14px;
+}
+.ch-eyebrow::before {
+  content:''; width:6px; height:6px; border-radius:50%; background:var(--k-blue);
+  box-shadow:0 0 10px var(--k-blue);
+  animation:hero-pulse 2s ease-in-out infinite;
+}
+.ch-title {
+  font-family:var(--k-display);
+  font-size:28px; line-height:1.05; letter-spacing:-.02em;
+  color:var(--k-ink); font-weight:600;
+  margin-bottom:8px; font-optical-sizing:auto;
+}
+.ch-title em { font-style:normal; font-weight:600; color:var(--k-gold2) }
+.ch-sub { font-size:14px; color:var(--k-ink2); max-width:62ch; line-height:1.55 }
+.ch-right { display:flex; align-items:center; gap:10px; flex-shrink:0 }
+.ch-right .pill {
+  font-size:10.5px; font-weight:600;
+  background:rgba(255,255,255,.02); border:1px solid var(--k-line);
+  color:var(--k-ink3);
+  padding:5px 11px; border-radius:6px;
+  letter-spacing:.14em; text-transform:uppercase;
+}
+
+/* Sections */
+.cles-grid { display:flex; flex-direction:column; gap:28px }
+.cles-section-head {
+  font-family:var(--k-display);
+  font-size:17px; font-weight:600;
+  color:var(--k-ink); letter-spacing:-.005em;
+  padding:0 2px 12px;
+  border-bottom:1px solid var(--k-line);
+  margin-bottom:14px;
+  display:flex; align-items:center; gap:12px;
+  font-optical-sizing:auto;
+}
+.cles-section-head::after {
+  content:''; flex:1; height:1px;
+  background:linear-gradient(90deg, var(--k-line), transparent);
+}
+.cles-team-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px }
+
+/* Card */
+.cle-card {
+  background:linear-gradient(180deg, rgba(21,26,43,.75), rgba(13,17,28,.9));
+  border:1px solid var(--k-line);
+  border-radius:14px; overflow:hidden;
+  display:flex; flex-direction:column;
+  transition:border-color .25s var(--k-ease), transform .25s var(--k-ease), box-shadow .25s var(--k-ease);
+}
+.cle-card:hover {
+  border-color:var(--k-line2);
+  transform:translateY(-2px);
+  box-shadow:0 12px 32px rgba(0,0,0,.35);
+}
+/* Art */
+.cle-art { height:118px; position:relative; overflow:hidden; background:var(--k-bg3) }
+.cle-art img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .4s var(--k-ease) }
+.cle-card:hover .cle-art img { transform:scale(1.05) }
+.cle-art-placeholder {
+  width:100%; height:100%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px; opacity:.18; color:var(--k-ink3);
+}
+.cle-art-overlay {
+  position:absolute; bottom:0; left:0; right:0; height:70%;
+  background:linear-gradient(transparent, rgba(7,9,15,.95));
+  pointer-events:none;
+}
+.cle-art-level {
+  position:absolute; top:10px; right:12px;
+  font-family:var(--k-display);
+  font-size:20px; font-weight:700; letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 1px 6px rgba(0,0,0,.9), 0 0 20px rgba(0,0,0,.5);
+}
+.cle-art-names { position:absolute; bottom:10px; left:12px; right:12px }
+.cle-art-fr {
+  font-family:var(--k-display);
+  font-size:13px; font-weight:600; color:#fff;
+  letter-spacing:-.005em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cle-art-en {
+  font-size:10px; color:rgba(255,255,255,.45);
+  letter-spacing:.02em; font-weight:500;
+  margin-top:1px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cle-art-nokey {
+  color:rgba(255,255,255,.32) !important;
+  font-style:normal !important; font-weight:500 !important;
+}
 /* Body */
-.cle-body { padding: 10px 11px; display: flex; flex-direction: column; gap: 8px }
-.cle-member { display: flex; align-items: center; gap: 6px; min-width: 0 }
-.cle-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0 }
-.cle-member-info { min-width: 0 }
-.cle-nom { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.cle-spe { font-size: 10px; color: var(--text3) }
-.cle-inputs { display: flex; gap: 5px }
-.cle-inputs .cle-donjon { flex: 1; min-width: 0; font-size: 11px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 4px 5px; border-radius: 5px; cursor: pointer }
-.cle-niveau-inp { width: 48px !important; flex-shrink: 0; text-align: center; font-size: 12px; font-weight: 700; background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 4px 5px; border-radius: 5px }
+.cle-body { padding:12px; display:flex; flex-direction:column; gap:10px }
+.cle-member { display:flex; align-items:center; gap:8px; min-width:0 }
+.cle-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0 }
+.cle-member-info { min-width:0 }
+.cle-nom {
+  font-size:12.5px; font-weight:600; color:var(--k-ink);
+  letter-spacing:-.005em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cle-spe {
+  font-size:10px; color:var(--k-ink3);
+  letter-spacing:.04em; text-transform:uppercase;
+  font-weight:500; margin-top:1px;
+}
+.cle-inputs { display:flex; gap:6px }
+.cle-inputs .cle-donjon {
+  flex:1; min-width:0; font-size:11.5px;
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--k-line);
+  color:var(--k-ink);
+  padding:6px 8px; border-radius:7px;
+  cursor:pointer; transition:all .15s;
+}
+.cle-inputs .cle-donjon:hover { border-color:var(--k-line2); background:rgba(255,255,255,.035) }
+.cle-inputs .cle-donjon:focus { outline:none; border-color:var(--k-blue); background:var(--k-blueb); box-shadow:0 0 0 3px rgba(107,140,255,.1) }
+.cle-donjon option { background:var(--k-bg2); color:var(--k-ink) }
+.cle-niveau-inp {
+  width:50px !important; flex-shrink:0; text-align:center;
+  font-size:12.5px; font-weight:700;
+  font-variant-numeric:tabular-nums;
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--k-line);
+  color:var(--k-ink);
+  padding:6px 6px; border-radius:7px;
+  transition:all .15s;
+}
+.cle-niveau-inp:hover { border-color:var(--k-line2) }
+.cle-niveau-inp:focus { outline:none; border-color:var(--k-blue); background:var(--k-blueb); box-shadow:0 0 0 3px rgba(107,140,255,.1) }
 
 @media (max-width:640px) {
   .cles-team-grid { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)) }
