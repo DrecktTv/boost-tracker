@@ -555,7 +555,7 @@ function renderRoster(page) {
       ${sessHero({
         eye:  'Session · En cours',
         title:`Roster <em>${escHtml(teamName)}</em>`,
-        sub:  `${mains.length} personnage${mains.length > 1 ? 's' : ''} principal${mains.length > 1 ? 's' : ''}${alts.length ? ` · ${alts.length} alt${alts.length > 1 ? 's' : ''} en réserve` : ''}. Swap un membre à tout moment, puis copie le texte pour la sign Discord.`,
+        sub:  `${sorted.length} personnage${sorted.length > 1 ? 's' : ''} principal${sorted.length > 1 ? 's' : ''}${alts.length ? ` · ${alts.length} alt${alts.length > 1 ? 's' : ''} en réserve` : ''}. Swap un membre à tout moment, puis copie le texte pour la sign Discord.`,
         right:`
           <button class="btn btn-ghost btn-sm" id="sess-edit-btn">Modifier</button>
           <button class="sess-copy-btn" id="sess-copy-btn">Copier le texte</button>
