@@ -642,9 +642,9 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   flex-shrink:0;
 }
 .run-donjon {
-  font-family:var(--r-serif); font-size:19px; font-weight:500;
+  font-family:var(--r-serif); font-size:18px; font-weight:500;
   color:var(--r-ink); letter-spacing:-.01em;
-  font-optical-sizing:auto; font-style:italic;
+  font-optical-sizing:auto;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   min-width:0; flex:0 1 auto;
 }
@@ -668,13 +668,13 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
 }
 .run-top-right { margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0 }
 .run-gold {
-  font-family:var(--r-serif); font-size:22px; font-weight:500;
-  color:var(--r-gold2); letter-spacing:-.02em;
+  font-family:var(--r-mono); font-size:13px; font-weight:600;
+  color:var(--r-gold2); letter-spacing:.02em;
   font-variant-numeric:tabular-nums;
-  display:flex; align-items:baseline; gap:4px;
+  display:flex; align-items:baseline; gap:3px;
   white-space:nowrap;
 }
-.run-gold span { font-size:11px; color:var(--r-gold-dk); font-style:italic }
+.run-gold span { font-size:10px; color:var(--r-gold-dk); font-weight:500 }
 .run-paid {
   display:inline-flex; align-items:center; gap:7px;
   font-family:var(--r-mono); font-size:10.5px; font-weight:700;
