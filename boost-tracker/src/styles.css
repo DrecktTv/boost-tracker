@@ -45,8 +45,8 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; 
   --sb-red:   #ff6b7c;
   --sb-red2:  #ff9aa6;
   --sb-redb:  rgba(255,107,124,.12);
-  --sb-serif: 'Newsreader', 'Times New Roman', serif;
-  --sb-mono:  'Geist Mono', ui-monospace, monospace;
+  --sb-serif: 'Instrument Serif', 'Times New Roman', serif;
+  --sb-mono:  'Space Grotesk', 'Inter', sans-serif;
   --sb-ease:  cubic-bezier(.2,.8,.2,1);
 
   width:248px; flex-shrink:0;
@@ -214,8 +214,8 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; 
   --h-red:#ff6b7c; --h-red2:#ff9aa6; --h-redb:rgba(255,107,124,.12);
   --h-line:#1b2135; --h-line2:#262e48;
   --h-ink:#e8ecf7; --h-ink2:#a0a8c2; --h-ink3:#606a8a; --h-ink4:#3a4261;
-  --h-serif:'Newsreader', 'Times New Roman', serif;
-  --h-mono:'Geist Mono', ui-monospace, monospace;
+  --h-serif:'Instrument Serif', 'Times New Roman', serif;
+  --h-mono:'Space Grotesk', 'Inter', sans-serif;
 
   position:relative;
   background:
@@ -317,8 +317,8 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; 
 .section-header {
   --sh-blue2:#8aa5ff; --sh-line:#1b2135; --sh-line2:#262e48;
   --sh-ink:#e8ecf7; --sh-ink3:#606a8a;
-  --sh-mono:'Geist Mono', ui-monospace, monospace;
-  --sh-serif:'Newsreader', 'Times New Roman', serif;
+  --sh-mono:'Space Grotesk', 'Inter', sans-serif;
+  --sh-serif:'Instrument Serif', 'Times New Roman', serif;
   display:flex; align-items:flex-end; justify-content:space-between;
   margin:8px 4px 18px; padding-bottom:14px;
   border-bottom:1px solid var(--sh-line);
@@ -363,8 +363,8 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; 
   --ac-line:#1b2135; --ac-line2:#262e48;
   --ac-ink:#e8ecf7; --ac-ink2:#a0a8c2; --ac-ink3:#606a8a; --ac-ink4:#3a4261;
   --ac-bg1:#0f1320; --ac-bg2:#151a2b;
-  --ac-mono:'Geist Mono', ui-monospace, monospace;
-  --ac-serif:'Newsreader', 'Times New Roman', serif;
+  --ac-mono:'Space Grotesk', 'Inter', sans-serif;
+  --ac-serif:'Instrument Serif', 'Times New Roman', serif;
   --ac-ease:cubic-bezier(.2,.8,.2,1);
   display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;
 }
@@ -489,7 +489,7 @@ input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0 }
 .fg { display:flex; flex-direction:column; gap:7px }
 .fg label {
-  font-family:'Geist Mono', ui-monospace, monospace;
+  font-family:'Space Grotesk', 'Inter', sans-serif;
   font-size:10.5px; font-weight:600; letter-spacing:.14em;
   color:#606a8a; text-transform:uppercase;
 }
@@ -526,7 +526,7 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   to { transform:none; opacity:1 }
 }
 .modal-title {
-  font-family:'Newsreader', 'Times New Roman', serif;
+  font-family:'Instrument Serif', 'Times New Roman', serif;
   font-size:26px; font-weight:500;
   color:#e8ecf7; letter-spacing:-.015em; line-height:1.15;
   padding:24px 28px 18px; margin:0;
@@ -578,8 +578,8 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   --r-gold:#f0c960; --r-gold2:#ffdf8a; --r-gold-dk:#a07a20; --r-goldb:rgba(240,201,96,.14);
   --r-green:#5adca0; --r-green2:#82ecbb; --r-greenb:rgba(90,220,160,.12);
   --r-red:#ff6b7c; --r-red2:#ff9aa6; --r-redb:rgba(255,107,124,.12);
-  --r-serif:'Newsreader', 'Times New Roman', serif;
-  --r-mono:'Geist Mono', ui-monospace, monospace;
+  --r-serif:'Instrument Serif', 'Times New Roman', serif;
+  --r-mono:'Space Grotesk', 'Inter', sans-serif;
   --r-ease:cubic-bezier(.2,.8,.2,1);
   display:flex; flex-direction:column; gap:14px;
 }
@@ -1062,8 +1062,8 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
   --s-gold:#f0c960; --s-gold2:#ffdf8a; --s-gold-dk:#a07a20; --s-goldb:rgba(240,201,96,.14);
   --s-green:#5adca0; --s-green2:#82ecbb; --s-greenb:rgba(90,220,160,.12);
   --s-red:#ff6b7c; --s-red2:#ff9aa6; --s-redb:rgba(255,107,124,.12);
-  --s-serif:'Newsreader', 'Times New Roman', serif;
-  --s-mono:'Geist Mono', ui-monospace, monospace;
+  --s-serif:'Instrument Serif', 'Times New Roman', serif;
+  --s-mono:'Space Grotesk', 'Inter', sans-serif;
   --s-ease:cubic-bezier(.2,.8,.2,1);
 }
 
