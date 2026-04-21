@@ -82,21 +82,36 @@
     <!-- ═══ TRACKER ═══ -->
     <div class="page" id="page-tracker">
 
-      <!-- Stats -->
-      <div class="stats-wrap">
-        <div class="sc-main">
-          <div class="sc-main-label">Total dû · session</div>
-          <div class="sc-main-val" id="s-total">0</div>
-          <div class="sc-main-sub">gold non encaissé</div>
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-r1">
+          <div class="hero-l">
+            <div class="hero-eyebrow" id="hero-eyebrow">Session en cours</div>
+            <h1 class="hero-title">Bonjour <em id="hero-name">—</em></h1>
+            <p class="hero-sub" id="hero-sub">Aperçu de la session active.</p>
+          </div>
         </div>
-        <div class="sc-grid">
-          <div class="sc blue"><div class="sc-label">Runs</div><div class="sc-val" id="s-runs">0</div></div>
-          <div class="sc green"><div class="sc-label">Payés</div><div class="sc-val" id="s-paid">0</div></div>
-          <div class="sc red"><div class="sc-label">Non payés</div><div class="sc-val" id="s-unpaid">0</div></div>
-          <div class="sc-ratio">
-            <span class="sc-ratio-label">Payé</span>
-            <div class="ratio-track"><div class="ratio-fill" id="s-ratio" style="width:0%"></div></div>
-            <span class="ratio-nums" id="s-ratio-lbl">0 / 0</span>
+
+        <div class="hero-metric">
+          <div class="met-main">
+            <div class="met-lbl">Total dû · session</div>
+            <div class="met-val"><span id="s-total">0</span> <span class="suf">gold</span></div>
+          </div>
+          <div class="met-s blue">
+            <div class="met-lbl">Runs</div>
+            <div class="met-val" id="s-runs">0</div>
+            <div class="mbar blue"><i id="s-bar-runs" style="width:0%"></i></div>
+          </div>
+          <div class="met-s green">
+            <div class="met-lbl">Encaissés</div>
+            <div class="met-val" id="s-paid">0</div>
+            <div class="mbar green"><i id="s-ratio" style="width:0%"></i></div>
+            <div class="met-delta"><span id="s-ratio-lbl">0 / 0</span></div>
+          </div>
+          <div class="met-s red">
+            <div class="met-lbl">En attente</div>
+            <div class="met-val" id="s-unpaid">0</div>
+            <div class="mbar red"><i id="s-bar-unpaid" style="width:0%"></i></div>
           </div>
         </div>
       </div>

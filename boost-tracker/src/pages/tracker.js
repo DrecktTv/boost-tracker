@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase.js';
 import { safeQuery } from '../lib/errors.js';
 import { escHtml, gold, g, setLoading, formatDate } from '../lib/utils.js';
 import { toast } from '../ui/toast.js';
-import { isMember, getMainMembreId } from '../lib/state.js';
+import { isMember, getMainMembreId, getUser } from '../lib/state.js';
 import { doArchiveRun } from './reset.js';
 import { roleImg, speColor } from '../ui/components.js';
 import { DONJONS } from '../constants.js';
@@ -71,11 +71,31 @@ function updateStats(runs) {
   g('s-runs').textContent   = runs.length;
   g('s-paid').textContent   = paid;
   g('s-unpaid').textContent = unpaid;
-  // Barre de ratio
-  const pct = runs.length ? Math.round(paid / runs.length * 100) : 0;
-  const ratio = g('s-ratio'); if (ratio) ratio.style.width = pct + '%';
+
+  // Barres — ratios
+  const paidPct   = runs.length ? Math.round(paid   / runs.length * 100) : 0;
+  const unpaidPct = runs.length ? Math.round(unpaid / runs.length * 100) : 0;
+  const barPaid   = g('s-ratio');       if (barPaid)   barPaid.style.width   = paidPct + '%';
+  const barUnpaid = g('s-bar-unpaid');  if (barUnpaid) barUnpaid.style.width = unpaidPct + '%';
+  const barRuns   = g('s-bar-runs');    if (barRuns)   barRuns.style.width   = runs.length ? '100%' : '0%';
   const lbl = g('s-ratio-lbl'); if (lbl) lbl.textContent = `${paid} / ${runs.length}`;
 
+  // Hero — bonjour + sous-titre dynamique
+  const u      = getUser();
+  const d      = u?.user_metadata;
+  const name   = d?.full_name || d?.name || d?.user_name || '';
+  const heroNm = g('hero-name');    if (heroNm) heroNm.textContent = name || 'boss';
+  const heroSub= g('hero-sub');
+  if (heroSub) {
+    if (!runs.length) {
+      heroSub.textContent = 'Aucun run pour l\'instant — démarre la session.';
+    } else {
+      const parts = [`${runs.length} run${runs.length > 1 ? 's' : ''}`];
+      if (paid)   parts.push(`${paid} encaissé${paid > 1 ? 's' : ''}`);
+      if (unpaid) parts.push(`${unpaid} en attente`);
+      heroSub.textContent = parts.join(' · ') + '.';
+    }
+  }
 }
 
 // ── Helpers rendu ─────────────────────────────────────────────────────────────
