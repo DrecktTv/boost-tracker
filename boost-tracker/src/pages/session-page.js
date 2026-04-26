@@ -112,6 +112,19 @@ function memberKey(m) {
     : 'no key';
 }
 
+// Type d'armure par classe (WoW)
+const ARMOR_BY_CLASS = {
+  'Mage':'Cloth', 'Prêtre':'Cloth', 'Démoniste':'Cloth',
+  'Druide':'Leather', 'Voleur':'Leather', 'Moine':'Leather', 'DH':'Leather',
+  'Chasseur':'Mail', 'Chaman':'Mail', 'Évocateur':'Mail',
+  'Guerrier':'Plate', 'Paladin':'Plate', 'DK':'Plate',
+};
+function armorType(classe) {
+  if (!classe) return '';
+  const base = classe.split(' ')[0]; // "Druide Restoration" → "Druide"
+  return ARMOR_BY_CLASS[base] || '';
+}
+
 function generateSignText() {
   const effective  = getEffectiveRoster();
   const usedAltIds = new Set(_swaps.values());
@@ -132,9 +145,11 @@ function generateSignText() {
 
   if (altsWithKey.length) {
     const altList = altsWithKey.map(m => {
-      const role = m.spe === 'TANK' ? 'Tank' : m.spe === 'Heal' ? 'Heal' : 'DPS';
-      const ilvl = m.ilvl ? ` ${m.ilvl}ilvl` : '';
-      return `${role}${ilvl} ${memberKey(m)}`;
+      const role  = m.spe === 'TANK' ? 'Tank' : m.spe === 'Heal' ? 'Heal' : 'DPS';
+      const armor = armorType(m.classe);
+      const armorStr = armor ? ` ${armor}` : '';
+      const ilvl  = m.ilvl ? ` ${m.ilvl}ilvl` : '';
+      return `${role}${armorStr}${ilvl} ${memberKey(m)}`;
     }).join(' / ');
     lines.push(`\nAlt Keys: ${altList}`);
   }
