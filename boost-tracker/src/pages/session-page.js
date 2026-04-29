@@ -163,8 +163,9 @@ function generateSignText() {
     .filter(Boolean)
     .join(' ');
 
-  const isFull = (_mode === 'team' && _selectedTeamId) || _manualKeys.size >= 4;
-  const body   = (isFull ? 'TT\n' : '') + lines.join('\n');
+  const COMPO_LBL = { 1: 'Solo', 2: 'Duo', 3: 'Trio', 4: 'TT' };
+  const compoLbl  = COMPO_LBL[sorted.length] || '';
+  const body      = (compoLbl ? `${compoLbl}\n` : '') + lines.join('\n');
   return discordMentions ? `${body}\n\n${discordMentions}` : body;
 }
 
