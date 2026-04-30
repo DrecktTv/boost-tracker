@@ -125,6 +125,14 @@ function armorType(classe) {
   return ARMOR_BY_CLASS[base] || '';
 }
 
+function altShort(a) {
+  const role  = a.spe === 'TANK' ? 'Tank' : a.spe === 'Heal' ? 'Heal' : 'DPS';
+  const armor = armorType(a.classe);
+  const armorStr = armor ? ` ${armor}` : '';
+  const ilvl  = a.ilvl ? ` ${a.ilvl}ilvl` : '';
+  return `${role}${armorStr}${ilvl} ${memberKey(a)}`;
+}
+
 function generateSignText() {
   const effective  = getEffectiveRoster();
   const usedAltIds = new Set(_swaps.values());
@@ -133,40 +141,43 @@ function generateSignText() {
 
   const sorted = [...effective].sort((a, b) => (ROLE_ORDER[a.spe] ?? 2) - (ROLE_ORDER[b.spe] ?? 2));
 
-  const lines = sorted.map(m => {
+  // Pour chaque membre actif → bloc { @tag, ligne main, alts du joueur }
+  const ownerIdsSeen = new Set();
+  const blocks = sorted.map(m => {
+    // Identifier la racine du joueur (main perso)
+    const original = m._original || m;
+    const ownerId  = original.main_id || original.id;
+    ownerIdsSeen.add(ownerId);
+    const tag      = m._original?.discord_tag || m.discord_tag;
+
+    // Ligne du personnage actuel (peut être un alt swappé)
     const roleTag = m.spe === 'TANK' ? ':Tank:' : m.spe === 'Heal' ? ':Heal:' : ':DPS:';
     const clsFr   = m.classe?.split(' ')[0] || m.nom;
     const cls     = (CLASS_EN[clsFr] || clsFr).padEnd(14);
     const rio     = m.rio || '?';
     const ilvlStr = m.ilvl ? `${m.ilvl} ilvl` : '';
     const trade   = formatTrade(m.can_trade);
-    return `${roleTag}  ${cls} / :Raiderio: ${rio} / :Keystone: ${memberKey(m)} / ${ilvlStr}  / ${trade}`;
+    const mainLine = `${roleTag}  ${cls} / :Raiderio: ${rio} / :Keystone: ${memberKey(m)} / ${ilvlStr}  / ${trade}`;
+
+    // Alts du joueur : ceux dont main_id pointe vers ownerId
+    const playerAlts = altsWithKey.filter(a => a.main_id === ownerId);
+    const altLine    = playerAlts.length ? `Alts: ${playerAlts.map(altShort).join(' / ')}` : '';
+
+    const tagLine = tag ? `@${tag}` : '';
+    return [tagLine, mainLine, altLine].filter(Boolean).join('\n');
   });
 
-  if (altsWithKey.length) {
-    const altList = altsWithKey.map(m => {
-      const role  = m.spe === 'TANK' ? 'Tank' : m.spe === 'Heal' ? 'Heal' : 'DPS';
-      const armor = armorType(m.classe);
-      const armorStr = armor ? ` ${armor}` : '';
-      const ilvl  = m.ilvl ? ` ${m.ilvl}ilvl` : '';
-      return `${role}${armorStr}${ilvl} ${memberKey(m)}`;
-    }).join(' / ');
-    lines.push(`\nAlt Keys: ${altList}`);
-  }
-
-  // Mentions Discord — si c'est un alt swappé, on prend le tag du main
-  const discordMentions = sorted
-    .map(m => {
-      const tag = m._original?.discord_tag || m.discord_tag;
-      return tag ? `@${tag}` : null;
-    })
-    .filter(Boolean)
-    .join(' ');
+  // Alts orphelins (réservistes qui n'appartiennent à aucun main du roster actif)
+  const orphans = altsWithKey.filter(a => !ownerIdsSeen.has(a.main_id));
 
   const COMPO_LBL = { 1: 'Solo', 2: 'Duo', 3: 'Trio', 4: 'TT' };
   const compoLbl  = COMPO_LBL[sorted.length] || '';
-  const body      = (compoLbl ? `${compoLbl}\n` : '') + lines.join('\n');
-  return discordMentions ? `${body}\n\n${discordMentions}` : body;
+
+  let body = (compoLbl ? `${compoLbl}\n\n` : '') + blocks.join('\n\n');
+  if (orphans.length) {
+    body += `\n\nAlt Keys: ${orphans.map(altShort).join(' / ')}`;
+  }
+  return body;
 }
 
 // ── Badge helpers ──────────────────────────────────────────────────────────────
