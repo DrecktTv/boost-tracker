@@ -1,6 +1,6 @@
 import { getSetupData, getAllMembres, setSelection, refreshCoverage } from '../ui/coverage.js';
 import { escHtml } from '../lib/utils.js';
-import { isMember, getMainMembreId } from '../lib/state.js';
+import { isMember } from '../lib/state.js';
 import { speColor, roleImg } from '../ui/components.js';
 import { DUNGEON_LBL, TRADE_SLOTS, CLASS_EN } from '../constants.js';
 
@@ -139,17 +139,8 @@ function generateSignText() {
   const altsWithKey = getAltMembers()
     .filter(m => !usedAltIds.has(m.id) && m.cle_donjon && m.cle_niveau);
 
-  // Tri : l'utilisateur connecté (son main perso) en premier, le reste par rôle
-  const myMainId = getMainMembreId();
-  const isMine   = m => {
-    const original = m._original || m;
-    return myMainId && (original.id === myMainId || original.main_id === myMainId);
-  };
-  const sorted = [...effective].sort((a, b) => {
-    const aMine = isMine(a), bMine = isMine(b);
-    if (aMine !== bMine) return aMine ? -1 : 1;
-    return (ROLE_ORDER[a.spe] ?? 2) - (ROLE_ORDER[b.spe] ?? 2);
-  });
+  // Tri par rôle : Tank → Heal → DPS
+  const sorted = [...effective].sort((a, b) => (ROLE_ORDER[a.spe] ?? 2) - (ROLE_ORDER[b.spe] ?? 2));
 
   // Pour chaque membre actif → bloc { @tag, ligne main, alts du joueur }
   const ownerIdsSeen  = new Set();
