@@ -133,6 +133,16 @@ function altShort(a) {
   return `${role}${armorStr}${ilvl} ${memberKey(a)}`;
 }
 
+// Ligne complète au format main, mais en utilisant le RIO du main du joueur
+function altFullLine(a, mainRio) {
+  const roleTag = a.spe === 'TANK' ? ':Tank:' : a.spe === 'Heal' ? ':Heal:' : ':DPS:';
+  const clsFr   = a.classe?.split(' ')[0] || a.nom;
+  const cls     = (CLASS_EN[clsFr] || clsFr).padEnd(14);
+  const ilvlStr = a.ilvl ? `${a.ilvl} ilvl` : '';
+  const trade   = formatTrade(a.can_trade);
+  return `${roleTag}  ${cls} / :Raiderio: ${mainRio || '?'} / :Keystone: ${memberKey(a)} / ${ilvlStr}  / ${trade}`;
+}
+
 function generateSignText() {
   const effective  = getEffectiveRoster();
   const usedAltIds = new Set(_swaps.values());
@@ -142,18 +152,40 @@ function generateSignText() {
   // Tri par rôle : Tank → Heal → DPS
   const sorted = [...effective].sort((a, b) => (ROLE_ORDER[a.spe] ?? 2) - (ROLE_ORDER[b.spe] ?? 2));
 
-  // Pour chaque membre actif → bloc { @tag, ligne main, alts du joueur }
-  const ownerIdsSeen  = new Set();
-  const ownerTagsSeen = new Set();
+  // Index complet des membres pour résoudre les alts vers leur main
+  const allMembres = getSetupData().membres || [];
+  const memberById = Object.fromEntries(allMembres.map(m => [m.id, m]));
   const norm = s => (s || '').trim().toLowerCase();
 
-  const blocks = sorted.map(m => {
-    // Identifier la racine du joueur (main perso)
+  // Pour un alt : remonter à son main et récupérer le tag (transitivement)
+  function altOwnerInfo(a) {
+    if (a.main_id) {
+      const main = memberById[a.main_id];
+      return {
+        rootId: a.main_id,
+        tag:    norm(main?.discord_tag || a.discord_tag),
+      };
+    }
+    return { rootId: null, tag: norm(a.discord_tag) };
+  }
+
+  // Owner d'un membre du roster : id racine + tag (résolu transitivement)
+  function memberOwnerInfo(m) {
     const original = m._original || m;
-    const ownerId  = original.main_id || original.id;
-    const tag      = m._original?.discord_tag || m.discord_tag || '';
-    ownerIdsSeen.add(ownerId);
-    if (tag) ownerTagsSeen.add(norm(tag));
+    const rootId   = original.main_id || original.id;
+    const main     = original.main_id ? memberById[original.main_id] : original;
+    const tag      = norm(main?.discord_tag || original.discord_tag);
+    return { rootId, tag };
+  }
+
+  const ownerIdsSeen  = new Set();
+  const ownerTagsSeen = new Set();
+  const altOwners     = altsWithKey.map(altOwnerInfo);
+
+  const blocks = sorted.map(m => {
+    const own = memberOwnerInfo(m);
+    ownerIdsSeen.add(own.rootId);
+    if (own.tag) ownerTagsSeen.add(own.tag);
 
     // Ligne du personnage actuel (peut être un alt swappé)
     const roleTag = m.spe === 'TANK' ? ':Tank:' : m.spe === 'Heal' ? ':Heal:' : ':DPS:';
@@ -164,22 +196,26 @@ function generateSignText() {
     const trade   = formatTrade(m.can_trade);
     const mainLine = `${roleTag}  ${cls} / :Raiderio: ${rio} / :Keystone: ${memberKey(m)} / ${ilvlStr}  / ${trade}`;
 
-    // Alts du joueur : main_id correspondant OU même discord_tag (compo + alt)
-    const playerAlts = altsWithKey.filter(a =>
-      a.main_id === ownerId
-      || (tag && norm(a.discord_tag) === norm(tag))
-    );
-    const altLine = playerAlts.length ? `Alts: ${playerAlts.map(altShort).join(' / ')}` : '';
+    // Alts du joueur : rootId match OU tag match (résolu transitivement)
+    const playerAlts = altsWithKey.filter((a, i) => {
+      const ao = altOwners[i];
+      return (ao.rootId && ao.rootId === own.rootId)
+          || (own.tag && ao.tag && ao.tag === own.tag);
+    });
+    // Une ligne par alt, format identique au main, RIO du main repris
+    const altLines = playerAlts.map(a => altFullLine(a, m.rio));
 
-    const tagLine = tag ? `@${tag}` : '';
-    return [tagLine, mainLine, altLine].filter(Boolean).join('\n');
+    const tagLine = own.tag ? `@${own.tag}` : '';
+    return [tagLine, mainLine, ...altLines].filter(Boolean).join('\n');
   });
 
-  // Alts orphelins : ni main_id ni discord_tag liés à un joueur du roster
-  const orphans = altsWithKey.filter(a =>
-    !ownerIdsSeen.has(a.main_id)
-    && !(a.discord_tag && ownerTagsSeen.has(norm(a.discord_tag)))
-  );
+  // Alts orphelins : ni rootId ni tag liés à un joueur du roster
+  const orphans = altsWithKey.filter((a, i) => {
+    const ao = altOwners[i];
+    if (ao.rootId && ownerIdsSeen.has(ao.rootId)) return false;
+    if (ao.tag && ownerTagsSeen.has(ao.tag))      return false;
+    return true;
+  });
 
   const COMPO_LBL = { 1: 'Solo', 2: 'Duo', 3: 'Trio', 4: 'TT' };
   const compoLbl  = COMPO_LBL[sorted.length] || '';
