@@ -142,13 +142,17 @@ function generateSignText() {
   const sorted = [...effective].sort((a, b) => (ROLE_ORDER[a.spe] ?? 2) - (ROLE_ORDER[b.spe] ?? 2));
 
   // Pour chaque membre actif → bloc { @tag, ligne main, alts du joueur }
-  const ownerIdsSeen = new Set();
+  const ownerIdsSeen  = new Set();
+  const ownerTagsSeen = new Set();
+  const norm = s => (s || '').trim().toLowerCase();
+
   const blocks = sorted.map(m => {
     // Identifier la racine du joueur (main perso)
     const original = m._original || m;
     const ownerId  = original.main_id || original.id;
+    const tag      = m._original?.discord_tag || m.discord_tag || '';
     ownerIdsSeen.add(ownerId);
-    const tag      = m._original?.discord_tag || m.discord_tag;
+    if (tag) ownerTagsSeen.add(norm(tag));
 
     // Ligne du personnage actuel (peut être un alt swappé)
     const roleTag = m.spe === 'TANK' ? ':Tank:' : m.spe === 'Heal' ? ':Heal:' : ':DPS:';
@@ -159,16 +163,22 @@ function generateSignText() {
     const trade   = formatTrade(m.can_trade);
     const mainLine = `${roleTag}  ${cls} / :Raiderio: ${rio} / :Keystone: ${memberKey(m)} / ${ilvlStr}  / ${trade}`;
 
-    // Alts du joueur : ceux dont main_id pointe vers ownerId
-    const playerAlts = altsWithKey.filter(a => a.main_id === ownerId);
-    const altLine    = playerAlts.length ? `Alts: ${playerAlts.map(altShort).join(' / ')}` : '';
+    // Alts du joueur : main_id correspondant OU même discord_tag (compo + alt)
+    const playerAlts = altsWithKey.filter(a =>
+      a.main_id === ownerId
+      || (tag && norm(a.discord_tag) === norm(tag))
+    );
+    const altLine = playerAlts.length ? `Alts: ${playerAlts.map(altShort).join(' / ')}` : '';
 
     const tagLine = tag ? `@${tag}` : '';
     return [tagLine, mainLine, altLine].filter(Boolean).join('\n');
   });
 
-  // Alts orphelins (réservistes qui n'appartiennent à aucun main du roster actif)
-  const orphans = altsWithKey.filter(a => !ownerIdsSeen.has(a.main_id));
+  // Alts orphelins : ni main_id ni discord_tag liés à un joueur du roster
+  const orphans = altsWithKey.filter(a =>
+    !ownerIdsSeen.has(a.main_id)
+    && !(a.discord_tag && ownerTagsSeen.has(norm(a.discord_tag)))
+  );
 
   const COMPO_LBL = { 1: 'Solo', 2: 'Duo', 3: 'Trio', 4: 'TT' };
   const compoLbl  = COMPO_LBL[sorted.length] || '';
