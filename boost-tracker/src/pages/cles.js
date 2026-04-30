@@ -2,10 +2,13 @@ import { supabase } from '../lib/supabase.js';
 import { safeQuery } from '../lib/errors.js';
 import { escHtml, g, setLoading } from '../lib/utils.js';
 import { toast } from '../ui/toast.js';
-import { isMember } from '../lib/state.js';
+import { isMember, getMainMembreId } from '../lib/state.js';
 import { roleImg, speColor } from '../ui/components.js';
 import { CLE_OPTIONS, DONJONS } from '../constants.js';
 import { refreshCoverage } from '../ui/coverage.js';
+
+let _onlyMine    = false;
+let _filterWired = false;
 
 const ROLE_ORDER = { 'TANK': 0, 'Heal': 1, 'DPS.C': 2, 'DPS.D': 3 };
 
@@ -71,18 +74,37 @@ export async function renderCles() {
   if (!isMember()) return;
   setLoading('cles-grid');
 
-  const [membres, teams, slots] = await Promise.all([
+  const [membresAll, teams, slots] = await Promise.all([
     safeQuery('renderCles:membres', supabase.from('membres').select('*').order('nom')),
     safeQuery('renderCles:teams',   supabase.from('teams').select('*').order('created_at')),
     safeQuery('renderCles:slots',   supabase.from('team_slots').select('*')),
   ]);
-  if (membres === null) return;
+  if (membresAll === null) return;
+
+  // Wire le toggle une seule fois
+  if (!_filterWired) wireFilter();
+
+  // Filtre "mes clés" : main perso + alts liés
+  const myMainId = getMainMembreId();
+  const myIds    = new Set();
+  if (myMainId) {
+    myIds.add(myMainId);
+    membresAll.filter(m => m.main_id === myMainId).forEach(m => myIds.add(m.id));
+  }
+  const membres = (_onlyMine && myMainId) ? membresAll.filter(m => myIds.has(m.id)) : membresAll;
+
+  // Si aucun main défini, désactiver le filtre auto pour éviter d'être bloqué
+  if (_onlyMine && !myMainId) _onlyMine = false;
+  syncFilterUI(myMainId);
 
   const grid = g('cles-grid');
   g('cles-count').textContent = membres.length + ' membre' + (membres.length > 1 ? 's' : '');
 
   if (!membres.length) {
-    grid.innerHTML = '<div class="empty"><div class="empty-icon">🗝️</div><p>Aucun membre — ajoute des membres d\'abord</p></div>';
+    const msg = _onlyMine
+      ? 'Tu n\'as pas encore de personnage lié à ton main.'
+      : 'Aucun membre — ajoute des membres d\'abord';
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">🗝️</div><p>${msg}</p></div>`;
     return;
   }
 
@@ -119,6 +141,30 @@ export async function renderCles() {
     const target = e.target.closest('.cle-donjon, .cle-niveau-inp');
     if (target) saveCle(target.dataset.id);
   };
+}
+
+function wireFilter() {
+  _filterWired = true;
+  const btn = document.getElementById('btn-cles-mine');
+  btn?.addEventListener('click', () => {
+    if (!getMainMembreId()) {
+      toast("Définis d'abord ton personnage principal", 'err');
+      return;
+    }
+    _onlyMine = !_onlyMine;
+    renderCles();
+  });
+}
+
+function syncFilterUI(myMainId) {
+  const btn = document.getElementById('btn-cles-mine');
+  if (!btn) return;
+  btn.dataset.active = String(_onlyMine);
+  btn.textContent = _onlyMine ? '✕ Voir toutes les clés' : '⚿ Voir mes clés';
+  btn.disabled = !myMainId;
+  btn.title = myMainId
+    ? (_onlyMine ? 'Afficher tous les membres' : 'Afficher uniquement ton main + tes alts')
+    : "Définis ton perso principal pour activer le filtre";
 }
 
 // ── Sauvegarde ─────────────────────────────────────────────────────────────────
