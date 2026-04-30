@@ -109,32 +109,38 @@ export async function renderCles() {
   }
 
   const sortByRole = arr => [...arr].sort((a, b) => (ROLE_ORDER[a.spe] ?? 9) - (ROLE_ORDER[b.spe] ?? 9));
-  const assignedIds = new Set();
 
-  const sections = (teams || []).map(team => {
-    const teamSlots   = (slots || []).filter(s => s.team_id === team.id);
-    const teamMembres = teamSlots
-      .map(s => membres.find(m => m.id === s.membre_id))
-      .filter(Boolean)
-      .filter(m => { const seen = assignedIds.has(m.id); assignedIds.add(m.id); return !seen; });
+  // Mode "mes clés" → liste plate, pas de regroupement team/sans team
+  if (_onlyMine) {
+    grid.innerHTML = `<div class="cles-team-grid">${sortByRole(membres).map(cardHTML).join('')}</div>`;
+  } else {
+    const assignedIds = new Set();
 
-    if (!teamMembres.length) return '';
-    return `<div class="cles-section">
-      <div class="cles-section-head">${escHtml(team.nom)}</div>
-      <div class="cles-team-grid">${sortByRole(teamMembres).map(cardHTML).join('')}</div>
-    </div>`;
-  });
+    const sections = (teams || []).map(team => {
+      const teamSlots   = (slots || []).filter(s => s.team_id === team.id);
+      const teamMembres = teamSlots
+        .map(s => membres.find(m => m.id === s.membre_id))
+        .filter(Boolean)
+        .filter(m => { const seen = assignedIds.has(m.id); assignedIds.add(m.id); return !seen; });
 
-  // Membres sans team
-  const unassigned = sortByRole(membres.filter(m => !assignedIds.has(m.id)));
-  if (unassigned.length) {
-    sections.push(`<div class="cles-section">
-      <div class="cles-section-head">Sans team</div>
-      <div class="cles-team-grid">${unassigned.map(cardHTML).join('')}</div>
-    </div>`);
+      if (!teamMembres.length) return '';
+      return `<div class="cles-section">
+        <div class="cles-section-head">${escHtml(team.nom)}</div>
+        <div class="cles-team-grid">${sortByRole(teamMembres).map(cardHTML).join('')}</div>
+      </div>`;
+    });
+
+    // Membres sans team
+    const unassigned = sortByRole(membres.filter(m => !assignedIds.has(m.id)));
+    if (unassigned.length) {
+      sections.push(`<div class="cles-section">
+        <div class="cles-section-head">Sans team</div>
+        <div class="cles-team-grid">${unassigned.map(cardHTML).join('')}</div>
+      </div>`);
+    }
+
+    grid.innerHTML = sections.join('');
   }
-
-  grid.innerHTML = sections.join('');
 
   // Sauvegarde auto — event delegation
   grid.onchange = e => {
