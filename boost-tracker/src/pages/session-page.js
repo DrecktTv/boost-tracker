@@ -2,7 +2,11 @@ import { getSetupData, getAllMembres, setSelection, refreshCoverage } from '../u
 import { escHtml } from '../lib/utils.js';
 import { isMember } from '../lib/state.js';
 import { speColor, roleImg } from '../ui/components.js';
-import { DUNGEON_LBL, TRADE_SLOTS, CLASS_EN } from '../constants.js';
+import { DUNGEON_LBL, TRADE_SLOTS, CLASS_EN, CLE_OPTIONS, DONJONS } from '../constants.js';
+import { supabase } from '../lib/supabase.js';
+import { safeQuery } from '../lib/errors.js';
+import { toast } from '../ui/toast.js';
+import { openWclImport } from './wcl-import.js';
 
 // ── State ──────────────────────────────────────────────────────────────────────
 
@@ -233,6 +237,21 @@ function keyBadge(m) {
   if (!m.cle_donjon || !m.cle_niveau)
     return `<span class="sess-badge sess-badge-nokey">No key</span>`;
   return `<span class="sess-badge sess-badge-key">+${m.cle_niveau} ${DUNGEON_LBL[m.cle_donjon] || m.cle_donjon}</span>`;
+}
+
+// Éditeur inline de la clé : select donjon + input niveau
+function keyEditor(m) {
+  const has = m.cle_donjon && m.cle_niveau;
+  const opts = CLE_OPTIONS.map(c =>
+    `<option value="${escHtml(c)}"${m.cle_donjon === c ? ' selected' : ''}>${escHtml(DONJONS[c]?.fr || c)}</option>`
+  ).join('');
+  return `<span class="sess-keyedit${has ? ' sess-keyedit-has' : ''}" data-id="${escHtml(m.id)}">
+    <select class="sess-keyedit-donjon" data-id="${escHtml(m.id)}" title="Donjon">
+      <option value="">— Donjon —</option>${opts}
+    </select>
+    <input type="number" class="sess-keyedit-niv" data-id="${escHtml(m.id)}"
+      value="${m.cle_niveau || ''}" placeholder="+" min="2" max="30" title="Niveau">
+  </span>`;
 }
 
 function ilvlBadge(m) {
@@ -588,7 +607,7 @@ function renderRoster(page) {
         ${m.classe ? `<span class="sess-member-cls">${escHtml(m.classe.split(' ')[0])}</span>` : ''}
         ${isSwap ? `<span class="sess-swap-lbl">remplace ${escHtml(m._original.nom)}</span>` : ''}
       </div>
-      <div class="sess-member-badges">${ilvlBadge(m)}${keyBadge(m)}${tradeBadge(m.can_trade)}</div>
+      <div class="sess-member-badges">${ilvlBadge(m)}${tradeBadge(m.can_trade)}${keyEditor(m)}</div>
       <button class="sess-swap-btn${isOpen ? ' active' : ''}" data-swap-id="${escHtml(pickerId)}" title="Swapper">↕</button>
       ${pickerHtml}
     </div>`;
@@ -601,7 +620,7 @@ function renderRoster(page) {
       <span class="sess-member-bar" style="background:${color}"></span>
       ${roleImg(role, 14)}
       <span class="sess-alt-name">${escHtml(m.nom)}</span>
-      <div class="sess-member-badges">${ilvlBadge(m)}${keyBadge(m)}${tradeBadge(m.can_trade)}</div>
+      <div class="sess-member-badges">${ilvlBadge(m)}${tradeBadge(m.can_trade)}${keyEditor(m)}</div>
     </div>`;
   }).join('');
 
@@ -631,6 +650,7 @@ function renderRoster(page) {
         title:`Roster <em>${escHtml(teamName)}</em>`,
         sub:  `${sorted.length} personnage${sorted.length > 1 ? 's' : ''} principal${sorted.length > 1 ? 's' : ''}${alts.length ? ` · ${alts.length} alt${alts.length > 1 ? 's' : ''} en réserve` : ''}. Swap un membre à tout moment, puis copie le texte pour la sign Discord.`,
         right:`
+          <button class="btn btn-ghost btn-sm" id="sess-wcl-btn" title="Importer un rapport WarcraftLogs">📋 Import WCL</button>
           <button class="btn btn-ghost btn-sm" id="sess-edit-btn">Modifier</button>
           <button class="sess-copy-btn" id="sess-copy-btn">Copier le texte</button>
         `,
@@ -654,6 +674,33 @@ function wireRosterListeners(page) {
   page.querySelector('#sess-edit-btn')?.addEventListener('click', () => {
     _step = 1;
     renderStep1(page);
+  });
+
+  // Import WCL → ouvre la modale d'import
+  page.querySelector('#sess-wcl-btn')?.addEventListener('click', () => {
+    openWclImport();
+  });
+
+  // Édition inline des clés (donjon + niveau)
+  const saveKey = async (id) => {
+    const sel = page.querySelector(`.sess-keyedit-donjon[data-id="${id}"]`);
+    const inp = page.querySelector(`.sess-keyedit-niv[data-id="${id}"]`);
+    if (!sel || !inp) return;
+    const cle_donjon = sel.value || null;
+    const cle_niveau = parseInt(inp.value) || null;
+    const data = await safeQuery('sess:saveKey',
+      supabase.from('membres').update({ cle_donjon, cle_niveau }).eq('id', id)
+    );
+    if (data === null) return;
+    toast('🗝 Clé mise à jour');
+    await refreshCoverage(); // déclenche coverage:changed → re-render auto
+  };
+  page.querySelectorAll('.sess-keyedit-donjon').forEach(el => {
+    el.addEventListener('change', () => saveKey(el.dataset.id));
+  });
+  page.querySelectorAll('.sess-keyedit-niv').forEach(el => {
+    el.addEventListener('change', () => saveKey(el.dataset.id));
+    el.addEventListener('blur',   () => saveKey(el.dataset.id));
   });
 
   // Copier — force un refresh des données membres avant de générer le texte
