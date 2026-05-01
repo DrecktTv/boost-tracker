@@ -1,5 +1,5 @@
 const _handlers = {};
-const VALID_PAGES = ['tracker', 'membres', 'teams', 'cles', 'historique', 'blacklist', 'ladder', 'users'];
+const VALID_PAGES = ['tracker', 'session', 'membres', 'teams', 'cles', 'historique', 'blacklist', 'ladder', 'users'];
 
 /** Enregistre une fonction de rendu pour une page */
 export function registerPage(name, renderFn) {
