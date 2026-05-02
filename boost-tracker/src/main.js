@@ -12,7 +12,7 @@ import { loadUsers }      from './pages/users.js';
 import { openAddRun, openAddRunSolo, saveRun, addCleInput, addParticipantInput } from './pages/runs-modal.js';
 import { openReset, doReset } from './pages/reset.js';
 import { initSmizz }      from './smizz/smizz.js';
-import { initTodo, openTodo } from './pages/todo.js';
+import { renderTodo } from './pages/todo.js';
 import { maybeShowWhackSmizz } from './smizz/whack-smizz.js';
 import { initRealtime }   from './lib/realtime.js';
 import { debounce }       from './lib/utils.js';
@@ -31,6 +31,7 @@ registerPage('cles',       renderCles);
 registerPage('historique', renderHist);
 registerPage('blacklist',  renderBlacklist);
 registerPage('ladder',     renderLadder);
+registerPage('todo',       renderTodo);
 registerPage('users',      loadUsers);
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
@@ -86,7 +87,6 @@ document.addEventListener('app:ready', () => {
   restorePage('tracker');
   initWednesdayBanner(); // reprend la page du hash URL, sinon tracker
   initSmizz();
-  initTodo();
   initCoverage();
   initWclImport();
   maybeShowWhackSmizz();
@@ -143,7 +143,7 @@ function wireButtons() {
   // Auth
   on('btn-discord-login', () => loginWithDiscord());
   on('btn-logout',        () => logout());
-  on('btn-todo',         () => openTodo());
+  
 }
 
 function on(id, fn) {

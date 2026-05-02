@@ -2389,319 +2389,278 @@ td { padding:14px 20px; font-size:15px; vertical-align:middle }
 }
 
 /* ════════════════════════════════════════════════════════════
-   TO-DO LIST — Panneau coulissant
+   TO-DO LIST — Page complète (même DA que le reste)
    Coller à la fin de src/styles.css
    ════════════════════════════════════════════════════════════ */
 
-/* ── Overlay ─────────────────────────────────────────────── */
-#todo-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  z-index: 800;
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+/* ── Loading ─────────────────────────────────────────────── */
+.td-page-loading {
+  padding: 32px 28px;
+  display: flex; flex-direction: column; gap: 10px;
 }
-#todo-overlay.td-open { display: block; }
 
-/* ── Panneau ─────────────────────────────────────────────── */
-#todo-panel {
-  position: fixed;
-  top: 0; right: 0;
-  width: 340px;
-  max-width: 100vw;
-  height: 100vh;
-  background: var(--bg1);
-  border-left: 1px solid var(--border);
-  box-shadow: -8px 0 32px rgba(0,0,0,.4);
-  z-index: 900;
-  transform: translateX(100%);
-  transition: transform .26s cubic-bezier(.4,0,.2,1);
-  overflow-y: auto;
-  overflow-x: hidden;
+/* ── Page wrapper ────────────────────────────────────────── */
+.td-page {
+  padding: 0 0 40px;
+}
+
+/* ── Hero (même style que membres-hero, teams-hero etc.) ─── */
+.td-page-hero {
   display: flex;
-  flex-direction: column;
-  padding: 14px 16px 32px;
-}
-#todo-panel.td-open  { transform: translateX(0); }
-body.td-no-scroll    { overflow: hidden; }
-
-/* ── Bouton fermer ───────────────────────────────────────── */
-#todo-close {
-  align-self: flex-end;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text3);
-  font-size: 13px;
-  width: 26px; height: 26px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-  transition: background .12s, color .12s;
-}
-#todo-close:hover { background: var(--bg4, var(--border)); color: var(--text); }
-
-/* ── Header ──────────────────────────────────────────────── */
-.td-header {
-  padding-bottom: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 28px 28px 20px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 14px;
+  margin-bottom: 24px;
 }
-.td-title {
-  font-size: 16px;
+.td-page-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+.td-page-title {
+  font-size: 26px;
   font-weight: 700;
   color: var(--text);
-  letter-spacing: -.01em;
+  margin-bottom: 6px;
+  line-height: 1.2;
 }
-.td-sub {
-  font-size: 11px;
+.td-page-title em { color: var(--gold2); font-style: normal; }
+.td-page-sub {
+  font-size: 13px;
   color: var(--text3);
-  margin-top: 2px;
+  line-height: 1.6;
+  max-width: 480px;
 }
 
-/* ── Tabs perso ──────────────────────────────────────────── */
-.td-perso-tabs {
+/* ── Progression globale (hero droite) ───────────────────── */
+.td-global-prog { min-width: 200px; }
+.td-global-prog-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text3);
+  margin-bottom: 6px;
+}
+.td-global-pct { font-weight: 700; color: var(--text2); }
+.td-prog-bg {
+  height: 5px; background: var(--bg3);
+  border-radius: 99px; overflow: hidden;
+}
+.td-prog-fill {
+  height: 100%; background: var(--blue);
+  border-radius: 99px; transition: width .4s ease;
+}
+
+/* ── Tabs persos ─────────────────────────────────────────── */
+.td-page-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 10px;
+  gap: 8px;
+  padding: 0 28px 20px;
 }
-.td-ptab {
-  display: flex; align-items: center; gap: 5px;
-  padding: 4px 9px;
-  border-radius: 6px;
+.td-page-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 14px;
+  border-radius: var(--rad2);
   border: 1px solid var(--border);
   background: var(--bg2);
-  color: var(--text3);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all .12s;
+  color: var(--text2);
+  font-size: 13px;
   font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
 }
-.td-ptab:hover        { background: var(--bg3); color: var(--text2); }
-.td-ptab.td-ptab-active {
+.td-page-tab:hover { background: var(--bg3); color: var(--text); }
+.td-page-tab.td-tab-active {
   background: var(--bg3);
   border-color: var(--blue);
   color: var(--text);
   font-weight: 600;
 }
-.td-pdot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.td-tab-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%; flex-shrink: 0;
 }
-.td-alt-tag {
-  font-size: 9px;
-  background: var(--bg4, var(--border));
-  color: var(--text3);
-  padding: 1px 4px;
-  border-radius: 3px;
-  text-transform: uppercase;
-  letter-spacing: .05em;
+.td-tab-name { font-weight: 500; }
+.td-tab-main {
+  font-size: 9px; font-weight: 700;
+  background: #1a3a1a; color: #4caf50;
+  padding: 1px 5px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.td-tab-alt {
+  font-size: 9px; font-weight: 600;
+  background: var(--bg3); color: var(--text3);
+  padding: 1px 5px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.td-tab-pct {
+  font-size: 11px; color: var(--text3);
+  margin-left: 2px;
 }
 
 /* ── Carte perso actif ───────────────────────────────────── */
 .td-perso-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 28px 24px;
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
+  border-radius: var(--rad2);
+  padding: 14px 16px;
 }
-.td-perso-bar {
-  width: 4px; height: 36px;
-  border-radius: 3px;
-  flex-shrink: 0;
+.td-perso-stripe {
+  width: 5px; height: 40px;
+  border-radius: 3px; flex-shrink: 0;
 }
-.td-perso-info { flex: 1; min-width: 0; }
 .td-perso-name {
-  font-size: 14px; font-weight: 700;
-  color: var(--text);
-  display: flex; align-items: center; gap: 6px;
-  flex-wrap: wrap;
-}
-.td-main-tag {
-  font-size: 9px;
-  background: #1a3a1a;
-  color: #4caf50;
-  padding: 1px 5px;
-  border-radius: 3px;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  font-weight: 700;
-}
-.td-alt-tag2 {
-  font-size: 9px;
-  background: var(--bg3);
-  color: var(--text3);
-  padding: 1px 5px;
-  border-radius: 3px;
-  text-transform: uppercase;
-  letter-spacing: .05em;
+  font-size: 16px; font-weight: 700; color: var(--text);
+  margin-bottom: 3px;
 }
 .td-perso-meta {
-  font-size: 11px; color: var(--text3); margin-top: 2px;
-}
-.td-ilvl { color: var(--blue2); font-weight: 600; }
-.td-rio  { color: var(--gold2, #eabc3a); font-weight: 600; }
-
-/* ── Barre de progression ────────────────────────────────── */
-.td-prog-wrap { min-width: 70px; }
-.td-prog-top {
-  display: flex; justify-content: space-between;
-  font-size: 11px; color: var(--text3); margin-bottom: 4px;
-}
-.td-prog-count { font-weight: 500; }
-.td-prog-pct   { font-weight: 700; color: var(--text2); }
-.td-prog-bg {
-  height: 4px; background: var(--bg3);
-  border-radius: 99px; overflow: hidden;
-}
-.td-prog-fill {
-  height: 100%; background: var(--blue);
-  border-radius: 99px; transition: width .35s ease;
+  font-size: 12px; color: var(--text3);
 }
 
-/* ── Sections ────────────────────────────────────────────── */
-.td-section { margin-bottom: 14px; }
-.td-section-title {
-  font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .08em;
-  color: var(--text3);
-  margin-bottom: 6px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border);
+/* ── Grille d'objectifs ──────────────────────────────────── */
+.td-obj-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  padding: 0 28px 24px;
 }
 
-/* ── Cases à cocher ──────────────────────────────────────── */
-.td-check {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+/* ── Carte objectif (case à cocher) ──────────────────────── */
+.td-obj-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px;
   background: var(--bg2);
-  margin-bottom: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--rad2);
   cursor: pointer;
-  transition: background .12s, border-color .12s;
+  transition: background .15s, border-color .15s;
   user-select: none;
 }
-.td-check:hover          { background: var(--bg3); }
-.td-check.td-checked     {
+.td-obj-card:not(.td-obj-num):hover { background: var(--bg3); }
+.td-obj-card.td-obj-done {
   background: rgba(76,175,80,.07);
-  border-color: rgba(76,175,80,.28);
+  border-color: rgba(76,175,80,.3);
 }
+
+.td-obj-check { flex-shrink: 0; }
 .td-cb {
-  width: 17px; height: 17px;
-  border-radius: 4px;
-  border: 1.5px solid var(--border);
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
   background: var(--bg3);
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: all .12s;
+  transition: all .15s;
 }
-.td-cb.td-cb-on          { background: #4caf50; border-color: #4caf50; }
-.td-check-ico            { font-size: 12px; flex-shrink: 0; }
-.td-check-lbl            { font-size: 13px; color: var(--text2); }
-.td-check.td-checked .td-check-lbl {
-  color: #4caf50; font-weight: 500;
+.td-cb.td-cb-on { background: #4caf50; border-color: #4caf50; }
+
+.td-obj-body { flex: 1; min-width: 0; }
+.td-obj-cat {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text3); margin-bottom: 3px;
+}
+.td-obj-name {
+  font-size: 15px; font-weight: 600; color: var(--text);
+}
+.td-obj-card.td-obj-done .td-obj-name {
+  color: #4caf50;
   text-decoration: line-through;
-  text-decoration-color: rgba(76,175,80,.35);
+  text-decoration-color: rgba(76,175,80,.4);
+}
+.td-obj-hint {
+  font-size: 11px; color: var(--text3); margin-top: 2px;
 }
 
-/* ── Champs numériques ───────────────────────────────────── */
-.td-num-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 7px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg2);
-  margin-bottom: 4px;
-  gap: 8px;
+.td-obj-status { flex-shrink: 0; }
+
+/* ── Carte numérique (clés +10) ──────────────────────────── */
+.td-obj-card.td-obj-num { cursor: default; flex-wrap: wrap; }
+.td-obj-num-right {
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; flex-wrap: wrap;
 }
-.td-num-lbl  { font-size: 13px; color: var(--text2); flex: 1; }
-.td-num-right{ display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-.td-num-input {
-  width: 58px;
-  padding: 4px 6px;
-  font-size: 14px; font-weight: 600;
-  border-radius: 5px;
-  border: 1.5px solid var(--border);
+.td-num-big {
+  width: 70px; height: 48px;
+  font-size: 22px; font-weight: 700;
+  text-align: center;
+  border-radius: var(--rad);
+  border: 2px solid var(--border);
   background: var(--bg3);
   color: var(--text);
-  text-align: center;
   font-family: inherit;
-  transition: border-color .15s, color .15s;
+  transition: border-color .2s, color .2s;
 }
-.td-num-input:focus         { outline: none; }
-.td-num-input.td-green      { border-color: #4caf50; color: #4caf50; }
-.td-num-input.td-orange     { border-color: #ff9800; color: #ff9800; }
-.td-num-input.td-red        { border-color: #f44336; color: #f44336; }
-.td-unit { font-size: 11px; color: var(--text3); }
+.td-num-big:focus { outline: none; }
+.td-num-big.td-green  { border-color: #4caf50; color: #4caf50; }
+.td-num-big.td-orange { border-color: #ff9800; color: #ff9800; }
+.td-num-big.td-red    { border-color: #f44336; color: #f44336; }
+.td-num-slash { font-size: 14px; color: var(--text3); }
 
-/* ── Badges couleur ──────────────────────────────────────── */
+/* ── Badges ──────────────────────────────────────────────── */
 .td-badge {
-  font-size: 10px; font-weight: 700;
-  padding: 2px 6px; border-radius: 99px;
+  font-size: 11px; font-weight: 600;
+  padding: 3px 9px; border-radius: 99px;
+  white-space: nowrap;
 }
 .td-badge.td-green  { background: rgba(76,175,80,.14);  color: #4caf50; }
 .td-badge.td-orange { background: rgba(255,152,0,.14);  color: #ff9800; }
 .td-badge.td-red    { background: rgba(244,67,54,.14);  color: #f44336; }
+.td-badge.td-muted  { background: var(--bg3); color: var(--text3); }
 
 /* ── Note ────────────────────────────────────────────────── */
+.td-note-section {
+  padding: 0 28px 20px;
+}
+.td-note-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text3); margin-bottom: 8px;
+}
 .td-note {
-  width: 100%; min-height: 68px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  width: 100%; min-height: 80px;
+  padding: 12px 14px;
+  border-radius: var(--rad2);
   border: 1px solid var(--border);
   background: var(--bg2);
   color: var(--text);
   font-size: 13px; font-family: inherit;
   resize: vertical;
+  transition: border-color .15s;
 }
 .td-note:focus { outline: none; border-color: var(--blue); }
 
-/* ── Bouton save ─────────────────────────────────────────── */
+/* ── Save ────────────────────────────────────────────────── */
 .td-save-row {
-  display: flex; align-items: center; gap: 10px;
-  padding-top: 8px; margin-top: 4px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 28px;
 }
-.td-save-ok { font-size: 12px; color: #4caf50; }
+.td-save-ok { font-size: 13px; color: #4caf50; }
 
-/* ── Loading / Empty ─────────────────────────────────────── */
-.td-loading {
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 20px 0;
+/* ── Empty states ────────────────────────────────────────── */
+.empty {
+  text-align: center; padding: 60px 28px;
+  color: var(--text3);
 }
-.td-empty {
-  text-align: center; padding: 40px 16px;
-}
-.td-empty-icon { font-size: 28px; margin-bottom: 10px; }
-.td-empty p    { font-size: 13px; color: var(--text3); line-height: 1.6; }
-.td-empty strong { color: var(--text2); }
+.empty-icon { font-size: 36px; margin-bottom: 14px; }
+.empty p { font-size: 14px; line-height: 1.6; }
+.empty strong { color: var(--text2); }
 
-/* ── Onglet sidebar ──────────────────────────────────────── */
+/* ── Sidebar tab ─────────────────────────────────────────── */
 .stab-todo { position: relative; }
-#todo-sidebar-badge {
-  display: none;
-  position: absolute;
-  right: 10px; top: 50%;
-  transform: translateY(-50%);
-  background: var(--gold, #eabc3a);
-  color: #1a1200;
-  font-size: 9px; font-weight: 800;
-  min-width: 16px; height: 16px;
-  border-radius: 99px;
-  align-items: center; justify-content: center;
-  padding: 0 4px;
-}
 
-/* ── Mobile ──────────────────────────────────────────────── */
-@media (max-width: 600px) {
-  #todo-panel { width: 100vw; padding: 12px 12px 28px; }
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .td-page-hero  { padding: 20px 16px 16px; }
+  .td-page-tabs  { padding: 0 16px 16px; }
+  .td-perso-card { margin: 0 16px 20px; }
+  .td-obj-grid   { padding: 0 16px 20px; grid-template-columns: 1fr; }
+  .td-note-section { padding: 0 16px 16px; }
+  .td-save-row   { padding: 0 16px; }
 }
