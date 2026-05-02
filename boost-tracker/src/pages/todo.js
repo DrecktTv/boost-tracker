@@ -87,12 +87,18 @@ function buildPage() {
   const m   = _membres.find(x => x.id === _selected);
   const val = td.mp_10_count ?? '';
 
-  // Calcul progression globale (toutes les cases de tous les persos)
-  const totalChecks  = _membres.length * 2; // 2 cases par perso (normal + hm)
-  const doneChecks   = _membres.reduce((acc, mb) => {
-    const t = _todos[mb.id] || {};
-    return acc + (t.raid_normal ? 1 : 0) + (t.raid_hm ? 1 : 0);
-  }, 0);
+  // Progression pondérée : clés +10 = 70% (8.75%/clé, max 8), Raid HM = 30%
+  // Raid Normal hors calcul
+  function calcPct(t) {
+    const cles = Math.min(parseInt(t.mp_10_count) || 0, 8);
+    const hm   = t.raid_hm ? 1 : 0;
+    return Math.round((cles / 8) * 70 + hm * 30);
+  }
+
+  const pct       = calcPct(td);
+  const globalPct = _membres.length
+    ? Math.round(_membres.reduce((acc, mb) => acc + calcPct(_todos[mb.id] || {}), 0) / _membres.length)
+    : 0;
 
   return `
   <div class="td-page">
@@ -107,10 +113,10 @@ function buildPage() {
       <div class="td-page-hero-right">
         <div class="td-global-prog">
           <div class="td-global-prog-label">
-            <span>${doneChecks}/${totalChecks} raids cochés</span>
-            <span class="td-global-pct">${totalChecks ? Math.round(doneChecks/totalChecks*100) : 0}%</span>
+            <span>Progression moyenne</span>
+            <span class="td-global-pct">${globalPct}%</span>
           </div>
-          <div class="td-prog-bg"><div class="td-prog-fill" style="width:${totalChecks ? Math.round(doneChecks/totalChecks*100) : 0}%"></div></div>
+          <div class="td-prog-bg"><div class="td-prog-fill" style="width:${globalPct}%"></div></div>
         </div>
       </div>
     </div>
@@ -119,9 +125,8 @@ function buildPage() {
     ${_membres.length > 1 ? `
     <div class="td-page-tabs">
       ${_membres.map(mb => {
-        const t    = _todos[mb.id] || {};
-        const done = (t.raid_normal ? 1 : 0) + (t.raid_hm ? 1 : 0);
-        const pct  = Math.round(done / 2 * 100);
+        const t   = _todos[mb.id] || {};
+        const pct = calcPct(t);
         return `
         <button class="td-page-tab ${mb.id === _selected ? 'td-tab-active' : ''}" data-mid="${escHtml(mb.id)}">
           <span class="td-tab-dot" style="background:${speColor(mb.classe || '')}"></span>
