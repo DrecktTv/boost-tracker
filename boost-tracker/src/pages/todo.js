@@ -148,6 +148,12 @@ function buildPage() {
           ${m?.rio  ? `· <span style="color:var(--gold2);font-weight:600">${m.rio} rio</span>`   : ''}
         </div>
       </div>
+      <div class="td-prog-wrap">
+        <div class="td-prog-top">
+          <span id="td-perso-pct">${pct}%</span>
+        </div>
+        <div class="td-prog-bg"><div class="td-prog-fill" id="td-perso-bar-fill" style="width:${pct}%"></div></div>
+      </div>
     </div>
 
     <!-- ── Grille d'objectifs ── -->
@@ -190,14 +196,13 @@ function buildPage() {
         <div class="td-obj-body">
           <div class="td-obj-cat">Mythique+</div>
           <div class="td-obj-name">Clés +10 faites</div>
-          <div class="td-obj-hint">Coffre dispo à partir de 8</div>
+          <div class="td-obj-hint">Coffre dispo à partir de 8 · 70% de l'objectif</div>
         </div>
         <div class="td-obj-num-right">
-          <input class="td-num-big ${mpCls(val)}" type="number" min="0" max="20"
-            value="${val === null || val === undefined ? '' : val}"
-            placeholder="0" data-key="mp_10_count">
-          <span class="td-num-slash">/20</span>
-          <div id="td-mp-badge">${mpBadge(val)}</div>
+          <button class="td-counter-btn" id="td-mp-minus">−</button>
+          <span class="td-num-big ${mpCls(val)}" id="td-mp-val">${val === '' || val === null ? '0' : val}</span>
+          <button class="td-counter-btn" id="td-mp-plus">+</button>
+          <div id="td-mp-badge">${mpBadge(val === '' || val === null ? '0' : val)}</div>
         </div>
       </div>
 
@@ -242,17 +247,57 @@ function wirePage(wrap) {
     });
   });
 
-  // Input clés +10
-  const mpInput = wrap.querySelector('[data-key="mp_10_count"]');
-  if (mpInput) {
-    mpInput.addEventListener('input', () => {
-      const val        = mpInput.value;
-      mpInput.className = `td-num-big ${mpCls(val)}`;
-      const badge      = document.getElementById('td-mp-badge');
-      if (badge) badge.innerHTML = mpBadge(val);
-      const td         = _todos[_selected] || {};
-      td.mp_10_count   = val === '' ? 0 : parseInt(val);
+  // Compteur clés +10 — boutons + et -
+  function updateMpDisplay(n) {
+    const valEl  = document.getElementById('td-mp-val');
+    const badge  = document.getElementById('td-mp-badge');
+    const progEl = document.getElementById('td-perso-pct');
+    const progBar= document.getElementById('td-perso-bar-fill');
+    if (valEl)  { valEl.textContent = n; valEl.className = `td-num-big ${mpCls(n)}`; }
+    if (badge)  badge.innerHTML = mpBadge(String(n));
+    // Mettre à jour le % du perso actif en temps réel
+    const td  = _todos[_selected] || {};
+    const p   = calcPctFromData(td);
+    if (progEl)  progEl.textContent = p + '%';
+    if (progBar) progBar.style.width = p + '%';
+    // Mettre à jour le % dans le tab actif
+    const activeTab = wrap.querySelector('.td-page-tab.td-tab-active .td-tab-pct');
+    if (activeTab) activeTab.textContent = p + '%';
+    // Mettre à jour la barre globale
+    const globalPctEl  = wrap.querySelector('.td-global-pct');
+    const globalBarEl  = wrap.querySelector('.td-prog-fill');
+    if (_membres.length && globalPctEl && globalBarEl) {
+      const gp = Math.round(_membres.reduce((acc, mb) => acc + calcPctFromData(_todos[mb.id] || {}), 0) / _membres.length);
+      globalPctEl.textContent = gp + '%';
+      globalBarEl.style.width = gp + '%';
+    }
+  }
+
+  // Fonction calcPct accessible depuis le wiring
+  function calcPctFromData(t) {
+    const cles = Math.min(parseInt(t.mp_10_count) || 0, 8);
+    const hm   = t.raid_hm ? 1 : 0;
+    return Math.round((cles / 8) * 70 + hm * 30);
+  }
+
+  const mpMinus = document.getElementById('td-mp-minus');
+  const mpPlus  = document.getElementById('td-mp-plus');
+  if (mpMinus && mpPlus) {
+    mpMinus.addEventListener('click', () => {
+      const td  = _todos[_selected] || {};
+      const cur = parseInt(td.mp_10_count) || 0;
+      const nxt = Math.max(0, cur - 1);
+      td.mp_10_count    = nxt;
       _todos[_selected] = td;
+      updateMpDisplay(nxt);
+    });
+    mpPlus.addEventListener('click', () => {
+      const td  = _todos[_selected] || {};
+      const cur = parseInt(td.mp_10_count) || 0;
+      const nxt = cur + 1;
+      td.mp_10_count    = nxt;
+      _todos[_selected] = td;
+      updateMpDisplay(nxt);
     });
   }
 
